@@ -43,19 +43,33 @@ class Layer implements IFlxDestroyable
 	}
 
 	@:allow(animate.internal.Timeline)
-	function __loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?map:Map<String, Layer>):Void
+	function __loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
 	{
 		this.name = layer.LN;
 
-		// Set clipped by
-		var isMasked:Bool = layer.Clpb != null;
-		if (map != null && isMasked)
+		var clippedBy:Null<String> = layer.Clpb;
+		var isMasked:Bool = clippedBy != null;
+
+		if (isMasked && layerIndex != null && layers != null) // Set clipped by
 		{
-			parentLayer = map.get(layer.Clpb);
+			var i = layerIndex;
+			var foundLayer:Bool = false;
 			this.layerType = CLIPPED;
 
-			if (parentLayer == null)
+			while (i < layers.length)
 			{
+				var aboveLayer = layers[i++];
+				if (aboveLayer != null && aboveLayer.name == clippedBy && aboveLayer.layerType == CLIPPER)
+				{
+					parentLayer = aboveLayer;
+					foundLayer = true;
+					break;
+				}
+			}
+
+			if (!foundLayer)
+			{
+				parentLayer = null;
 				isMasked = false;
 				visible = false;
 			}
@@ -90,11 +104,11 @@ class Layer implements IFlxDestroyable
 
 		if (isMasked)
 		{
-			for (frame in parentLayer.frames)
-				setKeyframe(frame.index);
-
 			for (frame in frames)
-				frame._dirty = true;
+			{
+				if (frame.elements.length > 0)
+					frame._dirty = true;
+			}
 		}
 
 		frameCount = frameIndices.length;

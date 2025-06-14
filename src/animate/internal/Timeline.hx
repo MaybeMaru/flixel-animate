@@ -47,8 +47,9 @@ class Timeline implements IFlxDestroyable
 
 		for (i in 0...layersJson.length)
 		{
-			var layer = layers[layers.length - i - 1];
-			layer.__loadJson(layersJson[i], parent, __layerMap);
+			var layerIndex = layers.length - i - 1;
+			var layer = layers[layerIndex];
+			layer.__loadJson(layersJson[i], parent, layerIndex, layers);
 
 			if (layer.frameCount > frameCount)
 				frameCount = layer.frameCount;

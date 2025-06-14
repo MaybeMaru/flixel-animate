@@ -13,7 +13,6 @@ import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
-@:nullSafety(Strict)
 class Frame implements IFlxDestroyable
 {
 	public var layer:Null<Layer>;
@@ -73,14 +72,24 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
-	var bakedFrame:Null<AtlasInstance> = null;
+
+	// TODO: maybe instead of a map this could be a vector
+	// which turns off _dirty after its filled with baked masks
+	var bakedFrames:Null<Map<Int, AtlasInstance>> = null;
 
 	function bakeFrame(currentFrame:Int, layer:Layer):Void
 	{
 		if (layer.parentLayer == null)
 			return;
 
-		bakedFrame = FilterRenderer.maskFrame(this, currentFrame, layer);
+		if (bakedFrames == null)
+			bakedFrames = [];
+
+		if (bakedFrames.exists(currentFrame))
+			return;
+
+		var bakedFrame = FilterRenderer.maskFrame(this, currentFrame, layer);
+		bakedFrames.set(currentFrame, bakedFrame);
 
 		if (bakedFrame != null && (bakedFrame.frame.frame.width <= 1 || bakedFrame.frame.frame.height <= 1))
 			bakedFrame.visible = false;
@@ -111,17 +120,20 @@ class Frame implements IFlxDestroyable
 	public function draw(camera:FlxCamera, currentFrame:Int, layer:Layer, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		if (_dirty)
+		if (_dirty && layer != null)
 		{
-			_dirty = false;
 			bakeFrame(currentFrame, layer);
 		}
 
-		if (bakedFrame != null)
+		if (bakedFrames != null)
 		{
-			if (bakedFrame.visible)
-				bakedFrame.draw(camera, currentFrame, this, parentMatrix, transform, blend, antialiasing, shader);
-			return;
+			var bakedFrame = bakedFrames.get(currentFrame);
+			if (bakedFrame != null)
+			{
+				if (bakedFrame.visible)
+					bakedFrame.draw(camera, currentFrame, this, parentMatrix, transform, blend, antialiasing, shader);
+				return;
+			}
 		}
 
 		for (element in elements)
