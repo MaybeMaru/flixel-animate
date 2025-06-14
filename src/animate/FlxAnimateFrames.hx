@@ -82,6 +82,11 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			return content.replace(String.fromCharCode(0xFEFF), "");
 		}
 
+		final getGraphic = (path:String) ->
+		{
+			return #if (flixel < "5.9.0" && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
+		}
+
 		var animation:AnimationJson = Json.parse(getTextFromPath(path + "/Animation.json"));
 
 		var frames = new FlxAnimateFrames(null);
@@ -93,7 +98,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		{
 			var id = sm.split("spritemap")[1].split(".")[0];
 
-			var graphic = FlxG.bitmap.add(path + '/spritemap$id.png');
+			var graphic = getGraphic(path + '/spritemap$id.png');
 			var atlas = new FlxAtlasFrames(graphic);
 
 			var smContent = getTextFromPath(path + '/spritemap$id.json');
