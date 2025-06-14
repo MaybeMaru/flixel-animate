@@ -95,10 +95,10 @@ class FlxAnimate extends FlxSprite
 
 	function drawAnimate(camera:FlxCamera)
 	{
-		if (alpha <= 0 || scale.x == 0 || scale.y == 0)
+		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
 			return;
 
-		_matrix.setTo(flipX ? -1 : 1, 0, 0, flipY ? -1 : 1, 0, 0);
+		_matrix.setTo(this.checkFlipX() ? -1 : 1, 0, 0, this.checkFlipY() ? -1 : 1, 0, 0);
 
 		if (applyStageMatrix)
 			_matrix.concat(library.matrix);
