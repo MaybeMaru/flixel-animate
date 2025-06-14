@@ -1,8 +1,6 @@
 package animate.internal;
 
-#if !flash
 import animate.internal.elements.*;
-import animate.internal.filters.MaskShader;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
@@ -10,19 +8,22 @@ import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxPool;
 import openfl.display.BitmapData;
-import openfl.display.Graphics;
-import openfl.display.OpenGLRenderer;
-import openfl.display.Shader;
-import openfl.display._internal.Context3DGraphics;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+#if !flash
+import animate.internal.filters.MaskShader;
+import openfl.display.Graphics;
+import openfl.display.OpenGLRenderer;
+import openfl.display.Shader;
+import openfl.display._internal.Context3DGraphics;
 
 @:access(flixel.FlxCamera)
 @:access(flixel.graphics.frames.FlxFrame)
@@ -366,6 +367,135 @@ class FilterRenderer
 		return renderer;
 	}
 }
+#else
+// Basic Flash filter baking impl
+// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
+class FilterRenderer
+{
+	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	{
+		var filteredBounds:FlxRect = symbol.getBounds();
+
+		for (filter in filters)
+		{
+			if (filter is BlurFilter)
+			{
+				var blur:BlurFilter = cast filter;
+				filteredBounds.x -= blur.blurX;
+				filteredBounds.y -= blur.blurY;
+				filteredBounds.width += blur.blurX * 2;
+				filteredBounds.height += blur.blurY * 2;
+			}
+		}
+
+		var bitmap:BitmapData = getBitmap((cam, mat) -> symbol.draw(cam, 0, null, mat, null, null, true, null), filteredBounds);
+		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
+
+		var rect = new Rectangle(0, 0, bitmap.width, bitmap.height);
+		var point = new Point(0, 0);
+
+		for (filter in filters)
+			bitmap.applyFilter(bitmap, rect, point, filter);
+
+		var mat = new FlxMatrix();
+		mat.translate(filteredBounds.left, filteredBounds.top);
+		var invertMat = symbol.matrix.clone();
+		invertMat.invert();
+		mat.concat(invertMat);
+
+		var element = new AtlasInstance();
+		element.frame = frame;
+		element.matrix = mat;
+		scale.put();
+
+		return element;
+	}
+
+	public static function maskFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
+	{
+		var masker = layer.parentLayer;
+		if (masker == null)
+			return null;
+
+		var maskerFrame = masker.getFrameAtIndex(currentFrame);
+		if (maskerFrame == null)
+			return null;
+
+		var maskerBounds = maskerFrame.getBounds();
+		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, null, mat, null, null, true, null), maskerBounds);
+
+		var maskedBounds = frame.getBounds();
+		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, null, mat, null, null, true, null), maskedBounds);
+
+		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
+		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);
+		var intersectWidth = Math.min(maskerBounds.right, maskedBounds.right) - intersectX;
+		var intersectHeight = Math.min(maskerBounds.bottom, maskedBounds.bottom) - intersectY;
+
+		var maskedBitmap = maskBitmap(masked, masker);
+		var frame = FlxGraphic.fromBitmapData(maskedBitmap).imageFrame.frame;
+
+		var element = new AtlasInstance();
+		element.frame = frame;
+		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
+
+		return element;
+	}
+
+	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect)
+	{
+		var cam = CamPool.get();
+		cam.buffer.unlock();
+		cam.buffer.fillRect(new Rectangle(0, 0, cam.buffer.width, cam.buffer.height), FlxColor.TRANSPARENT);
+
+		var mat = new FlxMatrix();
+		mat.translate(-rect.left, -rect.top);
+
+		AtlasInstance.__skipIsOnScreen = true;
+		draw(cam, mat);
+		AtlasInstance.__skipIsOnScreen = false;
+
+		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
+		bitmap.draw(cam.buffer, new Matrix(1, 0, 0, 1, 0, 0));
+		cam.put();
+		cam.buffer.lock();
+
+		return bitmap;
+	}
+
+	static function maskBitmap(masked:BitmapData, masker:BitmapData):BitmapData
+	{
+		var width = Std.int(Math.min(masked.width, masker.width));
+		var height = Std.int(Math.min(masked.height, masker.height));
+		var result = new BitmapData(width, height, true, 0);
+
+		masked.lock();
+		masker.lock();
+		result.lock();
+
+		for (y in 0...height)
+		{
+			for (x in 0...width)
+			{
+				var maskColor:FlxColor = masker.getPixel32(x, y);
+				var maskAlpha = maskColor.alphaFloat;
+				if (maskAlpha <= 0)
+					continue;
+
+				var finalColor:FlxColor = masked.getPixel32(x, y);
+				finalColor.alphaFloat *= maskAlpha;
+				result.setPixel32(x, y, finalColor);
+			}
+		}
+
+		masked.unlock();
+		masker.unlock();
+		result.unlock();
+
+		return result;
+	}
+}
+#end
 
 class CamPool extends FlxCamera implements IFlxPooled
 {
@@ -383,4 +513,3 @@ class CamPool extends FlxCamera implements IFlxPooled
 
 	override function destroy() {}
 }
-#end

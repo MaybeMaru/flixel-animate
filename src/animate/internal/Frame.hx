@@ -77,7 +77,6 @@ class Frame implements IFlxDestroyable
 
 	function bakeFrame(currentFrame:Int, layer:Layer):Void
 	{
-		#if !flash
 		if (layer.parentLayer == null)
 			return;
 
@@ -85,7 +84,6 @@ class Frame implements IFlxDestroyable
 
 		if (bakedFrame != null && (bakedFrame.frame.frame.width <= 1 || bakedFrame.frame.frame.height <= 1))
 			bakedFrame.visible = false;
-		#end
 	}
 
 	public function forEachElement(callback:Element->Void):Void

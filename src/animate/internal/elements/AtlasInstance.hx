@@ -37,11 +37,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	public function new(?data:AtlasInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent);
+		this.tileMatrix = new FlxMatrix();
 		isSymbolInstance = false;
+
 		if (data != null)
 		{
 			this.frame = parent.getByName(data.N);
-			this.tileMatrix = new FlxMatrix();
 			this.matrix = data.MX.toMatrix();
 
 			#if flash
@@ -99,7 +100,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		#end
 
 		#if FLX_DEBUG
-		if (FlxG.debugger.drawDebug)
+		if (FlxG.debugger.drawDebug && !__skipIsOnScreen)
 			drawBoundingBox(camera, _bounds);
 		#end
 	}

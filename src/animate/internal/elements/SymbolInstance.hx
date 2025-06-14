@@ -86,8 +86,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (isMovieClip)
 		{
 			this.blend = #if flash Blend.resolveBlend(data.B); #else data.B; #end
-
-			#if !flash
 			this.filters = data.F;
 
 			// Set filters dirty
@@ -97,7 +95,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			// Set whole frame for blending
 			// if (this.blend != null && !Blend.isGpuSupported(this.blend))
 			//	frame._dirty = true;
-			#end
 		}
 		else
 		{
@@ -115,7 +112,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	function bakeFilters(?filters:Array<FilterJson>):Void
 	{
-		#if !flash
 		if (!isMovieClip || filters == null || filters.length <= 0)
 			return;
 
@@ -150,7 +146,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		bakedElement = FilterRenderer.bakeFilters(this, bitmapFilters, scale);
 		libraryItem = null;
-		#end
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
