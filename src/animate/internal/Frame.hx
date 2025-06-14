@@ -105,6 +105,15 @@ class Frame implements IFlxDestroyable
 	{
 		var tmpRect = FlxRect.get();
 		rect ??= FlxRect.get();
+
+		if (elements.length <= 0)
+		{
+			rect.set(0, 0, 0, 0);
+			if (matrix != null)
+				rect.set(matrix.tx, matrix.ty, 0, 0);
+			return rect;
+		}
+
 		rect.set(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY, Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
 
 		for (element in elements)

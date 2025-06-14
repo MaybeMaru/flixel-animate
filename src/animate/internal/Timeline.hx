@@ -149,11 +149,24 @@ class Timeline implements IFlxDestroyable
 				continue;
 
 			var frame = layer.getFrameAtIndex(frameIndex);
-			if (frame == null)
+			if (frame == null && frame.elements.length > 0)
 				continue;
 
 			var frameBounds = frame.getBounds(tmpRect, matrix);
+			if (Math.isNaN(frameBounds.right) || Math.isNaN(frameBounds.bottom))
+				continue;
+
 			rect = expandBounds(rect, frameBounds);
+		}
+
+		if (rect.x == Math.POSITIVE_INFINITY
+			|| rect.y == Math.POSITIVE_INFINITY
+			|| rect.width == Math.NEGATIVE_INFINITY
+			|| rect.height == Math.NEGATIVE_INFINITY)
+		{
+			rect.set(0, 0, 0, 0);
+			if (matrix != null)
+				rect.set(matrix.tx, matrix.ty, 0, 0);
 		}
 
 		tmpRect.put();
@@ -170,6 +183,7 @@ class Timeline implements IFlxDestroyable
 	{
 		baseBounds.x = Math.min(baseBounds.x, expandedBounds.x);
 		baseBounds.y = Math.min(baseBounds.y, expandedBounds.y);
+
 		baseBounds.width = Math.max(baseBounds.right, expandedBounds.right) - baseBounds.x;
 		baseBounds.height = Math.max(baseBounds.bottom, expandedBounds.bottom) - baseBounds.y;
 		return baseBounds;

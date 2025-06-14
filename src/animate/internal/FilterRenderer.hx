@@ -218,9 +218,10 @@ class FilterRenderer
 		filterFrame(frame, filters);
 
 		var mat = new FlxMatrix();
-		mat.translate(filteredBounds.x, filteredBounds.y);
 		mat.scale(scale.x, scale.y);
-		mat.concat(symbol.matrix.clone().invert());
+
+		symbol.matrix.identity();
+		symbol.matrix.translate(filteredBounds.x * scale.x, filteredBounds.y * scale.y);
 
 		var element = new AtlasInstance();
 		element.frame = frame;
