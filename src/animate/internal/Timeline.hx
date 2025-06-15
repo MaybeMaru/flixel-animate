@@ -23,12 +23,15 @@ class Timeline implements IFlxDestroyable
 	public var frameCount:Int;
 
 	var __layerMap:Map<String, Layer>;
+	var __bounds:FlxRect;
 	var parent:FlxAnimateFrames;
 
 	public function new(timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
 	{
 		layers = [];
 		currentFrame = 0;
+		__layerMap = [];
+		__bounds = FlxRect.get();
 		this.parent = parent;
 
 		if (name != null)
@@ -36,7 +39,6 @@ class Timeline implements IFlxDestroyable
 
 		var layersJson = timeline.L;
 
-		__layerMap = [];
 		for (layerJson in layersJson)
 		{
 			var layer = new Layer(this);
@@ -54,6 +56,8 @@ class Timeline implements IFlxDestroyable
 			if (layer.frameCount > frameCount)
 				frameCount = layer.frameCount;
 		}
+
+		__bounds = getWholeBounds(false, __bounds);
 	}
 
 	public function destroy():Void
@@ -61,6 +65,8 @@ class Timeline implements IFlxDestroyable
 		parent = null;
 		libraryItem = null;
 		layers = FlxDestroyUtil.destroyArray(layers);
+		__bounds = FlxDestroyUtil.put(__bounds);
+		__layerMap = null;
 	}
 
 	public function signalFrameChange(frameIndex:Int):Void
@@ -137,7 +143,7 @@ class Timeline implements IFlxDestroyable
 	}
 
 	// Returns the whole bounds of the timeline
-	public function getFullBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getWholeBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
 		var first:Bool = true;
 		var tmpRect:FlxRect = FlxRect.get();
@@ -180,7 +186,7 @@ class Timeline implements IFlxDestroyable
 
 			// Get frame at the bounds index
 			var frame = layer.getFrameAtIndex(frameIndex);
-			if (frame == null && frame.elements.length > 0)
+			if (frame == null || frame.elements.length <= 0)
 				continue;
 
 			// Get the bounds of the frame at the index

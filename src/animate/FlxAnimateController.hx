@@ -175,9 +175,22 @@ class FlxAnimateController extends FlxAnimationController
 			_animate.timeline.signalFrameChange(frame);
 			frameIndex = frame;
 			fireCallback();
+
+			updateTimelineBounds();
 		}
 
 		return frameIndex;
+	}
+
+	@:allow(animate.FlxAnimate)
+	function updateTimelineBounds()
+	{
+		@:privateAccess {
+			var bounds = _animate.timeline.__bounds;
+			_animate.frameWidth = Std.int(bounds.width);
+			_animate.frameHeight = Std.int(bounds.height);
+			_animate.resetFrameSize();
+		}
 	}
 
 	var _animate(get, never):FlxAnimate;

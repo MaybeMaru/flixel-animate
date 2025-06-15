@@ -100,7 +100,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		#end
 
 		#if FLX_DEBUG
-		if (FlxG.debugger.drawDebug && !Frame.__isDirtyCall)
+		if (FlxAnimate.drawDebugLimbs && !Frame.__isDirtyCall)
 			drawBoundingBox(camera, _bounds);
 		#end
 	}

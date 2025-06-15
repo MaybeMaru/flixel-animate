@@ -12,6 +12,7 @@ import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxAngle;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.system.FlxBGSprite;
 import flixel.util.FlxColor;
@@ -24,6 +25,8 @@ using flixel.util.FlxColorTransformUtil;
 
 class FlxAnimate extends FlxSprite
 {
+	public static var drawDebugLimbs:Bool = false;
+
 	public var library:FlxAnimateFrames;
 	public var anim:FlxAnimateController;
 
@@ -57,12 +60,17 @@ class FlxAnimate extends FlxSprite
 
 	override function set_frames(frames:FlxFramesCollection):FlxFramesCollection
 	{
-		isAnimate = (frames is FlxAnimateFrames);
+		isAnimate = frames != null && (frames is FlxAnimateFrames);
+
+		var resultFrames = super.set_frames(frames);
 
 		if (isAnimate)
 		{
 			library = cast frames;
 			timeline = library.timeline;
+			frame = null;
+			anim.updateTimelineBounds();
+			resetHelpers();
 		}
 		else
 		{
@@ -70,7 +78,7 @@ class FlxAnimate extends FlxSprite
 			timeline = null;
 		}
 
-		return super.set_frames(frames);
+		return resultFrames;
 	}
 
 	override function draw()
@@ -83,18 +91,19 @@ class FlxAnimate extends FlxSprite
 
 		for (camera in #if (flixel >= "5.7.0") this.getCamerasLegacy() #else this.cameras #end)
 		{
-			if (!camera.visible || !camera.exists)
+			if (!camera.visible || !camera.exists || (useLegacyBounds ? false : !isOnScreen(camera)))
 				continue;
 
 			drawAnimate(camera);
 		}
 
-		// #if FLX_DEBUG
-		// if (FlxG.debugger.drawDebug)
-		//	drawDebug();
-		// #end
+		#if FLX_DEBUG
+		if (FlxG.debugger.drawDebug)
+			drawDebug();
+		#end
 	}
 
+	public var useLegacyBounds:Bool = #if FLX_ANIMATE_LEGACY_BOUNDS true; #else false; #end
 	public var applyStageMatrix:Bool = false;
 	public var renderStage:Bool = false;
 
@@ -126,6 +135,14 @@ class FlxAnimate extends FlxSprite
 		getScreenPosition(_point, camera);
 		_point.add(-offset.x, -offset.y);
 		_point.add(origin.x, origin.y);
+
+		if (!useLegacyBounds)
+		{
+			@:privateAccess
+			var bounds = timeline.__bounds;
+			_point.add(-bounds.x, -bounds.y);
+		}
+
 		_matrix.translate(_point.x, _point.y);
 
 		if (renderStage)
