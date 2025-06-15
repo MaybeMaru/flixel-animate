@@ -132,42 +132,74 @@ class Timeline implements IFlxDestroyable
 			if (frame == null)
 				continue;
 
-			frame.draw(camera, currentFrame, layer, parentMatrix, transform, blend, antialiasing, shader);
+			frame.draw(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
 		}
 	}
 
-	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	// Returns the whole bounds of the timeline
+	public function getFullBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
-		includeHiddenLayers ??= false;
+		var first:Bool = true;
 		var tmpRect:FlxRect = FlxRect.get();
 		rect ??= FlxRect.get();
-		rect.set(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY, Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
+
+		for (i in 0...this.frameCount)
+		{
+			var frameBounds = getBounds(i, includeHiddenLayers, tmpRect, matrix);
+			if (frameBounds.isEmpty)
+				continue;
+
+			if (first)
+			{
+				rect.copyFrom(frameBounds);
+				first = false;
+			}
+			else
+				rect = expandBounds(rect, frameBounds);
+		}
+
+		// Apply matrix in case the rect is empty
+		if (rect.isEmpty && matrix != null)
+			rect.set(matrix.tx, matrix.ty, 0, 0);
+
+		tmpRect.put();
+		return rect;
+	}
+
+	// Returns the bounds of the timeline at a specific frame
+	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	{
+		var first:Bool = true;
+		var tmpRect:FlxRect = FlxRect.get();
+		rect ??= FlxRect.get();
 
 		for (layer in layers)
 		{
 			if (!layer.visible && !includeHiddenLayers)
 				continue;
 
+			// Get frame at the bounds index
 			var frame = layer.getFrameAtIndex(frameIndex);
 			if (frame == null && frame.elements.length > 0)
 				continue;
 
-			var frameBounds = frame.getBounds(tmpRect, matrix);
-			if (Math.isNaN(frameBounds.right) || Math.isNaN(frameBounds.bottom))
+			// Get the bounds of the frame at the index
+			var frameBounds = frame.getBounds((frameIndex - frame.index), tmpRect, matrix);
+			if (frameBounds.isEmpty)
 				continue;
 
-			rect = expandBounds(rect, frameBounds);
+			if (first)
+			{
+				first = false;
+				rect.copyFrom(frameBounds);
+			}
+			else
+				expandBounds(rect, frameBounds);
 		}
 
-		if (rect.x == Math.POSITIVE_INFINITY
-			|| rect.y == Math.POSITIVE_INFINITY
-			|| rect.width == Math.NEGATIVE_INFINITY
-			|| rect.height == Math.NEGATIVE_INFINITY)
-		{
-			rect.set(0, 0, 0, 0);
-			if (matrix != null)
-				rect.set(matrix.tx, matrix.ty, 0, 0);
-		}
+		// Apply matrix in case the rect is empty
+		if (rect.isEmpty && matrix != null)
+			rect.set(matrix.tx, matrix.ty, 0, 0);
 
 		tmpRect.put();
 		return rect;
@@ -181,12 +213,31 @@ class Timeline implements IFlxDestroyable
 	@:noCompletion
 	public static function expandBounds(baseBounds:FlxRect, expandedBounds:FlxRect):FlxRect
 	{
-		baseBounds.x = Math.min(baseBounds.x, expandedBounds.x);
-		baseBounds.y = Math.min(baseBounds.y, expandedBounds.y);
+		var x = Math.min(baseBounds.x, expandedBounds.x);
+		var y = Math.min(baseBounds.y, expandedBounds.y);
+		var w = Math.max(baseBounds.right, expandedBounds.right) - x;
+		var h = Math.max(baseBounds.bottom, expandedBounds.bottom) - y;
 
-		baseBounds.width = Math.max(baseBounds.right, expandedBounds.right) - baseBounds.x;
-		baseBounds.height = Math.max(baseBounds.bottom, expandedBounds.bottom) - baseBounds.y;
+		baseBounds.set(x, y, w, h);
 		return baseBounds;
+	}
+
+	@:noCompletion
+	public static function maskBounds(masked:FlxRect, masker:FlxRect):FlxRect
+	{
+		/*var x1:Float = Math.max(masked.x, masker.x);
+			var y1:Float = Math.max(masked.y, masker.y);
+			var x2:Float = Math.min(masked.right, masker.right);
+			var y2:Float = Math.min(masked.bottom, masker.bottom);
+
+			masked.set(x1, y1, x2 - x1, y2 - y1); */
+
+		// trace("masker:", masker);
+		// trace("masked:", masked);
+
+		masker.copyTo(masked);
+
+		return masked;
 	}
 
 	@:noCompletion

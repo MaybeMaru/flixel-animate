@@ -9,6 +9,7 @@ import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
+import haxe.ds.Vector;
 import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
@@ -72,27 +73,51 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
+	var _bakedFrames:Vector<AtlasInstance>;
 
 	// TODO: maybe instead of a map this could be a vector
 	// which turns off _dirty after its filled with baked masks
-	var bakedFrames:Null<Map<Int, AtlasInstance>> = null;
+	// var bakedFrames:Null<Map<Int, AtlasInstance>> = null;
 
-	function bakeFrame(currentFrame:Int, layer:Layer):Void
+	function bakeFrame(frameIndex:Int):Void
 	{
 		if (layer.parentLayer == null)
 			return;
 
-		if (bakedFrames == null)
-			bakedFrames = [];
+		if (_bakedFrames == null)
+			_bakedFrames = new Vector<AtlasInstance>(duration, null);
 
-		if (bakedFrames.exists(currentFrame))
+		if (_bakedFrames[frameIndex] != null)
 			return;
 
-		var bakedFrame = FilterRenderer.maskFrame(this, currentFrame, layer);
-		bakedFrames.set(currentFrame, bakedFrame);
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
+		_bakedFrames[frameIndex] = bakedFrame;
 
 		if (bakedFrame != null && (bakedFrame.frame.frame.width <= 1 || bakedFrame.frame.frame.height <= 1))
 			bakedFrame.visible = false;
+
+		if (_dirty)
+		{
+			var hasNull:Bool = false;
+			for (frame in _bakedFrames)
+			{
+				if (frame == null)
+				{
+					hasNull = true;
+					break;
+				}
+			}
+			if (!hasNull)
+				_dirty = false;
+		}
+	}
+
+	inline function _checkDirty(currentFrame:Int)
+	{
+		if (_dirty && layer != null)
+		{
+			bakeFrame(currentFrame);
+		}
 	}
 
 	public function forEachElement(callback:Element->Void):Void
@@ -101,42 +126,63 @@ class Frame implements IFlxDestroyable
 			callback(element);
 	}
 
-	public function getBounds(?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
-		var tmpRect = FlxRect.get();
 		rect ??= FlxRect.get();
 
+		// Returns empty bounds if theres no elements in the frame
 		if (elements.length <= 0)
 		{
-			rect.set(0, 0, 0, 0);
-			if (matrix != null)
-				rect.set(matrix.tx, matrix.ty, 0, 0);
+			(matrix != null) ? rect.set(matrix.tx, matrix.ty, 0, 0) : rect.set(0, 0, 0, 0);
 			return rect;
 		}
 
-		rect.set(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY, Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
-
-		for (element in elements)
+		// Get the filtered/masked bounds, if they exist
+		if (_bakedFrames != null)
 		{
-			tmpRect = element.getBounds(tmpRect, matrix);
+			var bakedFrame = _bakedFrames[frameIndex];
+			if (bakedFrame != null)
+			{
+				bakedFrame.getBounds(frameIndex, rect, matrix);
+				return rect;
+			}
+		}
+
+		var tmpRect = FlxRect.get();
+
+		// Loop through the bounds of each element
+		rect = elements[0].getBounds(frameIndex, rect, matrix);
+		for (i in 1...elements.length)
+		{
+			tmpRect = elements[i].getBounds(frameIndex, tmpRect, matrix);
 			rect = Timeline.expandBounds(rect, tmpRect);
+		}
+
+		// If the frame is not yet masked, calculate the masked bounds manually
+		if (_dirty && this.layer.parentLayer != null)
+		{
+			tmpRect.set();
+			var maskerBounds = this.layer.parentLayer.getBounds(frameIndex + this.index, tmpRect, matrix);
+			Timeline.maskBounds(rect, maskerBounds);
 		}
 
 		tmpRect.put();
 		return rect;
 	}
 
-	public function draw(camera:FlxCamera, currentFrame:Int, layer:Layer, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader):Void
-	{
-		if (_dirty && layer != null)
-		{
-			bakeFrame(currentFrame, layer);
-		}
+	@:allow(animate.internal.FilterRenderer)
+	@:allow(animate.internal.elements.AtlasInstance)
+	private static var __isDirtyCall:Bool = false;
 
-		if (bakedFrames != null)
+	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+			?shader:FlxShader):Void
+	{
+		if (!__isDirtyCall)
+			_checkDirty(currentFrame - this.index);
+
+		if (_bakedFrames != null)
 		{
-			var bakedFrame = bakedFrames.get(currentFrame);
+			var bakedFrame = _bakedFrames[currentFrame - this.index];
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)

@@ -20,6 +20,7 @@ import openfl.display.Timeline;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
 import openfl.geom.ColorTransform;
+import openfl.geom.Rectangle;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -184,16 +185,16 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			return;
 		}
 
-		libraryItem.timeline.currentFrame = getFrameIndex(index, tlFrame);
+		libraryItem.timeline.currentFrame = getFrameIndex(index, isMovieClip ? 0 : tlFrame.index);
 		libraryItem.timeline.draw(camera, _mat, transform, blend, antialiasing, shader);
 	}
 
-	function getFrameIndex(index:Int, frame:Frame):Int
+	function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
 		if (isMovieClip)
 			return 0;
 
-		var frameIndex = firstFrame + (index - frame.index);
+		var frameIndex = firstFrame + (index - frameIndex);
 		var frameCount = libraryItem.timeline.frameCount;
 
 		switch (loopType)
@@ -211,8 +212,9 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	final tmpMatrix:FlxMatrix = new FlxMatrix();
 
-	override function getBounds(?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
+		// Prepare the bounds matrix
 		var targetMatrix:FlxMatrix;
 		if (matrix != null)
 		{
@@ -221,12 +223,24 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			targetMatrix = tmpMatrix;
 		}
 		else
+		{
 			targetMatrix = this.matrix;
+		}
 
+		// Return baked bounds, if they exist
 		if (bakedElement != null)
-			return bakedElement.getBounds(rect, targetMatrix);
+			return bakedElement.getBounds(0, rect, targetMatrix);
 
-		return libraryItem.timeline.getBounds(libraryItem.timeline.currentFrame, null, rect, targetMatrix);
+		var bounds = libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
+
+		// baked element doesnt yet exist, gotta fake the bounds
+		if (_dirty)
+		{
+			FilterRenderer.expandFilterBounds(bounds, this.filters);
+		}
+
+		// Get the bounds of the symbol item timeline
+		return bounds;
 	}
 
 	public function toString():String

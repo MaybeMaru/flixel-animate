@@ -100,7 +100,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		#end
 
 		#if FLX_DEBUG
-		if (FlxG.debugger.drawDebug && !__skipIsOnScreen)
+		if (FlxG.debugger.drawDebug && !Frame.__isDirtyCall)
 			drawBoundingBox(camera, _bounds);
 		#end
 	}
@@ -125,14 +125,11 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	}
 	#end
 
-	@:allow(animate.internal.FilterRenderer)
-	private static var __skipIsOnScreen:Bool = false;
-
 	var _bounds:FlxRect = FlxRect.get();
 
 	public function isOnScreen(camera:FlxCamera, matrix:FlxMatrix):Bool
 	{
-		if (__skipIsOnScreen)
+		if (Frame.__isDirtyCall)
 			return true;
 
 		var bounds = _bounds.set(0, 0, frame.frame.width, frame.frame.height);
@@ -141,12 +138,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		return camera.containsRect(bounds);
 	}
 
-	override function getBounds(?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
-		var rect = super.getBounds(rect);
+		var rect = super.getBounds(0, rect);
 		rect.set(0, 0, frame.frame.width, frame.frame.height);
 
-		Timeline.applyMatrixToRect(rect, frame.prepareMatrix(_mat));
+		Timeline.applyMatrixToRect(rect, tileMatrix);
 		Timeline.applyMatrixToRect(rect, this.matrix);
 		if (matrix != null)
 			Timeline.applyMatrixToRect(rect, matrix);

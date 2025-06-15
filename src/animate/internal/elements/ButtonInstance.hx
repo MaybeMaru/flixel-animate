@@ -38,7 +38,7 @@ class ButtonInstance extends SymbolInstance
 
 	public var onClick:FlxSignal;
 
-	override function getFrameIndex(index:Int, frame:Frame):Int
+	override function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
 		return curButtonState;
 	}
@@ -60,7 +60,7 @@ class ButtonInstance extends SymbolInstance
 
 	function updateButtonState(camera:FlxCamera, drawMatrix:FlxMatrix):Void
 	{
-		_hitbox = getBounds(_hitbox, drawMatrix);
+		_hitbox = getBounds(0, _hitbox, drawMatrix);
 
 		var mousePos = #if (flixel >= "5.9.0") FlxG.mouse.getViewPosition(camera,
 			FlxPoint.get()); #else FlxG.mouse.getScreenPosition(camera, FlxPoint.get()); #end
@@ -82,7 +82,7 @@ class ButtonInstance extends SymbolInstance
 		}
 	}
 
-	override function getBounds(?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
 		var bounds = this.libraryItem.timeline.getBounds(ButtonState.HIT, false, rect, this.matrix);
 		if (matrix != null)

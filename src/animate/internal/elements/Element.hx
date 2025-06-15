@@ -56,7 +56,7 @@ class AnimateElement<T> implements IFlxDestroyable
 	public inline function toButtonInstance():ButtonInstance
 		return cast this;
 
-	public function getBounds(?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
 		return rect ?? FlxRect.get();
 	}

@@ -1,5 +1,6 @@
 package animate.internal;
 
+import animate.FlxAnimateJson.FilterJson;
 import animate.internal.elements.*;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -56,14 +57,14 @@ class FilterRenderer
 
 		var masker = renderToBitmap((cam, mat) ->
 		{
-			maskerFrame.draw(cam, currentFrame, null, mat, null, null, true, null);
+			maskerFrame.draw(cam, currentFrame, mat, null, null, true, null);
 			cam.render();
 			maskerBounds = cam.canvas.getBounds(null);
 		});
 
 		var masked = renderToBitmap((cam, mat) ->
 		{
-			frame.draw(cam, currentFrame, null, mat, null, null, true, null);
+			frame.draw(cam, currentFrame, mat, null, null, true, null);
 			cam.render();
 			maskedBounds = cam.canvas.getBounds(null);
 		});
@@ -146,7 +147,7 @@ class FilterRenderer
 
 	static function renderToBitmap(draw:(FlxCamera, FlxMatrix) -> Void):BitmapData
 	{
-		AtlasInstance.__skipIsOnScreen = true;
+		Frame.__isDirtyCall = true;
 
 		var cam = CamPool.get();
 		var gfx = cam.canvas.graphics;
@@ -158,9 +159,41 @@ class FilterRenderer
 		gfx.clear();
 		cam.put();
 
-		AtlasInstance.__skipIsOnScreen = false;
+		Frame.__isDirtyCall = false;
 
 		return bitmap;
+	}
+
+	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<FilterJson>)
+	{
+		var inflate = Rectangle.__pool.get();
+		for (filter in filters)
+		{
+			var __leftExtension = 0;
+			var __rightExtension = 0;
+			var __topExtension = 0;
+			var __bottomExtension = 0;
+
+			switch (filter.N)
+			{
+				case "blurFilter" | "BLF":
+					var blurX = filter.BLX;
+					var blurY = filter.BLY;
+					__leftExtension = (blurX > 0 ? Math.ceil(blurX) : 0);
+					__rightExtension = __leftExtension;
+					__topExtension = (blurY > 0 ? Math.ceil(blurY) : 0);
+					__bottomExtension = __topExtension;
+			}
+
+			inflate.__expand(-__leftExtension, -__topExtension, __leftExtension + __rightExtension, __topExtension + __bottomExtension);
+		}
+
+		baseBounds.x = Math.min(baseBounds.x, baseBounds.x + inflate.x);
+		baseBounds.y = Math.min(baseBounds.y, baseBounds.y + inflate.y);
+		baseBounds.width = Math.max(baseBounds.width, baseBounds.width + inflate.width);
+		baseBounds.height = Math.max(baseBounds.height, baseBounds.height + inflate.height);
+
+		Rectangle.__pool.release(inflate);
 	}
 
 	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance

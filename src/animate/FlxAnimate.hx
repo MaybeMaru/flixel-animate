@@ -88,6 +88,11 @@ class FlxAnimate extends FlxSprite
 
 			drawAnimate(camera);
 		}
+
+		// #if FLX_DEBUG
+		// if (FlxG.debugger.drawDebug)
+		//	drawDebug();
+		// #end
 	}
 
 	public var applyStageMatrix:Bool = false;
