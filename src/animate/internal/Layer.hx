@@ -164,7 +164,7 @@ class Layer implements IFlxDestroyable
 		rect ??= FlxRect.get();
 		var frame = getFrameAtIndex(frameIndex);
 		if (frame != null)
-			return frame.getBounds(frameIndex, rect, matrix);
+			return frame.getBounds((frameIndex - frame.index), rect, matrix);
 
 		if (matrix != null)
 			Timeline.applyMatrixToRect(rect, matrix);

@@ -25,7 +25,9 @@ import openfl.display.Graphics;
 import openfl.display.OpenGLRenderer;
 import openfl.display.Shader;
 import openfl.display._internal.Context3DGraphics;
+#end
 
+#if !flash
 @:access(flixel.FlxCamera)
 @:access(flixel.graphics.frames.FlxFrame)
 @:access(openfl.display.OpenGLRenderer)
@@ -40,8 +42,10 @@ import openfl.display._internal.Context3DGraphics;
 @:access(openfl.filters.BitmapFilter)
 @:access(lime.graphics.Image)
 @:access(openfl.display3D.textures.TextureBase)
+#end
 class FilterRenderer
 {
+	#if !flash
 	public static function maskFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
 	{
 		var masker = layer.parentLayer;
@@ -162,38 +166,6 @@ class FilterRenderer
 		Frame.__isDirtyCall = false;
 
 		return bitmap;
-	}
-
-	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<FilterJson>)
-	{
-		var inflate = Rectangle.__pool.get();
-		for (filter in filters)
-		{
-			var __leftExtension = 0;
-			var __rightExtension = 0;
-			var __topExtension = 0;
-			var __bottomExtension = 0;
-
-			switch (filter.N)
-			{
-				case "blurFilter" | "BLF":
-					var blurX = filter.BLX;
-					var blurY = filter.BLY;
-					__leftExtension = (blurX > 0 ? Math.ceil(blurX) : 0);
-					__rightExtension = __leftExtension;
-					__topExtension = (blurY > 0 ? Math.ceil(blurY) : 0);
-					__bottomExtension = __topExtension;
-			}
-
-			inflate.__expand(-__leftExtension, -__topExtension, __leftExtension + __rightExtension, __topExtension + __bottomExtension);
-		}
-
-		baseBounds.x = Math.min(baseBounds.x, baseBounds.x + inflate.x);
-		baseBounds.y = Math.min(baseBounds.y, baseBounds.y + inflate.y);
-		baseBounds.width = Math.max(baseBounds.width, baseBounds.width + inflate.width);
-		baseBounds.height = Math.max(baseBounds.height, baseBounds.height + inflate.height);
-
-		Rectangle.__pool.release(inflate);
 	}
 
 	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
@@ -400,15 +372,12 @@ class FilterRenderer
 		renderer.__worldColorTransform = new ColorTransform();
 		return renderer;
 	}
-}
-#else
-// Basic Flash filter baking impl
-// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
-class FilterRenderer
-{
+	#else
+	// Basic Flash filter baking impl
+	// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
 	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
-		var filteredBounds:FlxRect = symbol.getBounds();
+		var filteredBounds:FlxRect = symbol.getBounds(0);
 
 		for (filter in filters)
 		{
@@ -455,11 +424,11 @@ class FilterRenderer
 		if (maskerFrame == null)
 			return null;
 
-		var maskerBounds = maskerFrame.getBounds();
-		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, null, mat, null, null, true, null), maskerBounds);
+		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
+		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, mat, null, null, true, null), maskerBounds);
 
-		var maskedBounds = frame.getBounds();
-		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, null, mat, null, null, true, null), maskedBounds);
+		var maskedBounds = frame.getBounds(currentFrame - frame.index);
+		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, mat, null, null, true, null), maskedBounds);
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
 		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);
@@ -485,9 +454,9 @@ class FilterRenderer
 		var mat = new FlxMatrix();
 		mat.translate(-rect.left, -rect.top);
 
-		AtlasInstance.__skipIsOnScreen = true;
+		Frame.__isDirtyCall = true;
 		draw(cam, mat);
-		AtlasInstance.__skipIsOnScreen = false;
+		Frame.__isDirtyCall = false;
 
 		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
 		bitmap.draw(cam.buffer, new Matrix(1, 0, 0, 1, 0, 0));
@@ -528,8 +497,36 @@ class FilterRenderer
 
 		return result;
 	}
+	#end
+
+	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<FilterJson>)
+	{
+		var inflate = #if flash new Rectangle(); #else Rectangle.__pool.get(); #end
+		for (filter in filters)
+		{
+			var __leftExtension = 0;
+			var __topExtension = 0;
+
+			switch (filter.N)
+			{
+				case "blurFilter" | "BLF":
+					var blurX = filter.BLX;
+					var blurY = filter.BLY;
+					__leftExtension = (blurX > 0 ? Math.ceil(blurX) : 0);
+					__topExtension = (blurY > 0 ? Math.ceil(blurY) : 0);
+			}
+
+			inflate.inflate(__leftExtension, __topExtension);
+		}
+
+		baseBounds.x = Math.min(baseBounds.x, baseBounds.x + inflate.x);
+		baseBounds.y = Math.min(baseBounds.y, baseBounds.y + inflate.y);
+		baseBounds.width = Math.max(baseBounds.width, baseBounds.width + inflate.width);
+		baseBounds.height = Math.max(baseBounds.height, baseBounds.height + inflate.height);
+
+		#if !flash Rectangle.__pool.release(inflate); #end
+	}
 }
-#end
 
 class CamPool extends FlxCamera implements IFlxPooled
 {

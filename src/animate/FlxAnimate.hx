@@ -3,16 +3,11 @@ package animate;
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateJson;
 import animate.internal.*;
-import flixel.FlxCamera;
-import flixel.FlxG;
-import flixel.FlxSprite;
+import flixel.*;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
-import flixel.math.FlxAngle;
-import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
-import flixel.math.FlxRect;
+import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.system.FlxBGSprite;
 import flixel.util.FlxColor;
@@ -95,6 +90,10 @@ class FlxAnimate extends FlxSprite
 				continue;
 
 			drawAnimate(camera);
+
+			#if FLX_DEBUG
+			FlxBasic.visibleCount++;
+			#end
 		}
 
 		#if FLX_DEBUG
