@@ -150,7 +150,7 @@ abstract SymbolInstanceJson(Dynamic)
 		return this.SN ?? this.SYMBOL_name;
 
 	inline function get_FF()
-		return this.FF ?? this.firstFrame;
+		return this.FF ?? this.firstFrame ?? 0;
 
 	inline function get_ST()
 		return this.ST ?? this.symbolType;

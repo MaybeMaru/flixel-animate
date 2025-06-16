@@ -2,53 +2,27 @@ package animate.internal.elements;
 
 import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
-import animate.internal.filters.*;
 import flixel.FlxCamera;
-import flixel.FlxG;
-import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
-import flixel.util.FlxSignal;
 import openfl.display.BlendMode;
-import openfl.display.Timeline;
-import openfl.filters.BitmapFilter;
-import openfl.filters.BlurFilter;
 import openfl.geom.ColorTransform;
-import openfl.geom.Rectangle;
 
 using flixel.util.FlxColorTransformUtil;
 
 class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 {
-	var libraryItem:SymbolItem;
-
-	var blend:BlendMode;
-	var firstFrame:Int;
-	var loopType:String;
-	var isMovieClip:Bool;
+	public var libraryItem:SymbolItem;
+	public var blend:BlendMode;
+	public var firstFrame:Int;
+	public var loopType:String;
 
 	var transform:ColorTransform;
 	var _transform:ColorTransform;
-
-	override function destroy()
-	{
-		super.destroy();
-		libraryItem = null;
-		transform = null;
-		_transform = null;
-
-		if (bakedElement != null)
-		{
-			bakedElement.frame.destroy();
-			bakedElement = FlxDestroyUtil.destroy(bakedElement);
-		}
-	}
 
 	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -58,7 +32,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
 		this.loopType = data.LP;
-		this.isMovieClip = data.ST == "MC" || data.ST == "movieclip";
+		this.firstFrame = data.FF;
 
 		var color = data.C;
 		if (color != null)
@@ -84,80 +58,31 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			}
 		}
 
-		if (isMovieClip)
-		{
-			this.blend = #if flash Blend.resolveBlend(data.B); #else data.B; #end
-			this.filters = data.F;
-
-			// Set filters dirty
-			if (this.filters != null && this.filters.length > 0)
-				_dirty = true;
-
-			// Set whole frame for blending
-			// if (this.blend != null && !Blend.isGpuSupported(this.blend))
-			//	frame._dirty = true;
-		}
-		else
-		{
-			this.firstFrame = data.FF;
-		}
-
 		if (libraryItem == null)
 			visible = false;
 	}
 
-	var bakedElement:AtlasInstance = null;
-
-	var filters:Array<FilterJson> = null;
-	var _dirty:Bool = false;
-
-	function bakeFilters(?filters:Array<FilterJson>):Void
+	override function destroy()
 	{
-		if (!isMovieClip || filters == null || filters.length <= 0)
-			return;
-
-		var bitmapFilters:Array<BitmapFilter> = [];
-		var scale = FlxPoint.get(1, 1);
-
-		for (filter in filters)
-		{
-			var bmFilter:BitmapFilter = null;
-			switch (filter.N)
-			{
-				case "blurFilter" | "BLF":
-					var quality:Int = filter.Q;
-					var blurX:Float = filter.BLX * 0.75;
-					var blurY:Float = filter.BLY * 0.75;
-
-					bmFilter = new BlurFilter(blurX, blurY, quality);
-					scale.x *= Math.max((blurX / 16) * (quality * 1.75), 1);
-					scale.y *= Math.max((blurY / 16) * (quality * 1.75), 1);
-
-				case "adjustColorFilter" | "ACF":
-					var colorFilter = new AdjustColorFilter();
-					colorFilter.set(filter.BRT, filter.H, filter.CT, filter.SAT);
-					bmFilter = colorFilter.filter;
-
-				default: // TODO: add missing filters
-			}
-
-			if (bmFilter != null)
-				bitmapFilters.push(bmFilter);
-		}
-
-		bakedElement = FilterRenderer.bakeFilters(this, bitmapFilters, scale);
+		super.destroy();
 		libraryItem = null;
+		transform = null;
+		_transform = null;
+		tmpMatrix = null;
+
+		if (bakedElement != null)
+		{
+			bakedElement.frame.destroy();
+			bakedElement = FlxDestroyUtil.destroy(bakedElement);
+		}
 	}
+
+	var bakedElement:AtlasInstance = null;
+	var tmpMatrix:FlxMatrix = new FlxMatrix();
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		if (_dirty)
-		{
-			_dirty = false;
-			bakeFilters(this.filters);
-		}
-
 		_mat.copyFrom(matrix);
 		_mat.concat(parentMatrix);
 
@@ -177,23 +102,22 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 				return;
 		}
 
-		final blend:Null<BlendMode> = this.blend ?? blend;
+		var b:Null<BlendMode> = this.blend;
+		if (b == null)
+			b = blend;
 
-		if (isMovieClip && bakedElement != null && bakedElement.visible)
+		if (bakedElement != null && bakedElement.visible)
 		{
-			bakedElement.draw(camera, 0, null, _mat, transform, blend, antialiasing, shader);
+			bakedElement.draw(camera, 0, null, _mat, transform, b, antialiasing, shader);
 			return;
 		}
 
-		libraryItem.timeline.currentFrame = getFrameIndex(index, isMovieClip ? 0 : tlFrame.index);
-		libraryItem.timeline.draw(camera, _mat, transform, blend, antialiasing, shader);
+		libraryItem.timeline.currentFrame = getFrameIndex(index, tlFrame != null ? tlFrame.index : 0);
+		libraryItem.timeline.draw(camera, _mat, transform, b, antialiasing, shader);
 	}
 
 	function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
-		if (isMovieClip)
-			return 0;
-
 		var frameIndex = firstFrame + (index - frameIndex);
 		var frameCount = libraryItem.timeline.frameCount;
 
@@ -209,8 +133,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		return frameIndex;
 	}
-
-	final tmpMatrix:FlxMatrix = new FlxMatrix();
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
 	{
@@ -231,16 +153,8 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (bakedElement != null)
 			return bakedElement.getBounds(0, rect, targetMatrix);
 
-		var bounds = libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
-
-		// baked element doesnt yet exist, gotta fake the bounds
-		if (_dirty)
-		{
-			FilterRenderer.expandFilterBounds(bounds, this.filters);
-		}
-
 		// Get the bounds of the symbol item timeline
-		return bounds;
+		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
 	}
 
 	public function toString():String

@@ -132,7 +132,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		if (Frame.__isDirtyCall)
 			return true;
 
-		var bounds = _bounds.set(0, 0, frame.frame.width, frame.frame.height);
+		var bounds = _bounds;
+		bounds.x = 0.0;
+		bounds.y = 0.0;
+		bounds.width = frame.frame.width;
+		bounds.height = frame.frame.height;
+
 		Timeline.applyMatrixToRect(bounds, matrix);
 
 		return camera.containsRect(bounds);

@@ -24,19 +24,17 @@ using flixel.util.FlxColorTransformUtil;
 
 class ButtonInstance extends SymbolInstance
 {
+	public var curButtonState(default, null):ButtonState;
+	public var onClick:FlxSignal;
+
 	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames)
 	{
 		super(data, parent);
 
-		this.isMovieClip = false;
 		this.curButtonState = ButtonState.UP;
 		this.onClick = new FlxSignal();
 		this._hitbox = FlxRect.get();
 	}
-
-	public var curButtonState(default, null):ButtonState;
-
-	public var onClick:FlxSignal;
 
 	override function getFrameIndex(index:Int, frameIndex:Int):Int
 	{

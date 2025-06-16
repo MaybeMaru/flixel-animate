@@ -48,6 +48,8 @@ class Frame implements IFlxDestroyable
 				{
 					case "B" | "button":
 						new ButtonInstance(element.SI, parent);
+					case "MC" | "movieclip":
+						new MovieClipInstance(element.SI, parent);
 					default:
 						new SymbolInstance(element.SI, parent);
 				});
