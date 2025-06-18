@@ -217,7 +217,7 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:noCompletion
-	public static function expandBounds(baseBounds:FlxRect, expandedBounds:FlxRect):FlxRect
+	public static inline function expandBounds(baseBounds:FlxRect, expandedBounds:FlxRect):FlxRect
 	{
 		var x = Math.min(baseBounds.x, expandedBounds.x);
 		var y = Math.min(baseBounds.y, expandedBounds.y);
@@ -229,7 +229,7 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:noCompletion
-	public static function maskBounds(masked:FlxRect, masker:FlxRect):FlxRect
+	public static inline function maskBounds(masked:FlxRect, masker:FlxRect):FlxRect
 	{
 		/*var x1:Float = Math.max(masked.x, masker.x);
 			var y1:Float = Math.max(masked.y, masker.y);
@@ -241,7 +241,8 @@ class Timeline implements IFlxDestroyable
 		// trace("masker:", masker);
 		// trace("masked:", masked);
 
-		masker.copyTo(masked);
+		// masker.copyTo(masked);
+		masked.set(masker.x, masker.y, masker.width, masker.height);
 
 		return masked;
 	}

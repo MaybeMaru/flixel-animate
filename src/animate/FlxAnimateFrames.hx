@@ -74,8 +74,21 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	var _loadedData:AnimationJson;
 
+	// since FlxAnimateFrames can have more than one graphic im gonna need use do this
+	// TODO: use another method that works closer to flixel's frame collection crap
+	static var _cachedAtlases:Map<String, FlxAnimateFrames>;
+
 	public static function fromAnimate(path:String):FlxAnimateFrames
 	{
+		if (_cachedAtlases == null)
+		{
+			_cachedAtlases = [];
+		}
+		else if (_cachedAtlases.exists(path))
+		{
+			return _cachedAtlases.get(path);
+		}
+
 		final getTextFromPath = (path:String) ->
 		{
 			var content = #if (flixel >= "5.9.0") FlxG.assets.getText(path); #else #if sys sys.io.File.getContent(path); #else Assets.getText(path); #end #end
@@ -145,6 +158,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		// clear the temp data crap
 		frames._loadedData = null;
 
+		_cachedAtlases.set(path, frames);
 		return frames;
 	}
 
@@ -156,6 +170,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	override function destroy():Void
 	{
+		if (_cachedAtlases.exists(path))
+			_cachedAtlases.remove(path);
+
 		super.destroy();
 
 		for (symbol in dictionary.iterator())

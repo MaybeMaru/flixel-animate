@@ -1,7 +1,10 @@
 package animate;
 
+import animate.internal.filters.AdjustColorFilter;
 import flixel.math.FlxMatrix;
 import openfl.display.BlendMode;
+import openfl.filters.BitmapFilter;
+import openfl.filters.BlurFilter;
 
 using StringTools;
 
@@ -230,6 +233,26 @@ abstract FilterJson(Dynamic)
 
 	inline function get_SAT()
 		return this.SAT ?? this.saturation;
+
+	public function toBitmapFilter():BitmapFilter
+	{
+		switch (this.N)
+		{
+			case "blurFilter" | "BLF":
+				var quality:Int = this.Q;
+				var blurX:Float = this.BLX;
+				var blurY:Float = this.BLY;
+				return new BlurFilter(blurX, blurY, quality);
+
+			case "adjustColorFilter" | "ACF":
+				var colorFilter = new AdjustColorFilter();
+				colorFilter.set(this.BRT, this.H, this.CT, this.SAT);
+				return colorFilter.filter;
+
+			default: // TODO: add missing filters
+				return null;
+		}
+	}
 
 	public static function resolve(input:Dynamic):Array<FilterJson>
 	{

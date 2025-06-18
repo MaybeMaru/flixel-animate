@@ -186,24 +186,34 @@ class FilterRenderer
 			if (filters != null && filters.length > 0)
 				@:privateAccess
 			{
+				filters = filters.copy();
 				var inflate = Rectangle.__pool.get();
-				for (filter in filters)
+				for (i => filter in filters)
 				{
 					if (filter == null)
 						continue;
 
+					var left:Float = 0.0; // filter.__leftExtension;
+					var top:Float = 0.0; // filter.__topExtension;
+					var right:Float = 0.0; // filter.__rightExtension;
+					var bottom:Float = 0.0; // filter.__bottomExtension;
+
 					if (filter is BlurFilter)
 					{
-						var blur:BlurFilter = cast filter;
+						var blur:BlurFilter = cast filter.clone();
+						filters[i] = blur;
+
 						blur.blurX /= scale.x;
 						blur.blurY /= scale.y;
+
+						left = right = blur.blurX;
+						top = bottom = blur.blurY;
+
+						blur.blurX = Math.pow(blur.blurX, 0.6);
+						blur.blurY = Math.pow(blur.blurY, 0.6);
 					}
 
-					inflate.__expand(-filter.__leftExtension,
-						-filter.__topExtension, filter.__leftExtension
-						+ filter.__rightExtension,
-						filter.__topExtension
-						+ filter.__bottomExtension);
+					inflate.__expand(-left, -top, left + right, top + bottom);
 				}
 
 				var boundsX = bounds.x + inflate.x - scale.x;
@@ -231,7 +241,6 @@ class FilterRenderer
 		var element = new AtlasInstance();
 		element.frame = frame;
 		element.matrix = mat;
-		scale.put();
 
 		return element;
 	}
@@ -499,7 +508,7 @@ class FilterRenderer
 	}
 	#end
 
-	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<FilterJson>)
+	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<BitmapFilter>)
 	{
 		var inflate = #if flash new Rectangle(); #else Rectangle.__pool.get(); #end
 		for (filter in filters)
@@ -507,13 +516,11 @@ class FilterRenderer
 			var __leftExtension = 0;
 			var __topExtension = 0;
 
-			switch (filter.N)
+			if (filter is BlurFilter)
 			{
-				case "blurFilter" | "BLF":
-					var blurX = filter.BLX;
-					var blurY = filter.BLY;
-					__leftExtension = (blurX > 0 ? Math.ceil(blurX) : 0);
-					__topExtension = (blurY > 0 ? Math.ceil(blurY) : 0);
+				var blur:BlurFilter = cast filter;
+				__leftExtension = (blur.blurX > 0 ? Math.ceil(blur.blurX) : 0);
+				__topExtension = (blur.blurY > 0 ? Math.ceil(blur.blurY) : 0);
 			}
 
 			inflate.inflate(__leftExtension, __topExtension);
