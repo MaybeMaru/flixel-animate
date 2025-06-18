@@ -147,6 +147,7 @@ class FlxAnimate extends FlxSprite
 		if (renderStage)
 			drawStage(camera);
 
+		timeline.currentFrame = animation.frameIndex;
 		timeline.draw(camera, _matrix, colorTransform, blend, antialiasing, shader);
 	}
 
