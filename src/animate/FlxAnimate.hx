@@ -22,8 +22,11 @@ class FlxAnimate extends FlxSprite
 {
 	public static var drawDebugLimbs:Bool = false;
 
-	public var library:FlxAnimateFrames;
-	public var anim:FlxAnimateController;
+	public var library(default, null):FlxAnimateFrames;
+	public var animate(default, null):FlxAnimateController;
+
+	@:deprecated('anim is deprecated, use animate')
+	public var anim(get, never):FlxAnimateController;
 
 	public var skew:FlxPoint;
 
@@ -48,11 +51,12 @@ class FlxAnimate extends FlxSprite
 	override function initVars()
 	{
 		super.initVars();
-		anim = new FlxAnimateController(this);
+		animate = new FlxAnimateController(this);
 		skew = new FlxPoint();
-		animation = anim;
+		animation = animate;
 	}
 
+	@:noCompletion
 	override function set_frames(frames:FlxFramesCollection):FlxFramesCollection
 	{
 		isAnimate = frames != null && (frames is FlxAnimateFrames);
@@ -64,7 +68,7 @@ class FlxAnimate extends FlxSprite
 			library = cast frames;
 			timeline = library.timeline;
 			frame = null;
-			anim.updateTimelineBounds();
+			animate.updateTimelineBounds();
 			resetHelpers();
 		}
 		else
@@ -176,6 +180,7 @@ class FlxAnimate extends FlxSprite
 		_skewMatrix.setTo(1, Math.tan(skew.y * FlxAngle.TO_RAD), Math.tan(skew.x * FlxAngle.TO_RAD), 1, 0, 0);
 	}
 
+	@:noCompletion
 	override function get_numFrames():Int
 	{
 		if (isAnimate)
@@ -187,10 +192,15 @@ class FlxAnimate extends FlxSprite
 	override function destroy():Void
 	{
 		super.destroy();
-		anim = null;
+		animate = null;
 		library = null;
 		timeline = null;
 		stageBg = FlxDestroyUtil.destroy(stageBg);
 		skew = FlxDestroyUtil.put(skew);
+	}
+
+	@:noCompletion
+	private inline function get_anim():FlxAnimateController {
+		return animate;
 	}
 }
