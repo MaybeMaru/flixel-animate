@@ -2,9 +2,12 @@ package animate;
 
 import animate.internal.filters.AdjustColorFilter;
 import flixel.math.FlxMatrix;
+import flixel.util.FlxColor;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
+import openfl.filters.DropShadowFilter;
+import openfl.filters.GlowFilter;
 
 using StringTools;
 
@@ -201,7 +204,6 @@ abstract SymbolInstanceJson(Dynamic)
 abstract FilterJson(Dynamic)
 {
 	public var N(get, never):String;
-
 	public var BLX(get, never):Null<Float>;
 	public var BLY(get, never):Null<Float>;
 	public var Q(get, never):Null<Int>;
@@ -209,6 +211,17 @@ abstract FilterJson(Dynamic)
 	public var H(get, never):Null<Int>;
 	public var CT(get, never):Null<Int>;
 	public var SAT(get, never):Null<Int>;
+	public var D(get, never):Null<Float>;
+	public var KK(get, never):Null<Bool>;
+	public var T(get, never):String;
+	public var STR(get, never):Null<Float>;
+	public var A(get, never):Null<Float>;
+	public var SC(get, never):String;
+	public var HC(get, never):String;
+	public var IN(get, never):Null<Bool>;
+	public var HO(get, never):Null<Bool>;
+	public var C(get, never):String;
+	public var CA(get, never):Array<Dynamic>;
 
 	inline function get_N()
 		return this.N ?? this.name;
@@ -234,20 +247,66 @@ abstract FilterJson(Dynamic)
 	inline function get_SAT()
 		return this.SAT ?? this.saturation;
 
+	inline function get_D()
+		return this.D ?? this.distance;
+
+	inline function get_KK()
+		return this.KK ?? this.knockout;
+
+	inline function get_T()
+		return this.T ?? this.type;
+
+	inline function get_STR()
+		return this.STR ?? this.strength;
+
+	inline function get_A()
+		return this.A ?? this.angle;
+
+	inline function get_SC()
+		return this.SC ?? this.shadowColor;
+
+	inline function get_HC()
+		return this.HC ?? this.highlightColor;
+
+	inline function get_IN()
+		return this.IN ?? this.inner;
+
+	inline function get_HO()
+		return this.HO ?? this.hideObject;
+
+	inline function get_C()
+		return this.C ?? this.color;
+
+	inline function get_CA()
+		return this.CA ?? this.colorArray;
+
 	public function toBitmapFilter():BitmapFilter
 	{
 		switch (this.N)
 		{
 			case "blurFilter" | "BLF":
-				var quality:Int = this.Q;
-				var blurX:Float = this.BLX;
-				var blurY:Float = this.BLY;
+				var quality:Int = Q;
+				var blurX:Float = BLX;
+				var blurY:Float = BLY;
 				return new BlurFilter(blurX, blurY, quality);
 
 			case "adjustColorFilter" | "ACF":
 				var colorFilter = new AdjustColorFilter();
-				colorFilter.set(this.BRT, this.H, this.CT, this.SAT);
+				colorFilter.set(BRT, H, CT, SAT);
 				return colorFilter.filter;
+
+			case "dropShadowFilter" | "DSF":
+				var dropFilter = new DropShadowFilter(D, A, FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK, HO);
+				return dropFilter;
+
+			case "glowFilter" | "GF":
+				var glowFilter = new GlowFilter(FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK);
+				return glowFilter;
+
+			// TODO:
+			// case "bevelFilter" | "BF":
+			// case "gradientBevelFilter" | "GBF":
+			// case "gradientGlowFilter" | "GGF":
 
 			default: // TODO: add missing filters
 				return null;

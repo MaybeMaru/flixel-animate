@@ -15,6 +15,7 @@ import flixel.util.FlxPool;
 import openfl.display.BitmapData;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
+import openfl.filters.GlowFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -212,6 +213,13 @@ class FilterRenderer
 						blur.blurX = Math.pow(blur.blurX, 0.6);
 						blur.blurY = Math.pow(blur.blurY, 0.6);
 					}
+					else
+					{
+						left = filter.__leftExtension;
+						top = filter.__topExtension;
+						right = filter.__rightExtension;
+						bottom = filter.__bottomExtension;
+					}
 
 					inflate.__expand(-left, -top, left + right, top + bottom);
 				}
@@ -292,32 +300,23 @@ class FilterRenderer
 		var bitmap2:BitmapData = target1;
 		var bitmap3:BitmapData = target2;
 
-		renderer.__setRenderTarget(bitmap);
-
-		var rect = Rectangle.__pool.get();
-		rect.setTo(0, 0, bitmap.width, bitmap.height);
-
 		bmp.__renderTransform.identity();
 		if (point != null)
 			bmp.__renderTransform.translate(point.x, point.y);
 
-		var bestResolution = renderer.__context3D.__backBufferWantsBestResolution;
-		renderer.__context3D.__backBufferWantsBestResolution = false;
-		renderer.__scissorRect(rect);
+		renderer.__setRenderTarget(bitmap);
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
-		renderer.__scissorRect();
+		bmp.__renderTransform.identity();
 
-		Rectangle.__pool.release(rect);
-
-		renderer.__context3D.__backBufferWantsBestResolution = bestResolution;
-
-		var shader, cacheBitmap = null;
+		var shader:Shader = null;
 		for (filter in filters)
 		{
 			if (filter == null)
 				continue;
 
-			if (filter.__preserveObject)
+			var preserveObject = filter.__preserveObject;
+
+			if (preserveObject)
 			{
 				renderer.__setRenderTarget(bitmap3);
 				renderer.__renderFilterPass(bitmap, renderer.__defaultDisplayShader, filter.__smooth);
@@ -325,15 +324,16 @@ class FilterRenderer
 
 			for (i in 0...filter.__numShaderPasses)
 			{
-				shader = filter.__initShader(renderer, i, (filter.__preserveObject) ? bitmap3 : null);
+				shader = filter.__initShader(renderer, i, preserveObject ? bitmap3 : null);
 				renderer.__setBlendMode(filter.__shaderBlendMode);
 				renderer.__setRenderTarget(bitmap2);
 				renderer.__renderFilterPass(bitmap, shader, filter.__smooth);
+				shader = null;
 
-				cacheBitmap = bitmap;
-				bitmap = bitmap2;
-				bitmap2 = cacheBitmap;
+				renderer.__setRenderTarget(bitmap);
+				renderer.__renderFilterPass(bitmap2, renderer.__defaultDisplayShader, filter.__smooth);
 			}
+
 			filter.__renderDirty = false;
 		}
 
@@ -521,6 +521,15 @@ class FilterRenderer
 				var blur:BlurFilter = cast filter;
 				__leftExtension = (blur.blurX > 0 ? Math.ceil(blur.blurX) : 0);
 				__topExtension = (blur.blurY > 0 ? Math.ceil(blur.blurY) : 0);
+			}
+			else if (filter is GlowFilter)
+			{
+				var glow:GlowFilter = cast filter;
+				if (!glow.inner)
+				{
+					__leftExtension = (glow.blurX > 0 ? Math.ceil(glow.blurX) : 0);
+					__topExtension = (glow.blurY > 0 ? Math.ceil(glow.blurY) : 0);
+				}
 			}
 
 			inflate.inflate(__leftExtension, __topExtension);

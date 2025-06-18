@@ -27,7 +27,15 @@ class MovieClipInstance extends SymbolInstance
 		var jsonFilters = data.F;
 		if (jsonFilters != null && jsonFilters.length > 0)
 		{
-			setFilters([for (filter in jsonFilters) filter.toBitmapFilter()]);
+			var filters:Array<BitmapFilter> = [];
+			for (filter in jsonFilters)
+			{
+				var bmpFilter:Null<BitmapFilter> = filter.toBitmapFilter();
+				if (bmpFilter != null)
+					filters.push(bmpFilter);
+			}
+
+			setFilters(filters);
 		}
 
 		// Set whole frame for blending
