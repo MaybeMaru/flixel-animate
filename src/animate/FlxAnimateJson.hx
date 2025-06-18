@@ -5,6 +5,7 @@ import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
+import openfl.filters.BitmapFilterType;
 import openfl.filters.BlurFilter;
 import openfl.filters.DropShadowFilter;
 import openfl.filters.GlowFilter;
@@ -222,6 +223,7 @@ abstract FilterJson(Dynamic)
 	public var HO(get, never):Null<Bool>;
 	public var C(get, never):String;
 	public var CA(get, never):Array<Dynamic>;
+	public var GE(get, never):Array<GradientEntry>;
 
 	inline function get_N()
 		return this.N ?? this.name;
@@ -280,35 +282,90 @@ abstract FilterJson(Dynamic)
 	inline function get_CA()
 		return this.CA ?? this.colorArray;
 
+	inline function get_GE()
+		return this.GE ?? this.GradientEntries;
+
+	function getGradientArray():{colors:Array<Int>, alphas:Array<Float>, ratios:Array<Float>}
+	{
+		var colors:Array<Int> = [];
+		var alphas:Array<Float> = [];
+		var ratios:Array<Float> = [];
+
+		for (entry in GE)
+		{
+			colors.push(FlxColor.fromString(entry.C));
+			alphas.push(entry.A);
+			ratios.push(entry.R);
+		}
+
+		return {
+			colors: colors,
+			alphas: alphas,
+			ratios: ratios
+		}
+	}
+
+	function getBitmapFilterType():BitmapFilterType
+	{
+		var type:Null<String> = T;
+		return (type == null) ? BitmapFilterType.INNER : switch (type)
+		{
+			case "full":
+				BitmapFilterType.FULL;
+			case "outer":
+				BitmapFilterType.OUTER;
+			default:
+				BitmapFilterType.INNER;
+		}
+	}
+
 	public function toBitmapFilter():BitmapFilter
 	{
 		switch (this.N)
 		{
 			case "blurFilter" | "BLF":
-				var quality:Int = Q;
-				var blurX:Float = BLX;
-				var blurY:Float = BLY;
-				return new BlurFilter(blurX, blurY, quality);
+				var blf = new BlurFilter(BLX, BLY, Q);
+				return blf;
 
 			case "adjustColorFilter" | "ACF":
-				var colorFilter = new AdjustColorFilter();
-				colorFilter.set(BRT, H, CT, SAT);
-				return colorFilter.filter;
+				var acf = new AdjustColorFilter();
+				acf.set(BRT, H, CT, SAT);
+				return acf.filter;
 
 			case "dropShadowFilter" | "DSF":
-				var dropFilter = new DropShadowFilter(D, A, FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK, HO);
-				return dropFilter;
+				var dsf = new DropShadowFilter(D, A, FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK, HO);
+				return dsf;
 
 			case "glowFilter" | "GF":
-				var glowFilter = new GlowFilter(FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK);
-				return glowFilter;
+				var gf = new GlowFilter(FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK);
+				return gf;
 
-			// TODO:
-			// case "bevelFilter" | "BF":
-			// case "gradientBevelFilter" | "GBF":
-			// case "gradientGlowFilter" | "GGF":
+				// TODO: add bevel support for other targets
+				// case "bevelFilter" | "BF":
+				// case "gradientBevelFilter" | "GBF":
+				// case "gradientGlowFilter" | "GGF":
+			#if flash
+			case "bevelFilter" | "BF":
+				var highlightColor = FlxColor.fromString(HC);
+				var shadowColor = FlxColor.fromString(SC);
+				var type:BitmapFilterType = getBitmapFilterType();
+				var bf = new flash.filters.BevelFilter(D, A, highlightColor, 1, shadowColor, 1, BLX, BLY, STR, Q, type, KK);
+				return bf;
 
-			default: // TODO: add missing filters
+			case "gradientBevelFilter" | "GBF":
+				var type:BitmapFilterType = getBitmapFilterType();
+				var ga = getGradientArray();
+				var gbf = new flash.filters.GradientBevelFilter(D, A, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
+				return gbf;
+
+			case "gradientGlowFilter" | "GGF":
+				var type:BitmapFilterType = getBitmapFilterType();
+				var ga = getGradientArray();
+				var ggf = new flash.filters.GradientGlowFilter(D, A, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
+				return ggf;
+			#end
+
+			default:
 				return null;
 		}
 	}
@@ -338,6 +395,22 @@ abstract FilterJson(Dynamic)
 
 		return filters;
 	}
+}
+
+abstract GradientEntry(Dynamic)
+{
+	public var R(get, never):Float;
+	public var C(get, never):String;
+	public var A(get, never):Float;
+
+	inline function get_R()
+		return this.R ?? this.ratio;
+
+	inline function get_C()
+		return this.C ?? this.color;
+
+	inline function get_A()
+		return this.A ?? this.alpha;
 }
 
 abstract AtlasInstanceJson(Dynamic)

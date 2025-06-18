@@ -15,6 +15,7 @@ import flixel.util.FlxPool;
 import openfl.display.BitmapData;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
+import openfl.filters.DropShadowFilter;
 import openfl.filters.GlowFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
@@ -387,18 +388,7 @@ class FilterRenderer
 	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
 		var filteredBounds:FlxRect = symbol.getBounds(0);
-
-		for (filter in filters)
-		{
-			if (filter is BlurFilter)
-			{
-				var blur:BlurFilter = cast filter;
-				filteredBounds.x -= blur.blurX;
-				filteredBounds.y -= blur.blurY;
-				filteredBounds.width += blur.blurX * 2;
-				filteredBounds.height += blur.blurY * 2;
-			}
-		}
+		expandFilterBounds(filteredBounds, filters);
 
 		var bitmap:BitmapData = getBitmap((cam, mat) -> symbol.draw(cam, 0, null, mat, null, null, true, null), filteredBounds);
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
@@ -515,24 +505,51 @@ class FilterRenderer
 		{
 			var __leftExtension = 0;
 			var __topExtension = 0;
+			var __bottomExtension = 0;
+			var __rightExtension = 0;
 
 			if (filter is BlurFilter)
 			{
 				var blur:BlurFilter = cast filter;
-				__leftExtension = (blur.blurX > 0 ? Math.ceil(blur.blurX) : 0);
-				__topExtension = (blur.blurY > 0 ? Math.ceil(blur.blurY) : 0);
+				__leftExtension = __rightExtension = (blur.blurX > 0 ? Math.ceil(blur.blurX) : 0);
+				__topExtension = __bottomExtension = (blur.blurY > 0 ? Math.ceil(blur.blurY) : 0);
 			}
 			else if (filter is GlowFilter)
 			{
 				var glow:GlowFilter = cast filter;
 				if (!glow.inner)
 				{
-					__leftExtension = (glow.blurX > 0 ? Math.ceil(glow.blurX) : 0);
-					__topExtension = (glow.blurY > 0 ? Math.ceil(glow.blurY) : 0);
+					__leftExtension = __rightExtension = (glow.blurX > 0 ? Math.ceil(glow.blurX) : 0);
+					__topExtension = __bottomExtension = (glow.blurY > 0 ? Math.ceil(glow.blurY) : 0);
 				}
 			}
+			else if (filter is DropShadowFilter)
+			{
+				var dropShadow:DropShadowFilter = cast filter;
+				var __offsetX = Std.int(dropShadow.distance * Math.cos(dropShadow.angle * Math.PI / 180));
+				var __offsetY = Std.int(dropShadow.distance * Math.sin(dropShadow.angle * Math.PI / 180));
+				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + dropShadow.blurY);
+				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + dropShadow.blurY);
+				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + dropShadow.blurX);
+				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + dropShadow.blurX);
+			}
+			#if flash
+			else if (filter is flash.filters.GradientGlowFilter)
+			{
+				var gradientGlow:flash.filters.GradientGlowFilter = cast filter;
+				var __offsetX = Std.int(gradientGlow.distance * Math.cos(gradientGlow.angle * Math.PI / 180));
+				var __offsetY = Std.int(gradientGlow.distance * Math.sin(gradientGlow.angle * Math.PI / 180));
+				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + gradientGlow.blurY);
+				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + gradientGlow.blurY);
+				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);
+				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + gradientGlow.blurX);
+			}
+			#end
 
-			inflate.inflate(__leftExtension, __topExtension);
+			inflate.x -= __leftExtension;
+			inflate.width += __leftExtension + __bottomExtension;
+			inflate.y -= __topExtension;
+			inflate.height += __topExtension + __bottomExtension;
 		}
 
 		baseBounds.x = Math.min(baseBounds.x, baseBounds.x + inflate.x);
