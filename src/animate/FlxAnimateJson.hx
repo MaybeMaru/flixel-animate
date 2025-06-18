@@ -216,13 +216,15 @@ abstract FilterJson(Dynamic)
 	public var KK(get, never):Null<Bool>;
 	public var T(get, never):String;
 	public var STR(get, never):Null<Float>;
+	public var AL(get, never):Null<Float>;
 	public var A(get, never):Null<Float>;
+	public var HA(get, never):Null<Float>;
+	public var SA(get, never):Null<Float>;
 	public var SC(get, never):String;
 	public var HC(get, never):String;
 	public var IN(get, never):Null<Bool>;
 	public var HO(get, never):Null<Bool>;
 	public var C(get, never):String;
-	public var CA(get, never):Array<Dynamic>;
 	public var GE(get, never):Array<GradientEntry>;
 
 	inline function get_N()
@@ -261,8 +263,17 @@ abstract FilterJson(Dynamic)
 	inline function get_STR()
 		return this.STR ?? this.strength;
 
+	inline function get_AL()
+		return this.AL ?? this.angle;
+
 	inline function get_A()
-		return this.A ?? this.angle;
+		return this.A ?? this.alpha ?? 1.0;
+
+	inline function get_SA()
+		return this.SA ?? this.shadowAlpha ?? 1.0;
+
+	inline function get_HA()
+		return this.HA ?? this.highlightAlpha ?? 1.0;
 
 	inline function get_SC()
 		return this.SC ?? this.shadowColor;
@@ -278,9 +289,6 @@ abstract FilterJson(Dynamic)
 
 	inline function get_C()
 		return this.C ?? this.color;
-
-	inline function get_CA()
-		return this.CA ?? this.colorArray;
 
 	inline function get_GE()
 		return this.GE ?? this.GradientEntries;
@@ -310,12 +318,9 @@ abstract FilterJson(Dynamic)
 		var type:Null<String> = T;
 		return (type == null) ? BitmapFilterType.INNER : switch (type)
 		{
-			case "full":
-				BitmapFilterType.FULL;
-			case "outer":
-				BitmapFilterType.OUTER;
-			default:
-				BitmapFilterType.INNER;
+			case "full": BitmapFilterType.FULL;
+			case "outer": BitmapFilterType.OUTER;
+			default: BitmapFilterType.INNER;
 		}
 	}
 
@@ -333,11 +338,11 @@ abstract FilterJson(Dynamic)
 				return acf.filter;
 
 			case "dropShadowFilter" | "DSF":
-				var dsf = new DropShadowFilter(D, A, FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK, HO);
+				var dsf = new DropShadowFilter(D, AL, FlxColor.fromString(C), A, BLX, BLY, STR, Q, IN, KK, HO);
 				return dsf;
 
 			case "glowFilter" | "GF":
-				var gf = new GlowFilter(FlxColor.fromString(C), 1.0, BLX, BLY, STR, Q, IN, KK);
+				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR, Q, IN, KK);
 				return gf;
 
 				// TODO: add bevel support for other targets
@@ -349,19 +354,19 @@ abstract FilterJson(Dynamic)
 				var highlightColor = FlxColor.fromString(HC);
 				var shadowColor = FlxColor.fromString(SC);
 				var type:BitmapFilterType = getBitmapFilterType();
-				var bf = new flash.filters.BevelFilter(D, A, highlightColor, 1, shadowColor, 1, BLX, BLY, STR, Q, type, KK);
+				var bf = new flash.filters.BevelFilter(D, AL, highlightColor, HA, shadowColor, SA, BLX, BLY, STR, Q, type, KK);
 				return bf;
 
 			case "gradientBevelFilter" | "GBF":
 				var type:BitmapFilterType = getBitmapFilterType();
 				var ga = getGradientArray();
-				var gbf = new flash.filters.GradientBevelFilter(D, A, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
+				var gbf = new flash.filters.GradientBevelFilter(D, AL, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
 				return gbf;
 
 			case "gradientGlowFilter" | "GGF":
 				var type:BitmapFilterType = getBitmapFilterType();
 				var ga = getGradientArray();
-				var ggf = new flash.filters.GradientGlowFilter(D, A, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
+				var ggf = new flash.filters.GradientGlowFilter(D, AL, ga.colors, ga.alphas, ga.ratios, BLX, BLY, STR, Q, type, KK);
 				return ggf;
 			#end
 
