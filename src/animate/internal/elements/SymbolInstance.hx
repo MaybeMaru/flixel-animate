@@ -47,14 +47,14 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 				case "CA" | "Alpha":
 					transform.alphaMultiplier = color.AM;
 				case "CBRT" | "Brightness":
-					var brt = color.BRT * 255;
-					transform.setOffsets(brt, brt, brt, 0);
+					var brt = color.BRT * 255.0;
+					transform.setOffsets(brt, brt, brt, 0.0);
 				case "T" | "Tint":
 					var m = color.TM;
 					var c = FlxColor.fromString(color.TC);
-					var mult = 1 - m;
-					transform.setMultipliers(mult, mult, mult, 1);
-					transform.setOffsets(c.red * m, c.green * m, c.blue * m, 0);
+					var mult = 1.0 - m;
+					transform.setMultipliers(mult, mult, mult, 1.0);
+					transform.setOffsets(c.red * m, c.green * m, c.blue * m, 0.0);
 			}
 		}
 

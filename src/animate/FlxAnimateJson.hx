@@ -12,7 +12,7 @@ import openfl.filters.GlowFilter;
 
 using StringTools;
 
-typedef SpritemapJson =
+extern typedef SpritemapJson =
 {
 	ATLAS:
 	{
@@ -20,7 +20,7 @@ typedef SpritemapJson =
 	}
 }
 
-typedef SpriteJson =
+extern typedef SpriteJson =
 {
 	SPRITE:
 	{
@@ -28,7 +28,7 @@ typedef SpriteJson =
 	}
 }
 
-abstract AnimationJson(Dynamic)
+extern abstract AnimationJson(Dynamic)
 {
 	public var AN(get, never):AnimationDataJson;
 	public var SD(get, never):Null<Array<SymbolJson>>;
@@ -44,7 +44,7 @@ abstract AnimationJson(Dynamic)
 		return this.MD ?? this.metadata;
 }
 
-abstract AnimationDataJson(Dynamic)
+extern abstract AnimationDataJson(Dynamic)
 {
 	public var N(get, never):String;
 	public var SN(get, never):String;
@@ -64,7 +64,7 @@ abstract AnimationDataJson(Dynamic)
 		return this.STI?.SI ?? this.StageInstance?.SYMBOL_Instance ?? null;
 }
 
-abstract TimelineJson(Dynamic)
+extern abstract TimelineJson(Dynamic)
 {
 	public var L(get, never):Array<LayerJson>;
 
@@ -72,7 +72,7 @@ abstract TimelineJson(Dynamic)
 		return this.L ?? this.LAYERS;
 }
 
-abstract LayerJson(Dynamic)
+extern abstract LayerJson(Dynamic)
 {
 	public var LN(get, never):String;
 
@@ -94,7 +94,7 @@ abstract LayerJson(Dynamic)
 		return this.FR ?? this.Frames;
 }
 
-abstract FrameJson(Dynamic)
+extern abstract FrameJson(Dynamic)
 {
 	public var I(get, never):Int;
 	public var DU(get, never):Int;
@@ -120,7 +120,7 @@ abstract FrameJson(Dynamic)
 		return this.SND;
 }
 
-typedef SoundJson =
+extern typedef SoundJson =
 {
 	N:String,
 	SNC:String,
@@ -128,7 +128,7 @@ typedef SoundJson =
 	RP:Int
 }
 
-abstract ElementJson(Dynamic)
+extern abstract ElementJson(Dynamic)
 {
 	public var SI(get, never):Null<SymbolInstanceJson>;
 	public var ASI(get, never):Null<AtlasInstanceJson>;
@@ -153,22 +153,22 @@ abstract SymbolInstanceJson(Dynamic)
 	public var C(get, never):Null<ColorJson>;
 	public var F(get, never):Null<Array<FilterJson>>;
 
-	inline function get_SN()
+	extern inline function get_SN()
 		return this.SN ?? this.SYMBOL_name;
 
-	inline function get_FF()
+	extern inline function get_FF()
 		return this.FF ?? this.firstFrame ?? 0;
 
-	inline function get_ST()
+	extern inline function get_ST()
 		return this.ST ?? this.symbolType;
 
-	inline function get_TRP()
+	extern inline function get_TRP()
 		return this.TRP ?? this.transformationPoint;
 
-	inline function get_LP()
+	extern inline function get_LP()
 		return this.LP ?? this.loop;
 
-	inline function get_MX()
+	extern inline function get_MX()
 		return MatrixJson.resolve(this);
 
 	function get_B()
@@ -190,10 +190,10 @@ abstract SymbolInstanceJson(Dynamic)
 		return null;
 	}
 
-	inline function get_C()
+	extern inline function get_C()
 		return this.C ?? this.color;
 
-	inline function get_F()
+	extern inline function get_F()
 	{
 		var filters:Dynamic = this.F ?? this.filters;
 		if (filters == null || filters is Array)
@@ -227,70 +227,70 @@ abstract FilterJson(Dynamic)
 	public var C(get, never):String;
 	public var GE(get, never):Array<GradientEntry>;
 
-	inline function get_N()
+	extern inline function get_N()
 		return this.N ?? this.name;
 
-	inline function get_BLX()
+	extern inline function get_BLX()
 		return this.BLX ?? this.blurX;
 
-	inline function get_BLY()
+	extern inline function get_BLY()
 		return this.BLY ?? this.blurY;
 
-	inline function get_Q()
+	extern inline function get_Q()
 		return this.Q ?? this.quality;
 
-	inline function get_BRT()
+	extern inline function get_BRT()
 		return this.BRT ?? this.brightness;
 
-	inline function get_H()
+	extern inline function get_H()
 		return this.H ?? this.hue;
 
-	inline function get_CT()
+	extern inline function get_CT()
 		return this.CT ?? this.contrast;
 
-	inline function get_SAT()
+	extern inline function get_SAT()
 		return this.SAT ?? this.saturation;
 
-	inline function get_D()
+	extern inline function get_D()
 		return this.D ?? this.distance;
 
-	inline function get_KK()
+	extern inline function get_KK()
 		return this.KK ?? this.knockout;
 
-	inline function get_T()
+	extern inline function get_T()
 		return this.T ?? this.type;
 
-	inline function get_STR()
+	extern inline function get_STR()
 		return this.STR ?? this.strength;
 
-	inline function get_AL()
+	extern inline function get_AL()
 		return this.AL ?? this.angle;
 
-	inline function get_A()
+	extern inline function get_A()
 		return this.A ?? this.alpha ?? 1.0;
 
-	inline function get_SA()
+	extern inline function get_SA()
 		return this.SA ?? this.shadowAlpha ?? 1.0;
 
-	inline function get_HA()
+	extern inline function get_HA()
 		return this.HA ?? this.highlightAlpha ?? 1.0;
 
-	inline function get_SC()
+	extern inline function get_SC()
 		return this.SC ?? this.shadowColor;
 
-	inline function get_HC()
+	extern inline function get_HC()
 		return this.HC ?? this.highlightColor;
 
-	inline function get_IN()
+	extern inline function get_IN()
 		return this.IN ?? this.inner;
 
-	inline function get_HO()
+	extern inline function get_HO()
 		return this.HO ?? this.hideObject;
 
-	inline function get_C()
+	extern inline function get_C()
 		return this.C ?? this.color;
 
-	inline function get_GE()
+	extern inline function get_GE()
 		return this.GE ?? this.GradientEntries;
 
 	function getGradientArray():{colors:Array<Int>, alphas:Array<Float>, ratios:Array<Float>}
@@ -402,7 +402,7 @@ abstract FilterJson(Dynamic)
 	}
 }
 
-abstract GradientEntry(Dynamic)
+extern abstract GradientEntry(Dynamic)
 {
 	public var R(get, never):Float;
 	public var C(get, never):String;
@@ -418,7 +418,7 @@ abstract GradientEntry(Dynamic)
 		return this.A ?? this.alpha;
 }
 
-abstract AtlasInstanceJson(Dynamic)
+extern abstract AtlasInstanceJson(Dynamic)
 {
 	public var N(get, never):String;
 	public var MX(get, never):MatrixJson;
@@ -430,7 +430,7 @@ abstract AtlasInstanceJson(Dynamic)
 		return MatrixJson.resolve(this);
 }
 
-abstract SymbolJson(Dynamic)
+extern abstract SymbolJson(Dynamic)
 {
 	public var SN(get, never):String;
 	public var TL(get, never):TimelineJson;
@@ -442,7 +442,7 @@ abstract SymbolJson(Dynamic)
 		return this.TL ?? this.TIMELINE;
 }
 
-abstract MetadataJson(Dynamic)
+extern abstract MetadataJson(Dynamic)
 {
 	public var V(get, never):String;
 	public var FRT(get, never):Float;
@@ -467,7 +467,7 @@ abstract MetadataJson(Dynamic)
 		return this.BGC ?? this.backgroundColor ?? "#FFFFFF";
 }
 
-abstract ColorJson(Dynamic)
+extern abstract ColorJson(Dynamic)
 {
 	public var M(get, never):String;
 	public var RM(get, never):Null<Float>;
@@ -519,7 +519,7 @@ abstract ColorJson(Dynamic)
 		return this.BRT ?? this.brightness;
 }
 
-typedef TransformationPointJson =
+extern typedef TransformationPointJson =
 {
 	x:Float,
 	y:Float
@@ -557,26 +557,26 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 		return [mat3D[0], mat3D[1], mat3D[4], mat3D[5], mat3D[12], mat3D[13]];
 	}
 
-	public inline function toMatrix():FlxMatrix
+	extern public inline function toMatrix():FlxMatrix
 	{
 		return new FlxMatrix(a, b, c, d, tx, ty);
 	}
 
-	inline function get_a()
+	extern inline function get_a()
 		return this[0];
 
-	inline function get_b()
+	extern inline function get_b()
 		return this[1];
 
-	inline function get_c()
+	extern inline function get_c()
 		return this[2];
 
-	inline function get_d()
+	extern inline function get_d()
 		return this[3];
 
-	inline function get_tx()
+	extern inline function get_tx()
 		return this[4];
 
-	inline function get_ty()
+	extern inline function get_ty()
 		return this[5];
 }
