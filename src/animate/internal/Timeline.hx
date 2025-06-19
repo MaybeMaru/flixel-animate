@@ -231,19 +231,21 @@ class Timeline implements IFlxDestroyable
 	@:noCompletion
 	public static inline function maskBounds(masked:FlxRect, masker:FlxRect):FlxRect
 	{
-		/*var x1:Float = Math.max(masked.x, masker.x);
-			var y1:Float = Math.max(masked.y, masker.y);
-			var x2:Float = Math.min(masked.right, masker.right);
-			var y2:Float = Math.min(masked.bottom, masker.bottom);
+		if (masker.isEmpty)
+			return masked;
 
-			masked.set(x1, y1, x2 - x1, y2 - y1); */
+		var x1:Float = Math.max(masked.x, masker.x);
+		var y1:Float = Math.max(masked.y, masker.y);
+		var x2:Float = Math.min(masked.right, masker.right);
+		var y2:Float = Math.min(masked.bottom, masker.bottom);
 
-		// trace("masker:", masker);
-		// trace("masked:", masked);
+		if (x2 <= x1 || y2 <= y1)
+		{
+			masked.set(0.0, 0.0, 0.0, 0.0);
+			return masked;
+		}
 
-		// masker.copyTo(masked);
-		masked.set(masker.x, masker.y, masker.width, masker.height);
-
+		masked.set(x1, y1, x2 - x1, y2 - y1);
 		return masked;
 	}
 

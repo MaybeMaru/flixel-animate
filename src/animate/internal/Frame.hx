@@ -75,11 +75,7 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
-	var _bakedFrames:Vector<AtlasInstance>;
-
-	// TODO: maybe instead of a map this could be a vector
-	// which turns off _dirty after its filled with baked masks
-	// var bakedFrames:Null<Map<Int, AtlasInstance>> = null;
+	var _bakedFrames:Array<AtlasInstance>;
 
 	function bakeFrame(frameIndex:Int):Void
 	{
@@ -87,29 +83,26 @@ class Frame implements IFlxDestroyable
 			return;
 
 		if (_bakedFrames == null)
-			_bakedFrames = new Vector<AtlasInstance>(duration, null);
+		{
+			_bakedFrames = [];
+			for (i in 0...duration)
+				_bakedFrames.push(null);
+		}
 
 		if (_bakedFrames[frameIndex] != null)
 			return;
 
 		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
-		_bakedFrames[frameIndex] = bakedFrame;
+		if (bakedFrame == null)
+			return;
 
-		if (bakedFrame != null && (bakedFrame.frame.frame.width <= 1 || bakedFrame.frame.frame.height <= 1))
+		_bakedFrames[frameIndex] = bakedFrame;
+		if (bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 
 		if (_dirty)
 		{
-			var hasNull:Bool = false;
-			for (frame in _bakedFrames)
-			{
-				if (frame == null)
-				{
-					hasNull = true;
-					break;
-				}
-			}
-			if (!hasNull)
+			if (_bakedFrames.indexOf(null) == -1)
 				_dirty = false;
 		}
 	}

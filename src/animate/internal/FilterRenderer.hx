@@ -55,7 +55,7 @@ class FilterRenderer
 			return null;
 
 		var maskerFrame = masker.getFrameAtIndex(currentFrame);
-		if (maskerFrame == null)
+		if (maskerFrame == null || maskerFrame.elements.length <= 0)
 			return null;
 
 		var maskerBounds:Rectangle;
@@ -87,7 +87,7 @@ class FilterRenderer
 		point.setTo(0, 0);
 
 		// make masked bitmap
-		var bitmap = new BitmapData(Math.ceil(maskerBounds.width), Math.ceil(maskerBounds.height), true, 0);
+		var bitmap = new BitmapData(Math.ceil(intersectWidth), Math.ceil(intersectHeight), true, 0);
 		bitmap.copyPixels(masked, rect, point, null, null, true);
 
 		// copy masker channel
@@ -547,7 +547,7 @@ class FilterRenderer
 			#end
 
 			inflate.x -= __leftExtension;
-			inflate.width += __leftExtension + __bottomExtension;
+			inflate.width += __leftExtension + __rightExtension;
 			inflate.y -= __topExtension;
 			inflate.height += __topExtension + __bottomExtension;
 		}
