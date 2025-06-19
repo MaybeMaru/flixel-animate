@@ -12,6 +12,8 @@ import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
+import haxe.io.Path;
+import openfl.utils.AssetType;
 import openfl.utils.Assets;
 
 using StringTools;
@@ -28,18 +30,32 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		if (dictionary.exists(name))
 			return dictionary.get(name);
 
-		// Didnt load at first for some reason?
-		if (_loadedData != null)
+		if (_isInlined)
 		{
-			for (data in _loadedData.SD)
+			// Didnt load at first for some reason?
+			if (_loadedData != null)
 			{
-				if (data.SN == name)
+				for (data in _loadedData.SD)
 				{
-					var timeline = new Timeline(data.TL, this, data.SN);
-					var symbol = new SymbolItem(timeline);
-					dictionary.set(timeline.name, symbol);
-					return symbol;
+					if (data.SN == name)
+					{
+						var timeline = new Timeline(data.TL, this, name);
+						var symbol = new SymbolItem(timeline);
+						dictionary.set(timeline.name, symbol);
+						return symbol;
+					}
 				}
+			}
+		}
+		else
+		{
+			if (_libraryList.contains(name))
+			{
+				var data:TimelineJson = Json.parse(getTextFromPath(path + "/LIBRARY/" + name + ".json"));
+				var timeline = new Timeline(data, this, name);
+				var symbol = new SymbolItem(timeline);
+				dictionary.set(timeline.name, symbol);
+				return symbol;
 			}
 		}
 
@@ -53,10 +69,14 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		dictionary = [];
 	}
 
-	static function listSpritemaps(path:String):Array<String>
+	extern static inline function getTextFromPath(path:String)
 	{
-		final filter = (str:String) -> return str.contains("spritemap") && str.endsWith(".json");
+		var content = #if (flixel >= "5.9.0") FlxG.assets.getText(path); #else #if sys sys.io.File.getContent(path); #else Assets.getText(path); #end #end
+		return content.replace(String.fromCharCode(0xFEFF), "");
+	}
 
+	extern static inline function listWithFilter(path:String, filter:String->Bool)
+	{
 		#if sys
 		var list:Array<String> = sys.FileSystem.readDirectory(path);
 		return list.filter(filter);
@@ -72,7 +92,15 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		#end
 	}
 
+	static function listSpritemaps(path:String):Array<String>
+	{
+		final filter = (str:String) -> return str.contains("spritemap") && str.endsWith(".json");
+		return listWithFilter(path, filter);
+	}
+
 	var _loadedData:AnimationJson;
+	var _isInlined:Bool;
+	var _libraryList:Array<String>;
 
 	// since FlxAnimateFrames can have more than one graphic im gonna need use do this
 	// TODO: use another method that works closer to flixel's frame collection crap
@@ -89,16 +117,28 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			return _cachedAtlases.get(path);
 		}
 
-		final getTextFromPath = (path:String) ->
-		{
-			var content = #if (flixel >= "5.9.0") FlxG.assets.getText(path); #else #if sys sys.io.File.getContent(path); #else Assets.getText(path); #end #end
-			return content.replace(String.fromCharCode(0xFEFF), "");
-		}
-
 		final getGraphic = (path:String) ->
 		{
 			return #if (flixel < "5.9.0" && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false,
 				path); #else FlxG.bitmap.add(path); #end
+		}
+
+		final existsFile = (path:String, type:AssetType) ->
+		{
+			return #if (flixel < "5.9.0")
+				#if sys
+				sys.FileSystem.exists(path);
+				#else
+				Assets.exists(path, type);
+				#end
+			#else
+				FlxG.assets.exists(path, switch (type)
+				{
+					case BINARY: BINARY;
+					case IMAGE: IMAGE;
+					default: TEXT;
+				});
+			#end
 		}
 
 		var animation:AnimationJson = Json.parse(getTextFromPath(path + "/Animation.json"));
@@ -106,6 +146,15 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		var frames = new FlxAnimateFrames(null);
 		frames.path = path;
 		frames._loadedData = animation;
+
+		var isInlined = !existsFile(path + "/metadata.json", TEXT);
+		frames._isInlined = isInlined;
+
+		if (!isInlined)
+		{
+			var list = listWithFilter(frames.path + "/LIBRARY", (str) -> str.endsWith(".json"));
+			frames._libraryList = list.map((str) -> Path.withoutExtension(Path.withoutDirectory(str)));
+		}
 
 		// Load all spritemaps
 		for (sm in listSpritemaps(path))
@@ -141,15 +190,17 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			}
 		}
 
-		frames.frameRate = animation.MD.FRT;
+		var metadata:MetadataJson = isInlined ? animation.MD : Json.parse(getTextFromPath(path + "/metadata.json"));
+
+		frames.frameRate = metadata.FRT;
 		frames.timeline = new Timeline(animation.AN.TL, frames, animation.AN.SN);
 		frames.dictionary.set(frames.timeline.name, new SymbolItem(frames.timeline)); // Add main symbol to the library too
 
 		// stage background color
-		var w = animation.MD.W;
-		var h = animation.MD.H;
+		var w = metadata.W;
+		var h = metadata.H;
 		frames.stageRect = (w > 0 && h > 0) ? FlxRect.get(0, 0, w, h) : FlxRect.get();
-		frames.stageColor = FlxColor.fromString(animation.MD.BGC);
+		frames.stageColor = FlxColor.fromString(metadata.BGC);
 
 		// stage instance of the main symbol
 		var stageInstance:Null<SymbolInstanceJson> = animation.AN.STI;
@@ -157,6 +208,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		// clear the temp data crap
 		frames._loadedData = null;
+		frames._libraryList = null;
 
 		_cachedAtlases.set(path, frames);
 		return frames;
