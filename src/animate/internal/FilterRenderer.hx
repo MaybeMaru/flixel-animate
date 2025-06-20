@@ -6,6 +6,7 @@ import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -526,8 +527,8 @@ class FilterRenderer
 			else if (filter is DropShadowFilter)
 			{
 				var dropShadow:DropShadowFilter = cast filter;
-				var __offsetX = Std.int(dropShadow.distance * Math.cos(dropShadow.angle * Math.PI / 180));
-				var __offsetY = Std.int(dropShadow.distance * Math.sin(dropShadow.angle * Math.PI / 180));
+				var __offsetX = Std.int(dropShadow.distance * FlxMath.fastCos(dropShadow.angle * Math.PI / 180));
+				var __offsetY = Std.int(dropShadow.distance * FlxMath.fastSin(dropShadow.angle * Math.PI / 180));
 				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + dropShadow.blurY);
 				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + dropShadow.blurY);
 				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + dropShadow.blurX);
@@ -537,8 +538,8 @@ class FilterRenderer
 			else if (filter is flash.filters.GradientGlowFilter)
 			{
 				var gradientGlow:flash.filters.GradientGlowFilter = cast filter;
-				var __offsetX = Std.int(gradientGlow.distance * Math.cos(gradientGlow.angle * Math.PI / 180));
-				var __offsetY = Std.int(gradientGlow.distance * Math.sin(gradientGlow.angle * Math.PI / 180));
+				var __offsetX = Std.int(gradientGlow.distance * FlxMath.fastCos(gradientGlow.angle * Math.PI / 180));
+				var __offsetY = Std.int(gradientGlow.distance * FlxMath.fastSin(gradientGlow.angle * Math.PI / 180));
 				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + gradientGlow.blurY);
 				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + gradientGlow.blurY);
 				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);

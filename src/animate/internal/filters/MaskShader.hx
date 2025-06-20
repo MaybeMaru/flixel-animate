@@ -48,7 +48,7 @@ class MaskShader extends GraphicsShader
 
 	public static function maskAlpha(masked:BitmapData, masker:BitmapData, rect:Rectangle) @:privateAccess
 	{
-		if (masked == null || masker == null || masked.width <= 0 || masker.height <= 0)
+		if (masked == null || masker == null || masked.width <= 0 || masked.height <= 0 || masker.width <= 0 || masker.height <= 0)
 			return;
 
 		var shader = shader.setup(masked, masker, rect.x, rect.y);
