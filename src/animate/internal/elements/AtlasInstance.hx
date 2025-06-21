@@ -100,14 +100,14 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		#end
 
 		#if FLX_DEBUG
-		if (FlxAnimate.drawDebugLimbs && !Frame.__isDirtyCall)
+		if (FlxG.debugger.drawDebug && FlxAnimate.drawDebugLimbs && !Frame.__isDirtyCall)
 			drawBoundingBox(camera, _bounds);
 		#end
 	}
 
 	#if flash
 	@:access(flixel.FlxCamera)
-	function drawPixelsFlash(cam:FlxCamera, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool):Void
+	inline function drawPixelsFlash(cam:FlxCamera, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool):Void
 	{
 		var smooth:Bool = (cam.antialiasing || antialiasing);
 		cam._helperMatrix.copyFrom(matrix);
@@ -140,7 +140,11 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 
 		Timeline.applyMatrixToRect(bounds, matrix);
 
-		return camera.containsRect(bounds);
+		// manually inlining this because we dont need the bounds.putWeak part
+		return (bounds.right > camera.viewMarginLeft)
+			&& (bounds.x < camera.viewMarginRight)
+			&& (bounds.bottom > camera.viewMarginTop)
+			&& (bounds.y < camera.viewMarginBottom);
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
@@ -161,7 +165,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	#end
 
 	#if FLX_DEBUG
-	public static function drawBoundingBox(camera:FlxCamera, bounds:FlxRect, ?color:FlxColor = FlxColor.BLUE):Void
+	public static inline function drawBoundingBox(camera:FlxCamera, bounds:FlxRect, ?color:FlxColor = FlxColor.BLUE):Void
 	{
 		#if flash
 		var cBounds = camera.transformRect(bounds.copyTo(FlxRect.get()));

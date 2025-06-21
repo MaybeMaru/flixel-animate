@@ -6,6 +6,7 @@ import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -15,6 +16,8 @@ import flixel.util.FlxPool;
 import openfl.display.BitmapData;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
+import openfl.filters.DropShadowFilter;
+import openfl.filters.GlowFilter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
@@ -53,7 +56,7 @@ class FilterRenderer
 			return null;
 
 		var maskerFrame = masker.getFrameAtIndex(currentFrame);
-		if (maskerFrame == null)
+		if (maskerFrame == null || maskerFrame.elements.length <= 0)
 			return null;
 
 		var maskerBounds:Rectangle;
@@ -85,7 +88,7 @@ class FilterRenderer
 		point.setTo(0, 0);
 
 		// make masked bitmap
-		var bitmap = new BitmapData(Math.ceil(maskerBounds.width), Math.ceil(maskerBounds.height), true, 0);
+		var bitmap = new BitmapData(Math.ceil(intersectWidth), Math.ceil(intersectHeight), true, 0);
 		bitmap.copyPixels(masked, rect, point, null, null, true);
 
 		// copy masker channel
@@ -186,24 +189,41 @@ class FilterRenderer
 			if (filters != null && filters.length > 0)
 				@:privateAccess
 			{
+				filters = filters.copy();
 				var inflate = Rectangle.__pool.get();
-				for (filter in filters)
+				for (i => filter in filters)
 				{
 					if (filter == null)
 						continue;
 
+					var left:Float = 0.0; // filter.__leftExtension;
+					var top:Float = 0.0; // filter.__topExtension;
+					var right:Float = 0.0; // filter.__rightExtension;
+					var bottom:Float = 0.0; // filter.__bottomExtension;
+
 					if (filter is BlurFilter)
 					{
-						var blur:BlurFilter = cast filter;
+						var blur:BlurFilter = cast filter.clone();
+						filters[i] = blur;
+
 						blur.blurX /= scale.x;
 						blur.blurY /= scale.y;
+
+						left = right = blur.blurX;
+						top = bottom = blur.blurY;
+
+						blur.blurX = Math.pow(blur.blurX, 0.6);
+						blur.blurY = Math.pow(blur.blurY, 0.6);
+					}
+					else
+					{
+						left = filter.__leftExtension;
+						top = filter.__topExtension;
+						right = filter.__rightExtension;
+						bottom = filter.__bottomExtension;
 					}
 
-					inflate.__expand(-filter.__leftExtension,
-						-filter.__topExtension, filter.__leftExtension
-						+ filter.__rightExtension,
-						filter.__topExtension
-						+ filter.__bottomExtension);
+					inflate.__expand(-left, -top, left + right, top + bottom);
 				}
 
 				var boundsX = bounds.x + inflate.x - scale.x;
@@ -231,7 +251,6 @@ class FilterRenderer
 		var element = new AtlasInstance();
 		element.frame = frame;
 		element.matrix = mat;
-		scale.put();
 
 		return element;
 	}
@@ -283,32 +302,23 @@ class FilterRenderer
 		var bitmap2:BitmapData = target1;
 		var bitmap3:BitmapData = target2;
 
-		renderer.__setRenderTarget(bitmap);
-
-		var rect = Rectangle.__pool.get();
-		rect.setTo(0, 0, bitmap.width, bitmap.height);
-
 		bmp.__renderTransform.identity();
 		if (point != null)
 			bmp.__renderTransform.translate(point.x, point.y);
 
-		var bestResolution = renderer.__context3D.__backBufferWantsBestResolution;
-		renderer.__context3D.__backBufferWantsBestResolution = false;
-		renderer.__scissorRect(rect);
+		renderer.__setRenderTarget(bitmap);
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
-		renderer.__scissorRect();
+		bmp.__renderTransform.identity();
 
-		Rectangle.__pool.release(rect);
-
-		renderer.__context3D.__backBufferWantsBestResolution = bestResolution;
-
-		var shader, cacheBitmap = null;
+		var shader:Shader = null;
 		for (filter in filters)
 		{
 			if (filter == null)
 				continue;
 
-			if (filter.__preserveObject)
+			var preserveObject = filter.__preserveObject;
+
+			if (preserveObject)
 			{
 				renderer.__setRenderTarget(bitmap3);
 				renderer.__renderFilterPass(bitmap, renderer.__defaultDisplayShader, filter.__smooth);
@@ -316,15 +326,16 @@ class FilterRenderer
 
 			for (i in 0...filter.__numShaderPasses)
 			{
-				shader = filter.__initShader(renderer, i, (filter.__preserveObject) ? bitmap3 : null);
+				shader = filter.__initShader(renderer, i, preserveObject ? bitmap3 : null);
 				renderer.__setBlendMode(filter.__shaderBlendMode);
 				renderer.__setRenderTarget(bitmap2);
 				renderer.__renderFilterPass(bitmap, shader, filter.__smooth);
+				shader = null;
 
-				cacheBitmap = bitmap;
-				bitmap = bitmap2;
-				bitmap2 = cacheBitmap;
+				renderer.__setRenderTarget(bitmap);
+				renderer.__renderFilterPass(bitmap2, renderer.__defaultDisplayShader, filter.__smooth);
 			}
+
 			filter.__renderDirty = false;
 		}
 
@@ -378,18 +389,7 @@ class FilterRenderer
 	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
 		var filteredBounds:FlxRect = symbol.getBounds(0);
-
-		for (filter in filters)
-		{
-			if (filter is BlurFilter)
-			{
-				var blur:BlurFilter = cast filter;
-				filteredBounds.x -= blur.blurX;
-				filteredBounds.y -= blur.blurY;
-				filteredBounds.width += blur.blurX * 2;
-				filteredBounds.height += blur.blurY * 2;
-			}
-		}
+		expandFilterBounds(filteredBounds, filters);
 
 		var bitmap:BitmapData = getBitmap((cam, mat) -> symbol.draw(cam, 0, null, mat, null, null, true, null), filteredBounds);
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
@@ -499,24 +499,58 @@ class FilterRenderer
 	}
 	#end
 
-	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<FilterJson>)
+	public static function expandFilterBounds(baseBounds:FlxRect, filters:Array<BitmapFilter>)
 	{
 		var inflate = #if flash new Rectangle(); #else Rectangle.__pool.get(); #end
 		for (filter in filters)
 		{
 			var __leftExtension = 0;
 			var __topExtension = 0;
+			var __bottomExtension = 0;
+			var __rightExtension = 0;
 
-			switch (filter.N)
+			if (filter is BlurFilter)
 			{
-				case "blurFilter" | "BLF":
-					var blurX = filter.BLX;
-					var blurY = filter.BLY;
-					__leftExtension = (blurX > 0 ? Math.ceil(blurX) : 0);
-					__topExtension = (blurY > 0 ? Math.ceil(blurY) : 0);
+				var blur:BlurFilter = cast filter;
+				__leftExtension = __rightExtension = (blur.blurX > 0 ? Math.ceil(blur.blurX) : 0);
+				__topExtension = __bottomExtension = (blur.blurY > 0 ? Math.ceil(blur.blurY) : 0);
 			}
+			else if (filter is GlowFilter)
+			{
+				var glow:GlowFilter = cast filter;
+				if (!glow.inner)
+				{
+					__leftExtension = __rightExtension = (glow.blurX > 0 ? Math.ceil(glow.blurX) : 0);
+					__topExtension = __bottomExtension = (glow.blurY > 0 ? Math.ceil(glow.blurY) : 0);
+				}
+			}
+			else if (filter is DropShadowFilter)
+			{
+				var dropShadow:DropShadowFilter = cast filter;
+				var __offsetX = Std.int(dropShadow.distance * FlxMath.fastCos(dropShadow.angle * Math.PI / 180));
+				var __offsetY = Std.int(dropShadow.distance * FlxMath.fastSin(dropShadow.angle * Math.PI / 180));
+				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + dropShadow.blurY);
+				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + dropShadow.blurY);
+				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + dropShadow.blurX);
+				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + dropShadow.blurX);
+			}
+			#if flash
+			else if (filter is flash.filters.GradientGlowFilter)
+			{
+				var gradientGlow:flash.filters.GradientGlowFilter = cast filter;
+				var __offsetX = Std.int(gradientGlow.distance * FlxMath.fastCos(gradientGlow.angle * Math.PI / 180));
+				var __offsetY = Std.int(gradientGlow.distance * FlxMath.fastSin(gradientGlow.angle * Math.PI / 180));
+				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + gradientGlow.blurY);
+				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + gradientGlow.blurY);
+				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);
+				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + gradientGlow.blurX);
+			}
+			#end
 
-			inflate.inflate(__leftExtension, __topExtension);
+			inflate.x -= __leftExtension;
+			inflate.width += __leftExtension + __rightExtension;
+			inflate.y -= __topExtension;
+			inflate.height += __topExtension + __bottomExtension;
 		}
 
 		baseBounds.x = Math.min(baseBounds.x, baseBounds.x + inflate.x);

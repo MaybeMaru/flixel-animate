@@ -49,7 +49,7 @@ class ButtonInstance extends SymbolInstance
 		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
 
 		#if FLX_DEBUG
-		if (FlxAnimate.drawDebugLimbs)
+		if (FlxG.debugger.drawDebug && FlxAnimate.drawDebugLimbs)
 			AtlasInstance.drawBoundingBox(camera, _hitbox, FlxColor.PURPLE);
 		#end
 	}
