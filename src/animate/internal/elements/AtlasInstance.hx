@@ -37,8 +37,9 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	public function new(?data:AtlasInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent);
+
 		this.tileMatrix = new FlxMatrix();
-		isSymbolInstance = false;
+		this.elementType = ATLAS;
 
 		if (data != null)
 		{
@@ -147,7 +148,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			&& (bounds.y < camera.viewMarginBottom);
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var rect = super.getBounds(0, rect);
 		rect.set(0, 0, frame.frame.width, frame.frame.height);
@@ -193,5 +194,18 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	public function toString():String
 	{
 		return '{frame: ${frame.name}, matrix: $matrix}';
+	}
+}
+
+@:noCompletion
+class BakedInstance extends AtlasInstance
+{
+	public var blend:BlendMode = null;
+
+	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+			?antialiasing:Bool, ?shader:FlxShader)
+	{
+		var b = Blend.resolve(this.blend, blend);
+		super.draw(camera, index, tlFrame, parentMatrix, transform, b, antialiasing, shader);
 	}
 }

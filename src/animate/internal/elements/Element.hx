@@ -30,7 +30,7 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	public var matrix:FlxMatrix;
 	public var visible:Bool;
-	public var isSymbolInstance:Bool;
+	public var elementType:ElementType;
 
 	public function new(data:T, parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -50,14 +50,25 @@ class AnimateElement<T> implements IFlxDestroyable
 	public inline function toSymbolInstance():SymbolInstance
 		return cast this;
 
+	public inline function toMovieClipInstance():MovieClipInstance
+		return cast this;
+
 	public inline function toAtlasInstance():AtlasInstance
 		return cast this;
 
 	public inline function toButtonInstance():ButtonInstance
 		return cast this;
 
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		return rect ?? FlxRect.get();
 	}
+}
+
+enum abstract ElementType(String) to String
+{
+	var ATLAS = "atlas";
+	var GRAPHIC = "graphic";
+	var MOVIECLIP = "movieclip";
+	var BUTTON = "button";
 }

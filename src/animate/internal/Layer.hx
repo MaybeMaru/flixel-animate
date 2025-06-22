@@ -159,12 +159,12 @@ class Layer implements IFlxDestroyable
 			frameIndices[index + i] = frames.length - 1;
 	}
 
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();
 		var frame = getFrameAtIndex(frameIndex);
 		if (frame != null)
-			return frame.getBounds((frameIndex - frame.index), rect, matrix);
+			return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters);
 
 		if (matrix != null)
 			Timeline.applyMatrixToRect(rect, matrix);

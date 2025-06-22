@@ -1,6 +1,5 @@
 package animate.internal.filters;
 
-#if !flash
 import flixel.FlxG;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
@@ -11,8 +10,47 @@ import openfl.display.ShaderInput;
 import openfl.display.ShaderParameter;
 import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
+
 class Blend
 {
+	public static inline function resolve(?blend:BlendMode, ?drawBlend:BlendMode):Null<BlendMode>
+	{
+		if (Frame.__isDirtyCall)
+			return NORMAL;
+
+		if (blend == null || blend == NORMAL)
+			return drawBlend;
+
+		return blend;
+	}
+
+	public static function fromInt(blend:Null<Int>):BlendMode
+	{
+		if (blend == null)
+			return NORMAL;
+
+		return switch (blend)
+		{
+			case 0: ADD;
+			case 1: ALPHA;
+			case 2: DARKEN;
+			case 3: DIFFERENCE;
+			case 4: ERASE;
+			case 5: HARDLIGHT;
+			case 6: INVERT;
+			case 7: LAYER;
+			case 8: LIGHTEN;
+			case 9: MULTIPLY;
+			case 10: NORMAL;
+			case 11: OVERLAY;
+			case 12: SCREEN;
+			case 13: SHADER;
+			case 14: SUBTRACT;
+			case _: NORMAL;
+		};
+	}
+
+	#if !flash
 	public static function isGpuSupported(blend:BlendMode):Bool
 	{
 		return switch (blend)
@@ -34,8 +72,10 @@ class Blend
 		var shader = new BlendShader(bitmap1, bitmap2, cast blend);
 		FilterRenderer.renderWithShader(target, bitmap1, shader);
 	}
+	#end
 }
 
+#if !flash
 class BlendShader extends GraphicsShader
 {
 	@:glFragmentSource('
@@ -126,37 +166,6 @@ class BlendShader extends GraphicsShader
 		this.bitmap.input = bitmap1;
 		this.bitmap2.input = bitmap2;
 		this.blendMode.value = [blendInt];
-	}
-}
-#else
-import flash.display.BlendMode;
-
-class Blend
-{
-	public static function resolveBlend(blend:Null<Int>):BlendMode
-	{
-		if (blend == null)
-			return NORMAL;
-
-		return switch (blend)
-		{
-			case 0: ADD;
-			case 1: ALPHA;
-			case 2: DARKEN;
-			case 3: DIFFERENCE;
-			case 4: ERASE;
-			case 5: HARDLIGHT;
-			case 6: INVERT;
-			case 7: LAYER;
-			case 8: LIGHTEN;
-			case 9: MULTIPLY;
-			case 10: NORMAL;
-			case 11: OVERLAY;
-			case 12: SCREEN;
-			case 13: SHADER;
-			case 14: SUBTRACT;
-			case _: NORMAL;
-		};
 	}
 }
 #end

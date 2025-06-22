@@ -97,7 +97,7 @@ class Frame implements IFlxDestroyable
 			return;
 
 		_bakedFrames[frameIndex] = bakedFrame;
-		if (bakedFrame.frame.frame.isEmpty)
+		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 
 		if (_dirty)
@@ -121,7 +121,7 @@ class Frame implements IFlxDestroyable
 			callback(element);
 	}
 
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();
 
@@ -138,7 +138,7 @@ class Frame implements IFlxDestroyable
 			var bakedFrame = _bakedFrames[frameIndex];
 			if (bakedFrame != null)
 			{
-				bakedFrame.getBounds(frameIndex, rect, matrix);
+				bakedFrame.getBounds(frameIndex, rect, matrix, includeFilters);
 				return rect;
 			}
 		}
@@ -165,7 +165,9 @@ class Frame implements IFlxDestroyable
 		return rect;
 	}
 
+	@:allow(animate.internal.elements.SymbolInstance)
 	@:allow(animate.internal.FilterRenderer)
+	@:allow(animate.internal.filters.Blend)
 	@:allow(animate.internal.elements.AtlasInstance)
 	private static var __isDirtyCall:Bool = false;
 

@@ -2,6 +2,7 @@ package animate.internal;
 
 import animate.FlxAnimateJson.FilterJson;
 import animate.internal.elements.*;
+import animate.internal.elements.AtlasInstance.BakedInstance;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
@@ -14,6 +15,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxPool;
 import openfl.display.BitmapData;
+import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
 import openfl.filters.DropShadowFilter;
@@ -59,21 +61,26 @@ class FilterRenderer
 		if (maskerFrame == null || maskerFrame.elements.length <= 0)
 			return null;
 
-		var maskerBounds:Rectangle;
-		var maskedBounds:Rectangle;
+		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
+		if (maskerBounds.isEmpty) // Has no masker, render as normal
+			return null;
+
+		var maskedBounds = frame.getBounds(currentFrame - frame.index);
+		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
+			return new AtlasInstance();
 
 		var masker = renderToBitmap((cam, mat) ->
 		{
-			maskerFrame.draw(cam, currentFrame, mat, null, null, true, null);
+			maskerFrame.draw(cam, currentFrame, mat, null, NORMAL, true, null);
 			cam.render();
-			maskerBounds = cam.canvas.getBounds(null);
+			cam.canvas.graphics.__bounds = maskerBounds.copyToFlash(new Rectangle());
 		});
 
 		var masked = renderToBitmap((cam, mat) ->
 		{
-			frame.draw(cam, currentFrame, mat, null, null, true, null);
+			frame.draw(cam, currentFrame, mat, null, NORMAL, true, null);
 			cam.render();
-			maskedBounds = cam.canvas.getBounds(null);
+			cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
 		});
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
@@ -81,31 +88,31 @@ class FilterRenderer
 		var intersectWidth = Math.min(maskerBounds.right, maskedBounds.right) - intersectX;
 		var intersectHeight = Math.min(maskerBounds.bottom, maskedBounds.bottom) - intersectY;
 
-		var rect = Rectangle.__pool.get();
-		var point = Point.__pool.get();
-
-		rect.setTo(intersectX - maskedBounds.x, intersectY - maskedBounds.y, intersectWidth, intersectHeight);
-		point.setTo(0, 0);
-
-		// make masked bitmap
-		var bitmap = new BitmapData(Math.ceil(intersectWidth), Math.ceil(intersectHeight), true, 0);
-		bitmap.copyPixels(masked, rect, point, null, null, true);
-
 		// copy masker channel
+		var rect = Rectangle.__pool.get();
 		rect.setTo(intersectX - maskerBounds.x, intersectY - maskerBounds.y, intersectWidth, intersectHeight);
 
-		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
-		MaskShader.maskAlpha(bitmap, masker, rect);
+		var blend:BlendMode = NORMAL;
+		if (frame.elements.length == 1)
+		{
+			var element = frame.elements[0];
+			if (element.elementType == MOVIECLIP)
+				blend = element.toMovieClipInstance().blend;
+		}
+
+		var frame = FlxGraphic.fromBitmapData(masked).imageFrame.frame;
+		MaskShader.maskAlpha(masked, masker, rect);
 
 		Rectangle.__pool.release(rect);
-		Point.__pool.release(point);
 
-		var element = new AtlasInstance();
+		// create result masked atlas instance
+		var element = new BakedInstance();
 		element.frame = frame;
+		element.blend = blend;
 		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
 
+		// we wont need to keep the masker anymore
 		FlxDestroyUtil.dispose(masker);
-		FlxDestroyUtil.dispose(masked);
 
 		return element;
 	}
@@ -171,72 +178,49 @@ class FilterRenderer
 		return bitmap;
 	}
 
-	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
 		var bitmap:BitmapData;
-		var bounds:Rectangle;
-		var filteredBounds:Rectangle;
+		var bounds:FlxRect;
+		var filteredBounds:FlxRect;
 
 		bitmap = renderToBitmap((cam, mat) ->
 		{
 			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
-			symbol.draw(cam, 0, null, mat, null, null, true, null);
+			movieclip.draw(cam, 0, null, mat, null, null, true, null);
 			cam.render();
 
-			bounds = cam.canvas.getBounds(null);
-			var gfx = cam.canvas.graphics;
-
 			if (filters != null && filters.length > 0)
-				@:privateAccess
 			{
 				filters = filters.copy();
-				var inflate = Rectangle.__pool.get();
+
 				for (i => filter in filters)
 				{
 					if (filter == null)
 						continue;
-
-					var left:Float = 0.0; // filter.__leftExtension;
-					var top:Float = 0.0; // filter.__topExtension;
-					var right:Float = 0.0; // filter.__rightExtension;
-					var bottom:Float = 0.0; // filter.__bottomExtension;
 
 					if (filter is BlurFilter)
 					{
 						var blur:BlurFilter = cast filter.clone();
 						filters[i] = blur;
 
-						blur.blurX /= scale.x;
-						blur.blurY /= scale.y;
-
-						left = right = blur.blurX;
-						top = bottom = blur.blurY;
-
-						blur.blurX = Math.pow(blur.blurX, 0.6);
-						blur.blurY = Math.pow(blur.blurY, 0.6);
+						blur.blurX = Math.pow(blur.blurX / scale.x, 0.6);
+						blur.blurY = Math.pow(blur.blurY / scale.y, 0.6);
 					}
-					else
-					{
-						left = filter.__leftExtension;
-						top = filter.__topExtension;
-						right = filter.__rightExtension;
-						bottom = filter.__bottomExtension;
-					}
-
-					inflate.__expand(-left, -top, left + right, top + bottom);
 				}
-
-				var boundsX = bounds.x + inflate.x - scale.x;
-				var boundsY = bounds.y + inflate.y - scale.y;
-
-				gfx.__inflateBounds(boundsX, boundsY);
-				gfx.__bounds.width += inflate.width;
-				gfx.__bounds.height += inflate.height;
-
-				Rectangle.__pool.release(inflate);
 			}
 
-			filteredBounds = cam.canvas.getBounds(null);
+			movieclip._dirty = true;
+			filteredBounds = movieclip.getBounds(0, null, null, true);
+			movieclip._dirty = false;
+			bounds = movieclip.getBounds(0, null, null, false);
+
+			var gfx = cam.canvas.graphics;
+			filteredBounds.copyToFlash(gfx.__bounds);
+			gfx.__bounds.x /= scale.x;
+			gfx.__bounds.y /= scale.y;
+			gfx.__bounds.width /= scale.x;
+			gfx.__bounds.height /= scale.y;
 		});
 
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
@@ -245,8 +229,8 @@ class FilterRenderer
 		var mat = new FlxMatrix();
 		mat.scale(scale.x, scale.y);
 
-		symbol.matrix.identity();
-		symbol.matrix.translate(filteredBounds.x * scale.x, filteredBounds.y * scale.y);
+		movieclip.matrix.identity();
+		movieclip.matrix.translate(filteredBounds.x, filteredBounds.y);
 
 		var element = new AtlasInstance();
 		element.frame = frame;

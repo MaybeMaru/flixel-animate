@@ -2,6 +2,7 @@ package animate.internal.elements;
 
 import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
+import animate.internal.filters.Blend;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
@@ -28,8 +29,8 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	{
 		super(data, parent);
 
-		isSymbolInstance = true;
-		libraryItem = parent.getSymbol(data.SN);
+		this.elementType = GRAPHIC;
+		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
 		this.loopType = data.LP;
 		this.firstFrame = data.FF;
@@ -98,13 +99,11 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 			transform = _transform;
 
-			if (transform.alphaMultiplier <= 0)
+			if (transform.alphaMultiplier <= 0 && !Frame.__isDirtyCall) // TODO: make this shit work without this lol
 				return;
 		}
 
-		var b:Null<BlendMode> = this.blend;
-		if (b == null)
-			b = blend;
+		var b = Blend.resolve(this.blend, blend);
 
 		if (bakedElement != null && bakedElement.visible)
 		{
@@ -134,7 +133,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return frameIndex;
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		// Prepare the bounds matrix
 		var targetMatrix:FlxMatrix;
@@ -150,8 +149,8 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		// Return baked bounds, if they exist
-		if (bakedElement != null)
-			return bakedElement.getBounds(0, rect, targetMatrix);
+		if (includeFilters && bakedElement != null)
+			return bakedElement.getBounds(0, rect, targetMatrix, includeFilters);
 
 		// Get the bounds of the symbol item timeline
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
@@ -159,6 +158,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	public function toString():String
 	{
-		return '{name: ${libraryItem.name}, matrix: $matrix}';
+		return '{name: ${libraryItem?.name}, matrix: $matrix}';
 	}
 }

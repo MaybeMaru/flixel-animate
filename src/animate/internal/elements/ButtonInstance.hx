@@ -31,6 +31,7 @@ class ButtonInstance extends SymbolInstance
 	{
 		super(data, parent);
 
+		this.elementType = BUTTON;
 		this.curButtonState = ButtonState.UP;
 		this.onClick = new FlxSignal();
 		this._hitbox = FlxRect.get();
@@ -80,7 +81,7 @@ class ButtonInstance extends SymbolInstance
 		}
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var bounds = this.libraryItem.timeline.getBounds(ButtonState.HIT, false, rect, this.matrix);
 		if (matrix != null)

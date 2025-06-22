@@ -143,7 +143,7 @@ class Timeline implements IFlxDestroyable
 	}
 
 	// Returns the whole bounds of the timeline
-	public function getWholeBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getWholeBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var first:Bool = true;
 		var tmpRect:FlxRect = FlxRect.get();
@@ -151,7 +151,7 @@ class Timeline implements IFlxDestroyable
 
 		for (i in 0...this.frameCount)
 		{
-			var frameBounds = getBounds(i, includeHiddenLayers, tmpRect, matrix);
+			var frameBounds = getBounds(i, includeHiddenLayers, tmpRect, matrix, includeFilters);
 			if (frameBounds.isEmpty)
 				continue;
 
@@ -173,7 +173,7 @@ class Timeline implements IFlxDestroyable
 	}
 
 	// Returns the bounds of the timeline at a specific frame
-	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var first:Bool = true;
 		var tmpRect:FlxRect = FlxRect.get();
@@ -190,7 +190,7 @@ class Timeline implements IFlxDestroyable
 				continue;
 
 			// Get the bounds of the frame at the index
-			var frameBounds = frame.getBounds((frameIndex - frame.index), tmpRect, matrix);
+			var frameBounds = frame.getBounds((frameIndex - frame.index), tmpRect, matrix, includeFilters);
 			if (frameBounds.isEmpty)
 				continue;
 

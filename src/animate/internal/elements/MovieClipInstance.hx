@@ -15,14 +15,16 @@ import openfl.geom.ColorTransform;
 
 class MovieClipInstance extends SymbolInstance
 {
-	var _filters:Array<BitmapFilter> = null;
+	@:allow(animate.internal.FilterRenderer)
 	var _dirty:Bool = false;
+	var _filters:Array<BitmapFilter> = null;
 
 	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent, frame);
 
-		this.blend = #if flash Blend.resolveBlend(data.B); #else data.B; #end
+		this.elementType = MOVIECLIP;
+		this.blend = #if flash Blend.fromInt(data.B); #else data.B; #end
 
 		var jsonFilters = data.F;
 		if (jsonFilters != null && jsonFilters.length > 0)
@@ -80,7 +82,7 @@ class MovieClipInstance extends SymbolInstance
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		if (_dirty)
+		if (_dirty && !Frame.__isDirtyCall)
 		{
 			_dirty = false;
 			bakeFilters(_filters);
@@ -89,12 +91,13 @@ class MovieClipInstance extends SymbolInstance
 		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
-		var bounds = super.getBounds(frameIndex, rect, matrix);
+		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
 
-		// baked element doesnt exist yet, gotta fake the bounds
-		if (_dirty)
+		// expand filter bounds manually
+		// doing this to keep them consistent, even if openfl changes some shit
+		if (_dirty && includeFilters)
 		{
 			FilterRenderer.expandFilterBounds(bounds, _filters);
 		}
