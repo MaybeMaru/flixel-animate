@@ -107,14 +107,6 @@ class Frame implements IFlxDestroyable
 		}
 	}
 
-	inline function _checkDirty(currentFrame:Int)
-	{
-		if (_dirty && layer != null)
-		{
-			bakeFrame(currentFrame);
-		}
-	}
-
 	public function forEachElement(callback:Element->Void):Void
 	{
 		for (element in elements)
@@ -174,8 +166,11 @@ class Frame implements IFlxDestroyable
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
 			?shader:FlxShader):Void
 	{
-		if (!__isDirtyCall)
-			_checkDirty(currentFrame - this.index);
+		if (_dirty)
+		{
+			if (layer != null)
+				bakeFrame(currentFrame - this.index);
+		}
 
 		if (_bakedFrames != null)
 		{
@@ -188,6 +183,13 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
+		_drawElements(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
+	}
+
+	@:allow(animate.internal.FilterRenderer)
+	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+			?shader:FlxShader)
+	{
 		for (element in elements)
 		{
 			if (element.visible)

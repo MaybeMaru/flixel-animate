@@ -71,14 +71,14 @@ class FilterRenderer
 
 		var masker = renderToBitmap((cam, mat) ->
 		{
-			maskerFrame.draw(cam, currentFrame, mat, null, NORMAL, true, null);
+			maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
 			cam.render();
 			cam.canvas.graphics.__bounds = maskerBounds.copyToFlash(new Rectangle());
 		});
 
 		var masked = renderToBitmap((cam, mat) ->
 		{
-			frame.draw(cam, currentFrame, mat, null, NORMAL, true, null);
+			frame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
 			cam.render();
 			cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
 		});
@@ -161,6 +161,7 @@ class FilterRenderer
 
 	static function renderToBitmap(draw:(FlxCamera, FlxMatrix) -> Void):BitmapData
 	{
+		final lastDirtyCall:Bool = Frame.__isDirtyCall;
 		Frame.__isDirtyCall = true;
 
 		var cam = CamPool.get();
@@ -173,7 +174,7 @@ class FilterRenderer
 		gfx.clear();
 		cam.put();
 
-		Frame.__isDirtyCall = false;
+		Frame.__isDirtyCall = lastDirtyCall;
 
 		return bitmap;
 	}
@@ -438,9 +439,10 @@ class FilterRenderer
 		var mat = new FlxMatrix();
 		mat.translate(-rect.left, -rect.top);
 
+		final lastDirtyCall:Bool = Frame.__isDirtyCall;
 		Frame.__isDirtyCall = true;
 		draw(cam, mat);
-		Frame.__isDirtyCall = false;
+		Frame.__isDirtyCall = lastDirtyCall;
 
 		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
 		bitmap.draw(cam.buffer, new Matrix(1, 0, 0, 1, 0, 0));

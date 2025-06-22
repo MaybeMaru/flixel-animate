@@ -82,7 +82,7 @@ class MovieClipInstance extends SymbolInstance
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		if (_dirty && !Frame.__isDirtyCall)
+		if (_dirty)
 		{
 			_dirty = false;
 			bakeFilters(_filters);
