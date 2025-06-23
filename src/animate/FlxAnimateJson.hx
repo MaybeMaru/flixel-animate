@@ -554,7 +554,41 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 			];
 		}
 
-		return [mat3D[0], mat3D[1], mat3D[4], mat3D[5], mat3D[12], mat3D[13]];
+		return from3Dto2D(mat3D);
+	}
+
+	public static function from3Dto2D(mat3D:Array<Float>):Array<Float>
+	{
+		final hasPerspective:Bool = (mat3D[3] != 0) || (mat3D[7] != 0) || (mat3D[11] != 0) || (mat3D[15] != 1);
+		if (!hasPerspective)
+			return [mat3D[0], mat3D[1], mat3D[4], mat3D[5], mat3D[12], mat3D[13]];
+
+		var points:Array<Array<Float>> = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]];
+		var transformed:Array<Array<Float>> = [];
+
+		for (p in points)
+		{
+			var x = p[0];
+			var y = p[1];
+			var z = mat3D[3] * x + mat3D[7] * y + mat3D[15];
+			transformed.push([
+				mat3D[0] * x + mat3D[4] * y + mat3D[12] / z,
+				mat3D[1] * x + mat3D[5] * y + mat3D[13] / z
+			]);
+		}
+
+		var p0:Array<Float> = transformed[0];
+		var p1:Array<Float> = transformed[1];
+		var p2:Array<Float> = transformed[2];
+
+		var a:Float = p1[0] - p0[0];
+		var b:Float = p1[1] - p0[1];
+		var c:Float = p2[0] - p0[0];
+		var d:Float = p2[1] - p0[1];
+		var tx:Float = p0[0];
+		var ty:Float = p0[1];
+
+		return [a, b, c, d, tx, ty];
 	}
 
 	extern public inline function toMatrix():FlxMatrix
