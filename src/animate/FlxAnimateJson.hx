@@ -24,7 +24,7 @@ extern typedef SpriteJson =
 {
 	SPRITE:
 	{
-		name:String, x:Int, y:Int, w:Int, h:Int, rotated:Bool
+		name:String, x:Float, y:Float, w:Float, h:Float, rotated:Bool
 	}
 }
 

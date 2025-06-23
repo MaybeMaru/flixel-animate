@@ -55,7 +55,7 @@ class Blend
 	{
 		return switch (blend)
 		{
-			case NORMAL | ADD | MULTIPLY | SCREEN | SUBTRACT: true;
+			case NORMAL | ADD | MULTIPLY | SCREEN | SUBTRACT #if desktop | LIGHTEN /**| DARKEN**/ #end: true;
 			case _: false;
 		}
 	}

@@ -69,9 +69,19 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		dictionary = [];
 	}
 
-	extern static inline function getTextFromPath(path:String)
+	extern static inline function getTextFromPath(path:String):String
 	{
-		var content = #if (flixel >= "5.9.0") FlxG.assets.getText(path); #else #if sys sys.io.File.getContent(path); #else Assets.getText(path); #end #end
+		var content:String =
+			#if sys
+			sys.io.File.getContent(path);
+			#else
+			#if (flixel < "5.9.0")
+			Assets.getText(path);
+			#else
+			FlxG.assets.getText(path);
+			#end
+			#end
+
 		return content.replace(String.fromCharCode(0xFEFF), "");
 	}
 
@@ -119,30 +129,35 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		final getGraphic = (path:String) ->
 		{
-			return #if (flixel < "5.9.0" && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false,
-				path); #else FlxG.bitmap.add(path); #end
+			return #if sys FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
 		}
 
 		final existsFile = (path:String, type:AssetType) ->
 		{
-			return #if (flixel < "5.9.0")
-				#if sys
+			return #if sys
 				sys.FileSystem.exists(path);
-				#else
-				Assets.exists(path, type);
-				#end
 			#else
+				#if (flixel < "5.9.0")
+				Assets.exists(path, type);
+				#else // TODO: give better support for FlxG.assets on sys targets
 				FlxG.assets.exists(path, switch (type)
 				{
 					case BINARY: BINARY;
 					case IMAGE: IMAGE;
 					default: TEXT;
 				});
+				#end
 			#end
 		}
 
-		var animation:AnimationJson = Json.parse(getTextFromPath(path + "/Animation.json"));
+		var hasAnimation:Bool = existsFile(path + "/Animation.json", TEXT);
+		if (!hasAnimation)
+		{
+			FlxG.log.warn('No Animation.json file was found for path "$path".');
+			return null;
+		}
 
+		var animation:AnimationJson = Json.parse(getTextFromPath(path + "/Animation.json"));
 		var frames = new FlxAnimateFrames(null);
 		frames.path = path;
 		frames._loadedData = animation;
