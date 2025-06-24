@@ -22,71 +22,29 @@ class Timeline implements IFlxDestroyable
 	public var currentFrame:Int;
 	public var frameCount:Int;
 
-	var __layerMap:Map<String, Layer>;
-	var __bounds:FlxRect;
+	var _layerMap:Map<String, Layer>;
+	var _bounds:FlxRect;
 	var parent:FlxAnimateFrames;
 
 	public function new(timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
 	{
-		layers = [];
-		currentFrame = 0;
-		__layerMap = [];
-		__bounds = FlxRect.get();
+		this.layers = [];
+		this.currentFrame = 0;
 		this.parent = parent;
+
+		_layerMap = [];
+		_bounds = FlxRect.get();
 
 		if (name != null)
 			this.name = name;
 
-		var layersJson = timeline.L;
-
-		for (layerJson in layersJson)
-		{
-			var layer = new Layer(this);
-			layer.name = layerJson.LN;
-			layers.unshift(layer);
-			__layerMap.set(layer.name, layer);
-		}
-
-		for (i in 0...layersJson.length)
-		{
-			var layerIndex = layers.length - i - 1;
-			var layer = layers[layerIndex];
-			layer.__loadJson(layersJson[i], parent, layerIndex, layers);
-
-			if (layer.frameCount > frameCount)
-				frameCount = layer.frameCount;
-		}
-
-		__bounds = getWholeBounds(false, __bounds);
-	}
-
-	public function destroy():Void
-	{
-		parent = null;
-		libraryItem = null;
-		layers = FlxDestroyUtil.destroyArray(layers);
-		__bounds = FlxDestroyUtil.put(__bounds);
-		__layerMap = null;
-	}
-
-	public function signalFrameChange(frameIndex:Int):Void
-	{
-		for (layer in layers)
-		{
-			var frame = layer.getFrameAtIndex(frameIndex);
-			if (frame != null)
-			{
-				if (frame.sound != null && frame.index == frameIndex)
-				{
-					frame.sound.play(true);
-				}
-			}
-		}
+		_loadJson(timeline);
+		_bounds = getWholeBounds(false, _bounds);
 	}
 
 	public function getLayer(name:String):Null<Layer>
 	{
-		return __layerMap.get(name);
+		return _layerMap.get(name);
 	}
 
 	public function forEachLayer(callback:Layer->Void):Void
@@ -125,21 +83,6 @@ class Timeline implements IFlxDestroyable
 	public function getCurrentElements():Array<Element>
 	{
 		return getElementsAtIndex(currentFrame);
-	}
-
-	public function draw(camera:FlxCamera, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader)
-	{
-		for (layer in layers)
-		{
-			if (!layer.visible)
-				continue;
-
-			var frame = layer.getFrameAtIndex(currentFrame);
-			if (frame == null)
-				continue;
-
-			frame.draw(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
-		}
 	}
 
 	// Returns the whole bounds of the timeline
@@ -209,6 +152,67 @@ class Timeline implements IFlxDestroyable
 
 		tmpRect.put();
 		return rect;
+	}
+
+	@:allow(animate.FlxAnimateController)
+	private function signalFrameChange(frameIndex:Int):Void
+	{
+		for (layer in layers)
+		{
+			var frame = layer.getFrameAtIndex(frameIndex);
+			if (frame != null)
+			{
+				if (frame.sound != null && frame.index == frameIndex)
+					frame.sound.play(true);
+			}
+		}
+	}
+
+	public function draw(camera:FlxCamera, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader)
+	{
+		for (layer in layers)
+		{
+			if (!layer.visible)
+				continue;
+
+			var frame = layer.getFrameAtIndex(currentFrame);
+			if (frame == null)
+				continue;
+
+			frame.draw(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
+		}
+	}
+
+	function _loadJson(timeline:TimelineJson)
+	{
+		var layersJson = timeline.L;
+
+		for (layerJson in layersJson)
+		{
+			var layer = new Layer(this);
+			layer.name = layerJson.LN;
+			layers.unshift(layer);
+			_layerMap.set(layer.name, layer);
+		}
+
+		for (i in 0...layersJson.length)
+		{
+			var layerIndex = layers.length - i - 1;
+			var layer = layers[layerIndex];
+			layer._loadJson(layersJson[i], parent, layerIndex, layers);
+
+			if (layer.frameCount > frameCount)
+				frameCount = layer.frameCount;
+		}
+	}
+
+	public function destroy():Void
+	{
+		parent = null;
+		libraryItem = null;
+		layers = FlxDestroyUtil.destroyArray(layers);
+		_bounds = FlxDestroyUtil.put(_bounds);
+		_layerMap = null;
 	}
 
 	public function toString():String

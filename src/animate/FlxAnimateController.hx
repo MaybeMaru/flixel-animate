@@ -186,7 +186,7 @@ class FlxAnimateController extends FlxAnimationController
 	function updateTimelineBounds()
 	{
 		@:privateAccess {
-			var bounds = _animate.timeline.__bounds;
+			var bounds = _animate.timeline._bounds;
 			_animate.frameWidth = Std.int(bounds.width);
 			_animate.frameHeight = Std.int(bounds.height);
 			_animate.resetFrameSize();

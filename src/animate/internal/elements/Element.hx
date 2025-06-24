@@ -1,23 +1,11 @@
 package animate.internal.elements;
 
-import animate.FlxAnimateJson;
-import animate.internal.filters.*;
 import flixel.FlxCamera;
-import flixel.FlxG;
-import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxFrame;
-import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
-import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
-import flixel.util.FlxSignal;
 import openfl.display.BlendMode;
-import openfl.display.Timeline;
-import openfl.filters.BitmapFilter;
-import openfl.filters.BlurFilter;
 import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;

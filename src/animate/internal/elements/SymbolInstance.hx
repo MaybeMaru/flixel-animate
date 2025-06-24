@@ -63,58 +63,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			visible = false;
 	}
 
-	override function destroy()
-	{
-		super.destroy();
-		libraryItem = null;
-		transform = null;
-		_transform = null;
-		tmpMatrix = null;
-
-		if (bakedElement != null)
-		{
-			bakedElement.frame.destroy();
-			bakedElement = FlxDestroyUtil.destroy(bakedElement);
-		}
-	}
-
-	var bakedElement:AtlasInstance = null;
-	var tmpMatrix:FlxMatrix = new FlxMatrix();
-
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader):Void
-	{
-		_mat.copyFrom(matrix);
-		_mat.concat(parentMatrix);
-
-		// Is colored
-		if (this.transform != null)
-		{
-			var t = this.transform;
-			_transform.setMultipliers(t.redMultiplier, t.greenMultiplier, t.blueMultiplier, t.alphaMultiplier);
-			_transform.setOffsets(t.redOffset, t.greenOffset, t.blueOffset, t.alphaOffset);
-
-			if (transform != null)
-				_transform.concat(transform);
-
-			transform = _transform;
-
-			if (transform.alphaMultiplier <= 0 && !Frame.__isDirtyCall) // TODO: make this shit work without this lol
-				return;
-		}
-
-		var b = Blend.resolve(this.blend, blend);
-
-		if (bakedElement != null && bakedElement.visible)
-		{
-			bakedElement.draw(camera, 0, null, _mat, transform, b, antialiasing, shader);
-			return;
-		}
-
-		libraryItem.timeline.currentFrame = getFrameIndex(index, tlFrame != null ? tlFrame.index : 0);
-		libraryItem.timeline.draw(camera, _mat, transform, b, antialiasing, shader);
-	}
-
 	function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
 		var frameIndex = firstFrame + (index - frameIndex);
@@ -154,6 +102,58 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		// Get the bounds of the symbol item timeline
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
+	}
+
+	var bakedElement:AtlasInstance = null;
+	var tmpMatrix:FlxMatrix = new FlxMatrix();
+
+	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+			?antialiasing:Bool, ?shader:FlxShader):Void
+	{
+		_mat.copyFrom(matrix);
+		_mat.concat(parentMatrix);
+
+		// Is colored
+		if (this.transform != null)
+		{
+			var t = this.transform;
+			_transform.setMultipliers(t.redMultiplier, t.greenMultiplier, t.blueMultiplier, t.alphaMultiplier);
+			_transform.setOffsets(t.redOffset, t.greenOffset, t.blueOffset, t.alphaOffset);
+
+			if (transform != null)
+				_transform.concat(transform);
+
+			transform = _transform;
+
+			if (transform.alphaMultiplier <= 0 && !Frame.__isDirtyCall) // TODO: make this shit work without this lol
+				return;
+		}
+
+		var b = Blend.resolve(this.blend, blend);
+
+		if (bakedElement != null && bakedElement.visible)
+		{
+			bakedElement.draw(camera, 0, null, _mat, transform, b, antialiasing, shader);
+			return;
+		}
+
+		libraryItem.timeline.currentFrame = getFrameIndex(index, tlFrame != null ? tlFrame.index : 0);
+		libraryItem.timeline.draw(camera, _mat, transform, b, antialiasing, shader);
+	}
+
+	override function destroy()
+	{
+		super.destroy();
+		libraryItem = null;
+		transform = null;
+		_transform = null;
+		tmpMatrix = null;
+
+		if (bakedElement != null)
+		{
+			bakedElement.frame.destroy();
+			bakedElement = FlxDestroyUtil.destroy(bakedElement);
+		}
 	}
 
 	public function toString():String

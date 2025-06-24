@@ -37,6 +37,14 @@ class ButtonInstance extends SymbolInstance
 		this._hitbox = FlxRect.get();
 	}
 
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	{
+		var bounds = this.libraryItem.timeline.getBounds(ButtonState.HIT, false, rect, this.matrix);
+		if (matrix != null)
+			bounds = Timeline.applyMatrixToRect(bounds, matrix);
+		return bounds;
+	}
+
 	override function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
 		return curButtonState;
@@ -79,14 +87,6 @@ class ButtonInstance extends SymbolInstance
 		{
 			this.curButtonState = ButtonState.UP;
 		}
-	}
-
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
-	{
-		var bounds = this.libraryItem.timeline.getBounds(ButtonState.HIT, false, rect, this.matrix);
-		if (matrix != null)
-			bounds = Timeline.applyMatrixToRect(bounds, matrix);
-		return bounds;
 	}
 
 	override function destroy():Void

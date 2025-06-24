@@ -1,13 +1,11 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
-import animate.internal.filters.*;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
-import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
@@ -24,7 +22,7 @@ class MovieClipInstance extends SymbolInstance
 		super(data, parent, frame);
 
 		this.elementType = MOVIECLIP;
-		this.blend = #if flash Blend.fromInt(data.B); #else data.B; #end
+		this.blend = #if flash animate.internal.filters.Blend.fromInt(data.B); #else data.B; #end
 
 		var jsonFilters = data.F;
 		if (jsonFilters != null && jsonFilters.length > 0)
@@ -51,10 +49,18 @@ class MovieClipInstance extends SymbolInstance
 		this._dirty = true;
 	}
 
-	override function destroy()
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
-		super.destroy();
-		_filters = null;
+		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
+
+		// expand filter bounds manually
+		// doing this to keep them consistent, even if openfl changes some shit
+		if (_dirty && includeFilters)
+		{
+			FilterRenderer.expandFilterBounds(bounds, _filters);
+		}
+
+		return bounds;
 	}
 
 	function bakeFilters(?filters:Array<BitmapFilter>):Void
@@ -91,18 +97,10 @@ class MovieClipInstance extends SymbolInstance
 		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	override function destroy()
 	{
-		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
-
-		// expand filter bounds manually
-		// doing this to keep them consistent, even if openfl changes some shit
-		if (_dirty && includeFilters)
-		{
-			FilterRenderer.expandFilterBounds(bounds, _filters);
-		}
-
-		return bounds;
+		super.destroy();
+		_filters = null;
 	}
 
 	override function getFrameIndex(index:Int, frameIndex:Int):Int

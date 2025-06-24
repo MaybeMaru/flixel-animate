@@ -28,92 +28,6 @@ class Layer implements IFlxDestroyable
 		this.layerType = NORMAL;
 	}
 
-	public function destroy():Void
-	{
-		parentLayer = null;
-
-		if (frames != null)
-		{
-			for (frame in frames)
-				frame.destroy();
-		}
-
-		frames = null;
-		frameIndices = null;
-	}
-
-	@:allow(animate.internal.Timeline)
-	function __loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
-	{
-		this.name = layer.LN;
-
-		var clippedBy:Null<String> = layer.Clpb;
-		var isMasked:Bool = clippedBy != null;
-
-		if (isMasked && layerIndex != null && layers != null) // Set clipped by
-		{
-			var i = layerIndex;
-			var foundLayer:Bool = false;
-			this.layerType = CLIPPED;
-
-			while (i < layers.length)
-			{
-				var aboveLayer = layers[i++];
-				if (aboveLayer != null && aboveLayer.name == clippedBy && aboveLayer.layerType == CLIPPER)
-				{
-					parentLayer = aboveLayer;
-					foundLayer = true;
-					break;
-				}
-			}
-
-			if (!foundLayer)
-			{
-				parentLayer = null;
-				isMasked = false;
-				visible = false;
-			}
-		}
-		else // Set other layer types
-		{
-			final type:Null<String> = layer.LT;
-			this.layerType = type != null ? switch (type)
-			{
-				case "Clp" | "Clipper": CLIPPER;
-				case "Fld" | "Folder": FOLDER;
-				default: NORMAL;
-			} : NORMAL;
-		}
-
-		// Set clipper
-		if (this.layerType == CLIPPER)
-			visible = false;
-
-		if (this.layerType != FOLDER)
-		{
-			for (i => frameJson in layer.FR)
-			{
-				var frame = new Frame(this);
-				frame.__loadJson(frameJson, parent);
-				frames.push(frame);
-
-				for (_ in 0...frame.duration)
-					frameIndices.push(i);
-			}
-		}
-
-		if (isMasked)
-		{
-			for (frame in frames)
-			{
-				if (frame.elements.length > 0)
-					frame._dirty = true;
-			}
-		}
-
-		frameCount = frameIndices.length;
-	}
-
 	public function forEachFrame(callback:Frame->Void)
 	{
 		for (frame in frames)
@@ -169,6 +83,92 @@ class Layer implements IFlxDestroyable
 		if (matrix != null)
 			Timeline.applyMatrixToRect(rect, matrix);
 		return rect;
+	}
+
+	@:allow(animate.internal.Timeline)
+	function _loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
+	{
+		this.name = layer.LN;
+
+		var clippedBy:Null<String> = layer.Clpb;
+		var isMasked:Bool = clippedBy != null;
+
+		if (isMasked && layerIndex != null && layers != null) // Set clipped by
+		{
+			var i = layerIndex;
+			var foundLayer:Bool = false;
+			this.layerType = CLIPPED;
+
+			while (i < layers.length)
+			{
+				var aboveLayer = layers[i++];
+				if (aboveLayer != null && aboveLayer.name == clippedBy && aboveLayer.layerType == CLIPPER)
+				{
+					parentLayer = aboveLayer;
+					foundLayer = true;
+					break;
+				}
+			}
+
+			if (!foundLayer)
+			{
+				parentLayer = null;
+				isMasked = false;
+				visible = false;
+			}
+		}
+		else // Set other layer types
+		{
+			final type:Null<String> = layer.LT;
+			this.layerType = type != null ? switch (type)
+			{
+				case "Clp" | "Clipper": CLIPPER;
+				case "Fld" | "Folder": FOLDER;
+				default: NORMAL;
+			} : NORMAL;
+		}
+
+		// Set clipper
+		if (this.layerType == CLIPPER)
+			visible = false;
+
+		if (this.layerType != FOLDER)
+		{
+			for (i => frameJson in layer.FR)
+			{
+				var frame = new Frame(this);
+				frame._loadJson(frameJson, parent);
+				frames.push(frame);
+
+				for (_ in 0...frame.duration)
+					frameIndices.push(i);
+			}
+		}
+
+		if (isMasked)
+		{
+			for (frame in frames)
+			{
+				if (frame.elements.length > 0)
+					frame._dirty = true;
+			}
+		}
+
+		frameCount = frameIndices.length;
+	}
+
+	public function destroy():Void
+	{
+		parentLayer = null;
+
+		if (frames != null)
+		{
+			for (frame in frames)
+				frame.destroy();
+		}
+
+		frames = null;
+		frameIndices = null;
 	}
 
 	public function toString():String

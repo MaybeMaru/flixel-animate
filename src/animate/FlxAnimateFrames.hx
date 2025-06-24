@@ -25,6 +25,12 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	public var dictionary:Map<String, SymbolItem>;
 	public var path:String;
 
+	public function new(graphic:FlxGraphic)
+	{
+		super(graphic);
+		dictionary = [];
+	}
+
 	public function getSymbol(name:String)
 	{
 		if (dictionary.exists(name))
@@ -61,12 +67,6 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		FlxG.log.warn('SymbolItem with name "$name" doesnt exist.');
 		return null;
-	}
-
-	public function new(graphic:FlxGraphic)
-	{
-		super(graphic);
-		dictionary = [];
 	}
 
 	extern static inline function getTextFromPath(path:String):String

@@ -1,20 +1,13 @@
 package animate;
 
-import animate.FlxAnimateController.FlxAnimateAnimation;
-import animate.FlxAnimateJson;
 import animate.internal.*;
 import flixel.*;
-import flixel.animation.FlxAnimationController;
-import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
-import flixel.system.FlxBGSprite;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
-import haxe.Json;
 import haxe.io.Path;
-import openfl.Assets;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -22,13 +15,17 @@ class FlxAnimate extends FlxSprite
 {
 	public static var drawDebugLimbs:Bool = false;
 
-	public var library:FlxAnimateFrames;
-	public var anim:FlxAnimateController;
-
-	public var skew:FlxPoint;
-
+	public var library(default, null):FlxAnimateFrames;
+	public var anim(default, null):FlxAnimateController;
 	public var isAnimate(default, null):Bool = false;
 	public var timeline:Timeline;
+
+	public var useLegacyBounds:Bool = #if FLX_ANIMATE_LEGACY_BOUNDS true; #else false; #end
+	public var applyStageMatrix:Bool = false;
+	public var renderStage:Bool = false;
+
+	// TODO: implement for normal flixel rendering too
+	public var skew(default, null):FlxPoint;
 
 	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset)
 	{
@@ -102,10 +99,6 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
-	public var useLegacyBounds:Bool = #if FLX_ANIMATE_LEGACY_BOUNDS true; #else false; #end
-	public var applyStageMatrix:Bool = false;
-	public var renderStage:Bool = false;
-
 	function drawAnimate(camera:FlxCamera)
 	{
 		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
@@ -138,7 +131,7 @@ class FlxAnimate extends FlxSprite
 		if (!useLegacyBounds)
 		{
 			@:privateAccess
-			var bounds = timeline.__bounds;
+			var bounds = timeline._bounds;
 			_point.add(-bounds.x, -bounds.y);
 		}
 

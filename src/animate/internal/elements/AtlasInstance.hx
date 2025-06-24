@@ -162,7 +162,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	}
 
 	#if (FLX_DEBUG && flash)
-	static final __fillRect = new openfl.geom.Rectangle();
+	static final _fillRect = new openfl.geom.Rectangle();
 	#end
 
 	#if FLX_DEBUG
@@ -173,14 +173,14 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		FlxG.signals.postDraw.addOnce(() ->
 		{
 			var buffer = FlxG.camera.buffer;
-			__fillRect.setTo(cBounds.x, cBounds.y, cBounds.width, 1);
-			buffer.fillRect(__fillRect, color);
-			__fillRect.setTo(cBounds.x, cBounds.y + cBounds.height - 1, cBounds.width, 1);
-			buffer.fillRect(__fillRect, color);
-			__fillRect.setTo(cBounds.x, cBounds.y, 1, cBounds.height);
-			buffer.fillRect(__fillRect, color);
-			__fillRect.setTo(cBounds.x + cBounds.width - 1, cBounds.y, 1, cBounds.height);
-			buffer.fillRect(__fillRect, color);
+			_fillRect.setTo(cBounds.x, cBounds.y, cBounds.width, 1);
+			buffer.fillRect(_fillRect, color);
+			_fillRect.setTo(cBounds.x, cBounds.y + cBounds.height - 1, cBounds.width, 1);
+			buffer.fillRect(_fillRect, color);
+			_fillRect.setTo(cBounds.x, cBounds.y, 1, cBounds.height);
+			buffer.fillRect(_fillRect, color);
+			_fillRect.setTo(cBounds.x + cBounds.width - 1, cBounds.y, 1, cBounds.height);
+			buffer.fillRect(_fillRect, color);
 			cBounds.put();
 		});
 		#else

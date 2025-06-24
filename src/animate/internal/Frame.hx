@@ -9,18 +9,19 @@ import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
-import haxe.ds.Vector;
 import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
+@:allow(animate.internal.Layer)
 class Frame implements IFlxDestroyable
 {
-	public var layer:Null<Layer>;
-	public var elements:Array<Element>;
+	public var layer(default, null):Null<Layer>;
+	public var elements(default, null):Array<Element>;
 	public var index:Int;
 	public var duration:Int;
 	public var name:String;
+	public var sound:Null<FlxSound>;
 
 	public function new(?layer:Layer)
 	{
@@ -31,85 +32,24 @@ class Frame implements IFlxDestroyable
 		this.index = 0;
 	}
 
-	public var sound:Null<FlxSound>;
-
-	@:allow(animate.internal.Layer)
-	function __loadJson(frame:FrameJson, parent:FlxAnimateFrames):Void
+	public function add(element:Element):Void
 	{
-		this.index = frame.I;
-		this.duration = frame.DU;
-		this.name = frame.N ?? "";
-		for (element in frame.E)
-		{
-			var si = element.SI;
-			if (si != null)
-			{
-				this.elements.push(switch (si.ST)
-				{
-					case "B" | "button":
-						new ButtonInstance(element.SI, parent);
-					case "MC" | "movieclip":
-						new MovieClipInstance(element.SI, parent);
-					default:
-						new SymbolInstance(element.SI, parent);
-				});
-			}
-			else
-			{
-				this.elements.push(new AtlasInstance(element.ASI, parent));
-			}
-		}
-
-		if (frame.SND != null)
-		{
-			sound = FlxG.sound.load(parent.path + '/LIBRARY/' + frame.SND.N);
-		}
-	}
-
-	public function destroy():Void
-	{
-		elements = FlxDestroyUtil.destroyArray(elements);
-		sound = FlxDestroyUtil.destroy(sound);
-		layer = null;
-	}
-
-	@:allow(animate.internal.Layer)
-	var _dirty:Bool = false;
-	var _bakedFrames:Array<AtlasInstance>;
-
-	function bakeFrame(frameIndex:Int):Void
-	{
-		if (layer.parentLayer == null)
+		if (elements.indexOf(element) != -1)
 			return;
 
-		if (_bakedFrames == null)
+		elements.push(element);
+
+		// Requires rebake
+		if (_bakedFrames != null)
 		{
-			_bakedFrames = [];
-			for (i in 0...duration)
-				_bakedFrames.push(null);
-		}
-
-		if (_bakedFrames[frameIndex] != null)
-			return;
-
-		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
-		if (bakedFrame == null)
-			return;
-
-		_bakedFrames[frameIndex] = bakedFrame;
-		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
-			bakedFrame.visible = false;
-
-		if (_dirty)
-		{
-			if (_bakedFrames.indexOf(null) == -1)
-				_dirty = false;
+			_bakedFrames = null;
+			_dirty = true;
 		}
 	}
 
 	public function forEachElement(callback:Element->Void):Void
 	{
-		for (element in elements)
+		for (element in this.elements)
 			callback(element);
 	}
 
@@ -157,6 +97,73 @@ class Frame implements IFlxDestroyable
 		return rect;
 	}
 
+	@:allow(animate.internal.Layer)
+	function _loadJson(frame:FrameJson, parent:FlxAnimateFrames):Void
+	{
+		this.index = frame.I;
+		this.duration = frame.DU;
+		this.name = frame.N ?? "";
+		for (element in frame.E)
+		{
+			var si = element.SI;
+			if (si != null)
+			{
+				this.elements.push(switch (si.ST)
+				{
+					case "B" | "button":
+						new ButtonInstance(element.SI, parent);
+					case "MC" | "movieclip":
+						new MovieClipInstance(element.SI, parent);
+					default:
+						new SymbolInstance(element.SI, parent);
+				});
+			}
+			else
+			{
+				this.elements.push(new AtlasInstance(element.ASI, parent));
+			}
+		}
+
+		if (frame.SND != null)
+		{
+			sound = FlxG.sound.load(parent.path + '/LIBRARY/' + frame.SND.N);
+		}
+	}
+
+	@:allow(animate.internal.Layer)
+	var _dirty:Bool = false;
+	var _bakedFrames:Array<AtlasInstance>;
+
+	function _bakeFrame(frameIndex:Int):Void
+	{
+		if (layer.parentLayer == null)
+			return;
+
+		if (_bakedFrames == null)
+		{
+			_bakedFrames = [];
+			for (i in 0...duration)
+				_bakedFrames.push(null);
+		}
+
+		if (_bakedFrames[frameIndex] != null)
+			return;
+
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
+		if (bakedFrame == null)
+			return;
+
+		_bakedFrames[frameIndex] = bakedFrame;
+		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
+			bakedFrame.visible = false;
+
+		if (_dirty)
+		{
+			if (_bakedFrames.indexOf(null) == -1)
+				_dirty = false;
+		}
+	}
+
 	@:allow(animate.internal.elements.SymbolInstance)
 	@:allow(animate.internal.FilterRenderer)
 	@:allow(animate.internal.filters.Blend)
@@ -169,7 +176,7 @@ class Frame implements IFlxDestroyable
 		if (_dirty)
 		{
 			if (layer != null)
-				bakeFrame(currentFrame - this.index);
+				_bakeFrame(currentFrame - this.index);
 		}
 
 		if (_bakedFrames != null)
@@ -195,6 +202,13 @@ class Frame implements IFlxDestroyable
 			if (element.visible)
 				element.draw(camera, currentFrame, this, parentMatrix, transform, blend, antialiasing, shader);
 		}
+	}
+
+	public function destroy():Void
+	{
+		elements = FlxDestroyUtil.destroyArray(elements);
+		sound = FlxDestroyUtil.destroy(sound);
+		layer = null;
 	}
 
 	public function toString():String
