@@ -144,6 +144,11 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		#end
 	}
 
+	extern static inline function getGraphic(path:String):FlxGraphic
+	{
+		return #if sys FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
+	}
+
 	static function listSpritemaps(path:String):Array<String>
 	{
 		final filter = (str:String) -> return str.contains("spritemap") && str.endsWith(".json");
@@ -160,11 +165,6 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	static function _fromAnimatePath(path:String, ?key:String)
 	{
-		final getGraphic = (path:String) ->
-		{
-			return #if sys FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
-		}
-
 		var hasAnimation:Bool = existsFile(path + "/Animation.json", TEXT);
 		if (!hasAnimation)
 		{
@@ -207,6 +207,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames._isInlined = isInlined;
 		frames._libraryList = libraryList;
 
+		var spritemapCollection = new FlxAnimateSpritemapCollection(frames);
+		frames.parent = spritemapCollection;
+
 		// Load all spritemaps
 		for (spritemap in spritemaps)
 		{
@@ -226,6 +229,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			}
 
 			frames.addAtlas(atlas);
+			spritemapCollection.addSpritemap(graphic);
 		}
 
 		var symbols = animation.SD;
@@ -285,6 +289,53 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		dictionary = null;
 		matrix = null;
 		timeline = null;
+	}
+}
+
+/**
+ * This class is used as a temporal graphic for texture atlas frame caching.
+ * Mainly used to work with flixel's method of destroying FlxFramesCollection
+ * while keeping the ability to reused cached atlases where possible.
+ */
+class FlxAnimateSpritemapCollection extends FlxGraphic
+{
+	public function new(parentFrames:FlxAnimateFrames)
+	{
+		super("", null);
+		this.spritemaps = [];
+		this.parentFrames = parentFrames;
+	}
+
+	var spritemaps:Array<FlxGraphic>;
+	var parentFrames:FlxAnimateFrames;
+
+	public function addSpritemap(graphic:FlxGraphic):Void
+	{
+		if (this.bitmap == null)
+			this.bitmap = graphic.bitmap;
+
+		if (spritemaps.indexOf(graphic) == -1)
+			spritemaps.push(graphic);
+	}
+
+	override function checkUseCount():Void
+	{
+		if (useCount <= 0 && destroyOnNoUse && !persist)
+		{
+			for (spritemap in spritemaps)
+				spritemap.decrementUseCount();
+
+			spritemaps.resize(0);
+			parentFrames = FlxDestroyUtil.destroy(parentFrames);
+		}
+	}
+
+	override function destroy():Void
+	{
+		bitmap = null; // Turning null early to let the og spritemap graphic remove the bitmap
+		super.destroy();
+		parentFrames = null;
+		spritemaps = null;
 	}
 }
 

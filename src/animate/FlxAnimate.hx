@@ -8,6 +8,7 @@ import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
+import openfl.display.BitmapData;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -172,10 +173,10 @@ class FlxAnimate extends FlxSprite
 
 	override function get_numFrames():Int
 	{
-		if (isAnimate)
-			return animation.curAnim != null ? timeline.frameCount : 0;
+		if (!isAnimate)
+			return super.get_numFrames();
 
-		return super.get_numFrames();
+		return animation.curAnim != null ? timeline.frameCount : 0;
 	}
 
 	override function destroy():Void
