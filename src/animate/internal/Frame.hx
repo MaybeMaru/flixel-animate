@@ -56,6 +56,7 @@ class Frame implements IFlxDestroyable
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();
+		rect.set();
 
 		// Returns empty bounds if theres no elements in the frame
 		if (elements.length <= 0)

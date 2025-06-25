@@ -76,13 +76,15 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 * @param   animate  	The texture atlas folder path or Animation.json contents string.
 	 * @param   spritemaps	Optional, array of the spritemaps to load for the texture atlas
 	 * @param   metadata	Optional, string of the metadata.json contents string.
+	 * @param   key			Optional, force the cache to use a specific Key to index the texture atlas.
+	 * @param   unique  	Optional, ensures that the texture atlas uses a new slot in the cache.
 	 * @return  Newly created `FlxAnimateFrames` collection.
 	 */
-	public static function fromAnimate(animate:String, ?spritemaps:Array<SpritemapInput>, ?metadata:String, ?key:String):FlxAnimateFrames
+	public static function fromAnimate(animate:String, ?spritemaps:Array<SpritemapInput>, ?metadata:String, ?key:String, ?unique:Bool = false):FlxAnimateFrames
 	{
 		var key:String = key ?? animate;
 
-		if (_cachedAtlases.exists(key))
+		if (!unique && _cachedAtlases.exists(key))
 			return _cachedAtlases.get(key);
 
 		if (existsFile(animate + "/Animation.json", TEXT))

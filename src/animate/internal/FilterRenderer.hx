@@ -531,6 +531,14 @@ class FilterRenderer
 				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);
 				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + gradientGlow.blurX);
 			}
+			#else
+			else
+			{
+				__topExtension = filter.__topExtension;
+				__bottomExtension = filter.__bottomExtension;
+				__leftExtension = filter.__leftExtension;
+				__rightExtension = filter.__rightExtension;
+			}
 			#end
 
 			inflate.x -= __leftExtension;

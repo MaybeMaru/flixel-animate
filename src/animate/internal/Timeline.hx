@@ -8,6 +8,7 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
+import flixel.util.typeLimit.OneOfTwo;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
 
@@ -42,9 +43,9 @@ class Timeline implements IFlxDestroyable
 		_bounds = getWholeBounds(false, _bounds);
 	}
 
-	public function getLayer(name:String):Null<Layer>
+	public function getLayer(name:OneOfTwo<Int, String>):Null<Layer>
 	{
-		return _layerMap.get(name);
+		return (name is String) ? _layerMap.get(name) : layers[name];
 	}
 
 	public function forEachLayer(callback:Layer->Void):Void
@@ -120,7 +121,9 @@ class Timeline implements IFlxDestroyable
 	{
 		var first:Bool = true;
 		var tmpRect:FlxRect = FlxRect.get();
+
 		rect ??= FlxRect.get();
+		rect.set();
 
 		for (layer in layers)
 		{
