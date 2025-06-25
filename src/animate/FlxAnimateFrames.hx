@@ -9,6 +9,7 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
+import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
@@ -69,6 +70,27 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return null;
 	}
 
+	/**
+	 * Parsing method for Adobe Animate texture atlases
+	 *
+	 * @param   animate  	The texture atlas folder path or Animation.json contents string.
+	 * @param   spritemaps	Optional, array of the spritemaps to load for the texture atlas
+	 * @param   metadata	Optional, string of the metadata.json contents string.
+	 * @return  Newly created `FlxAnimateFrames` collection.
+	 */
+	public static function fromAnimate(animate:String, ?spritemaps:Array<SpritemapInput>, ?metadata:String, ?key:String):FlxAnimateFrames
+	{
+		var key:String = key ?? animate;
+
+		if (_cachedAtlases.exists(key))
+			return _cachedAtlases.get(key);
+
+		if (existsFile(animate + "/Animation.json", TEXT))
+			return _fromAnimatePath(animate, key);
+
+		return _fromAnimateInput(animate, spritemaps, metadata, key);
+	}
+
 	extern static inline function getTextFromPath(path:String):String
 	{
 		var content:String =
@@ -83,6 +105,24 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			#end
 
 		return content.replace(String.fromCharCode(0xFEFF), "");
+	}
+
+	extern static inline function existsFile(path:String, type:AssetType):Bool
+	{
+		return #if sys
+			sys.FileSystem.exists(path);
+		#else
+			#if (flixel < "5.9.0")
+			Assets.exists(path, type);
+			#else // TODO: give better support for FlxG.assets on sys targets
+			FlxG.assets.exists(path, switch (type)
+			{
+				case BINARY: BINARY;
+				case IMAGE: IMAGE;
+				default: TEXT;
+			});
+			#end
+		#end
 	}
 
 	extern static inline function listWithFilter(path:String, filter:String->Bool)
@@ -114,40 +154,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	// since FlxAnimateFrames can have more than one graphic im gonna need use do this
 	// TODO: use another method that works closer to flixel's frame collection crap
-	static var _cachedAtlases:Map<String, FlxAnimateFrames>;
+	static var _cachedAtlases:Map<String, FlxAnimateFrames> = [];
 
-	public static function fromAnimate(path:String):FlxAnimateFrames
+	static function _fromAnimatePath(path:String, ?key:String)
 	{
-		if (_cachedAtlases == null)
-		{
-			_cachedAtlases = [];
-		}
-		else if (_cachedAtlases.exists(path))
-		{
-			return _cachedAtlases.get(path);
-		}
-
 		final getGraphic = (path:String) ->
 		{
 			return #if sys FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
-		}
-
-		final existsFile = (path:String, type:AssetType) ->
-		{
-			return #if sys
-				sys.FileSystem.exists(path);
-			#else
-				#if (flixel < "5.9.0")
-				Assets.exists(path, type);
-				#else // TODO: give better support for FlxG.assets on sys targets
-				FlxG.assets.exists(path, switch (type)
-				{
-					case BINARY: BINARY;
-					case IMAGE: IMAGE;
-					default: TEXT;
-				});
-				#end
-			#end
 		}
 
 		var hasAnimation:Bool = existsFile(path + "/Animation.json", TEXT);
@@ -157,30 +170,50 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			return null;
 		}
 
-		var animation:AnimationJson = Json.parse(getTextFromPath(path + "/Animation.json"));
-		var frames = new FlxAnimateFrames(null);
-		frames.path = path;
-		frames._loadedData = animation;
-
+		var animation = getTextFromPath(path + "/Animation.json");
 		var isInlined = !existsFile(path + "/metadata.json", TEXT);
-		frames._isInlined = isInlined;
+		var libraryList:Null<Array<String>> = null;
+		var spritemaps:Array<SpritemapInput> = [];
+		var metadata:Null<String> = isInlined ? null : getTextFromPath(path + "/metadata.json");
 
 		if (!isInlined)
 		{
-			var list = listWithFilter(frames.path + "/LIBRARY", (str) -> str.endsWith(".json"));
-			frames._libraryList = list.map((str) -> Path.withoutExtension(Path.withoutDirectory(str)));
+			var list = listWithFilter(path + "/LIBRARY", (str) -> str.endsWith(".json"));
+			libraryList = list.map((str) -> Path.withoutExtension(Path.withoutDirectory(str)));
 		}
 
 		// Load all spritemaps
 		for (sm in listSpritemaps(path))
 		{
 			var id = sm.split("spritemap")[1].split(".")[0];
+			spritemaps.push({
+				source: getGraphic(path + '/spritemap$id.png'),
+				json: getTextFromPath(path + '/spritemap$id.json')
+			});
+		}
 
-			var graphic = getGraphic(path + '/spritemap$id.png');
+		return _fromAnimateInput(animation, spritemaps, metadata, key ?? path, isInlined, libraryList);
+	}
+
+	static function _fromAnimateInput(animation:String, spritemaps:Array<SpritemapInput>, ?metadata:String, ?path:String, ?isInlined:Bool = true,
+			?libraryList:Array<String>):FlxAnimateFrames
+	{
+		var animation:AnimationJson = Json.parse(animation);
+		var frames = new FlxAnimateFrames(null);
+		frames.path = path;
+		frames._loadedData = animation;
+		frames._isInlined = isInlined;
+		frames._libraryList = libraryList;
+
+		// Load all spritemaps
+		for (spritemap in spritemaps)
+		{
+			var graphic = FlxG.bitmap.add(spritemap.source);
+			if (graphic == null)
+				continue;
+
 			var atlas = new FlxAtlasFrames(graphic);
-
-			var smContent = getTextFromPath(path + '/spritemap$id.json');
-			var spritemap:SpritemapJson = Json.parse(smContent);
+			var spritemap:SpritemapJson = Json.parse(spritemap.json);
 
 			for (sprite in spritemap.ATLAS.SPRITES)
 			{
@@ -205,7 +238,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			}
 		}
 
-		var metadata:MetadataJson = isInlined ? animation.MD : Json.parse(getTextFromPath(path + "/metadata.json"));
+		var metadata:MetadataJson = (metadata == null) ? animation.MD : Json.parse(metadata);
 
 		frames.frameRate = metadata.FRT;
 		frames.timeline = new Timeline(animation.AN.TL, frames, animation.AN.SN);
@@ -226,6 +259,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames._libraryList = null;
 
 		_cachedAtlases.set(path, frames);
+
 		return frames;
 	}
 
@@ -250,4 +284,10 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		matrix = null;
 		timeline = null;
 	}
+}
+
+typedef SpritemapInput =
+{
+	source:FlxGraphicAsset,
+	json:String
 }
