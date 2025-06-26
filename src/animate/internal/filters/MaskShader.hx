@@ -1,9 +1,8 @@
 package animate.internal.filters;
 
-import animate.internal.filters.Blend;
+import flixel.util.FlxDestroyUtil;
 import openfl.display.BitmapData;
 import openfl.display.GraphicsShader;
-import openfl.geom.Point;
 import openfl.geom.Rectangle;
 
 class MaskShader extends GraphicsShader
@@ -52,6 +51,8 @@ class MaskShader extends GraphicsShader
 			return;
 
 		var shader = shader.setup(masked, masker, rect.x, rect.y);
-		FilterRenderer.renderWithShader(masked, masked.clone(), shader);
+		var maskedClone = masked.clone();
+		FilterRenderer.renderWithShader(masked, maskedClone, shader);
+		maskedClone = FlxDestroyUtil.dispose(maskedClone);
 	}
 }
