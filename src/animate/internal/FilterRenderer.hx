@@ -54,7 +54,7 @@ class FilterRenderer
 	public static function maskFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
 	{
 		var masker = layer.parentLayer;
-		if (masker == null)
+		if (masker == null || frame.elements.length <= 0)
 			return null;
 
 		var maskerFrame = masker.getFrameAtIndex(currentFrame);

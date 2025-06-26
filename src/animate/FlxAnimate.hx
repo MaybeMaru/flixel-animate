@@ -2,6 +2,7 @@ package animate;
 
 import animate.internal.*;
 import flixel.*;
+import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
@@ -100,12 +101,28 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
+	override function set_frame(Value:FlxFrame):FlxFrame
+	{
+		if (isAnimate)
+			return null;
+		return super.set_frame(Value);
+	}
+
 	function drawAnimate(camera:FlxCamera)
 	{
 		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
 			return;
 
-		_matrix.setTo(this.checkFlipX() ? -1 : 1, 0, 0, this.checkFlipY() ? -1 : 1, 0, 0);
+		var doFlipX = flipX;
+		var doFlipY = flipY;
+
+		if (animation.curAnim != null)
+		{
+			doFlipX = doFlipX != animation.curAnim.flipX;
+			doFlipY = doFlipY != animation.curAnim.flipY;
+		}
+
+		_matrix.setTo(doFlipX ? -1 : 1, 0, 0, doFlipY ? -1 : 1, 0, 0);
 
 		if (applyStageMatrix)
 			_matrix.concat(library.matrix);
@@ -177,6 +194,38 @@ class FlxAnimate extends FlxSprite
 			return super.get_numFrames();
 
 		return animation.curAnim != null ? timeline.frameCount : 0;
+	}
+
+	override function updateFramePixels():BitmapData
+	{
+		if (!isAnimate)
+			return super.updateFramePixels();
+
+		if (timeline == null || !dirty)
+			return framePixels;
+
+		@:privateAccess
+		{
+			var mat = new FlxMatrix(checkFlipX() ? -1 : 1, 0, 0, checkFlipY() ? -1 : 1, 0, 0);
+
+			#if flash
+			framePixels = FilterRenderer.getBitmap((cam, _) -> timeline.draw(cam, mat, null, NORMAL, true, null), timeline._bounds);
+			#else
+			var cam = new FlxCamera();
+			Frame.__isDirtyCall = true;
+			timeline.draw(cam, mat, null, NORMAL, true, null);
+			Frame.__isDirtyCall = false;
+			cam.render();
+
+			var bounds = timeline._bounds;
+			framePixels = new BitmapData(Std.int(bounds.width), Std.int(bounds.height), true, 0);
+			framePixels.draw(cam.canvas, new openfl.geom.Matrix(1, 0, 0, 1, -bounds.x, -bounds.y), null, null, null, true);
+			cam.canvas.graphics.clear();
+			#end
+		}
+
+		dirty = false;
+		return framePixels;
 	}
 
 	override function destroy():Void

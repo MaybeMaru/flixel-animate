@@ -170,7 +170,7 @@ class FlxAnimateController extends FlxAnimationController
 		if (numFrames > 0)
 		{
 			frame = frame % numFrames;
-			_animate.timeline = cast(curAnim, FlxAnimateAnimation).timeline;
+			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
 			_animate.timeline.currentFrame = frame;
 			_animate.timeline.signalFrameChange(frame);
 			frameIndex = frame;
