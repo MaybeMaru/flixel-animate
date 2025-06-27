@@ -104,7 +104,10 @@ class FlxAnimate extends FlxSprite
 		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
 			return;
 
-		_matrix.setTo(this.checkFlipX() ? -1 : 1, 0, 0, this.checkFlipY() ? -1 : 1, 0, 0);
+		var doFlipX = this.checkFlipX();
+		var doFlipY = this.checkFlipY();
+
+		_matrix.setTo(doFlipX ? -1 : 1, 0, 0, doFlipY ? -1 : 1, doFlipX ? frame.sourceSize.x : 0, doFlipY ? frame.sourceSize.y : 0);
 
 		if (applyStageMatrix)
 			_matrix.concat(library.matrix);
