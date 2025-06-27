@@ -282,13 +282,16 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		super.destroy();
 
-		for (symbol in dictionary.iterator())
-			symbol.destroy();
+		if (dictionary != null)
+		{
+			for (symbol in dictionary.iterator())
+				symbol.destroy();
+		}
 
 		stageRect = FlxDestroyUtil.put(stageRect);
+		timeline = FlxDestroyUtil.destroy(timeline);
 		dictionary = null;
 		matrix = null;
-		timeline = null;
 	}
 }
 
