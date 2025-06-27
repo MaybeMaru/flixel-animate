@@ -4,6 +4,9 @@ import animate.internal.*;
 import flixel.FlxG;
 import flixel.animation.FlxAnimation;
 import flixel.animation.FlxAnimationController;
+import flixel.graphics.frames.FlxFrame;
+import flixel.math.FlxRect;
+import flixel.util.FlxDestroyUtil;
 
 using StringTools;
 
@@ -162,6 +165,13 @@ class FlxAnimateController extends FlxAnimationController
 		return foundFrames;
 	}
 
+	var animateFrame:FlxFrame;
+
+	public function new(sprite:FlxAnimate)
+	{
+		super(sprite);
+	}
+
 	override function set_frameIndex(frame:Int):Int
 	{
 		if (!isAnimate)
@@ -185,12 +195,19 @@ class FlxAnimateController extends FlxAnimationController
 	@:allow(animate.FlxAnimate)
 	function updateTimelineBounds()
 	{
-		@:privateAccess {
-			var bounds = _animate.timeline._bounds;
-			_animate.frameWidth = Std.int(bounds.width);
-			_animate.frameHeight = Std.int(bounds.height);
-			_animate.resetFrameSize();
+		if (animateFrame == null)
+		{
+			@:privateAccess // FlxFrame constructor used to be private
+			animateFrame = new FlxFrame(_animate.graphic);
+			animateFrame.frame = FlxRect.get();
 		}
+
+		@:privateAccess
+		var bounds = _animate.timeline._bounds;
+		animateFrame.parent = _animate.graphic;
+		animateFrame.sourceSize.set(bounds.width, bounds.height);
+		animateFrame.frame.copyFrom(bounds);
+		_animate.frame = animateFrame;
 	}
 
 	var _animate(get, never):FlxAnimate;
@@ -208,6 +225,12 @@ class FlxAnimateController extends FlxAnimationController
 
 	public inline function getDefaultTimeline():Timeline
 		return _animate.library.timeline;
+
+	override function destroy()
+	{
+		super.destroy();
+		animateFrame = FlxDestroyUtil.destroy(animateFrame);
+	}
 }
 
 class FlxAnimateAnimation extends FlxAnimation

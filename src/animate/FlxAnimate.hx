@@ -2,7 +2,6 @@ package animate;
 
 import animate.internal.*;
 import flixel.*;
-import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
@@ -62,7 +61,6 @@ class FlxAnimate extends FlxSprite
 		{
 			library = cast frames;
 			timeline = library.timeline;
-			frame = null;
 			anim.updateTimelineBounds();
 			resetHelpers();
 		}
@@ -101,28 +99,12 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
-	override function set_frame(Value:FlxFrame):FlxFrame
-	{
-		if (isAnimate)
-			return null;
-		return super.set_frame(Value);
-	}
-
 	function drawAnimate(camera:FlxCamera)
 	{
 		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
 			return;
 
-		var doFlipX = flipX;
-		var doFlipY = flipY;
-
-		if (animation.curAnim != null)
-		{
-			doFlipX = doFlipX != animation.curAnim.flipX;
-			doFlipY = doFlipY != animation.curAnim.flipY;
-		}
-
-		_matrix.setTo(doFlipX ? -1 : 1, 0, 0, doFlipY ? -1 : 1, 0, 0);
+		_matrix.setTo(this.checkFlipX() ? -1 : 1, 0, 0, this.checkFlipY() ? -1 : 1, 0, 0);
 
 		if (applyStageMatrix)
 			_matrix.concat(library.matrix);
