@@ -32,6 +32,12 @@ class Frame implements IFlxDestroyable
 		this.index = 0;
 	}
 
+	/**
+	 * Adds an ``Element`` object to the elements list of the frame.
+	 * If the frame is masked it will require a redraw.
+	 *
+	 * @param element Element object to add to the frame. It won't be added if its already part of the list.
+	 */
 	public function add(element:Element):Void
 	{
 		if (elements.indexOf(element) != -1)
@@ -47,12 +53,26 @@ class Frame implements IFlxDestroyable
 		}
 	}
 
+	/**
+	 * Applies a function to all the elements of the frame.
+	 *
+	 * @param callback The ``Element->Void`` function to call for all the existing elements.
+	 */
 	public function forEachElement(callback:Element->Void):Void
 	{
 		for (element in this.elements)
 			callback(element);
 	}
 
+	/**
+	 * Returns the bounds of the keyframe at a specific index.
+	 *
+	 * @param frameIndex			The frame index where to calculate the bounds from.
+	 * @param rect					Optional, the rectangle used to input the final calculated values.
+	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
+	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @return						A ``FlxRect`` with the complete frames's bounds at an index, empty if no elements were found.
+	 */
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();

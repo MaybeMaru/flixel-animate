@@ -28,12 +28,23 @@ class Layer implements IFlxDestroyable
 		this.layerType = NORMAL;
 	}
 
+	/**
+	 * Applies a function to all the keyframes of the layer.
+	 *
+	 * @param callback The ``Frame->Void`` function to call for all the existing keyframes.
+	 */
 	public function forEachFrame(callback:Frame->Void)
 	{
 		for (frame in frames)
 			callback(frame);
 	}
 
+	/**
+	 * Returns a frame of the layer at a specific index.
+	 *
+	 * @param index Index of the frame.
+	 * @return		The ``Frame`` found at the index, null if it doesn't exist.
+	 */
 	public function getFrameAtIndex(index:Int):Null<Frame>
 	{
 		index = Std.int(Math.max(index, 0));
@@ -44,6 +55,12 @@ class Layer implements IFlxDestroyable
 		return frames[frameIndex];
 	}
 
+	/**
+	 * Sets the frame of the layer at a specific index as a keyframe.
+	 * While keeping all the previous elements stored at the frame.
+	 *
+	 * @param index Index of the new keyframe.
+	 */
 	public function setKeyframe(index:Int)
 	{
 		var lastFrame = getFrameAtIndex(index);
@@ -57,6 +74,11 @@ class Layer implements IFlxDestroyable
 		keyframe.name = lastFrame.name;
 	}
 
+	/**
+	 * Sets the frame of the layer at a specific index as an empty keyframe.
+	 *
+	 * @param index Index of the new keyframe.
+	 */
 	public function setBlankKeyframe(index:Int)
 	{
 		var lastFrame = getFrameAtIndex(index);
@@ -73,6 +95,15 @@ class Layer implements IFlxDestroyable
 			frameIndices[index + i] = frames.length - 1;
 	}
 
+	/**
+	 * Returns the bounds of the layer at a specific frame index.
+	 *
+	 * @param frameIndex			The frame index where to calculate the bounds from.
+	 * @param rect					Optional, the rectangle used to input the final calculated values.
+	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
+	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @return						A ``FlxRect`` with the layer's bounds at an index, empty if no elements were found.
+	 */
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();

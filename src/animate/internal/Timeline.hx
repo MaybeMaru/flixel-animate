@@ -161,7 +161,7 @@ class Timeline implements IFlxDestroyable
 	 * @param rect					Optional, the rectangle used to input the final calculated values.
 	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
-	 * @return						A ``FlxRect`` with the complete timeline's bounds, empty if no elements were found.
+	 * @return						A ``FlxRect`` with the timeline's bounds at an index, empty if no elements were found.
 	 */
 	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
