@@ -179,16 +179,20 @@ class FilterRenderer
 		return bitmap;
 	}
 
-	public static function bakeFilters(movieclip:MovieClipInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
 		var bitmap:BitmapData;
 		var bounds:FlxRect;
 		var filteredBounds:FlxRect;
+		var initialDirty:Bool = movieclip._dirty;
 
 		bitmap = renderToBitmap((cam, mat) ->
 		{
 			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
-			movieclip.draw(cam, 0, null, mat, null, null, true, null);
+
+			movieclip._dirty = false;
+			movieclip.draw(cam, frameIndex, null, mat, null, null, true, null);
+			movieclip._dirty = initialDirty;
 			cam.render();
 
 			if (filters != null && filters.length > 0)
@@ -211,10 +215,9 @@ class FilterRenderer
 				}
 			}
 
-			movieclip._dirty = true;
-			filteredBounds = movieclip.getBounds(0, null, null, true);
-			movieclip._dirty = false;
-			bounds = movieclip.getBounds(0, null, null, false);
+			bounds = movieclip.getBounds(frameIndex, null, null, false);
+			@:privateAccess
+			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), movieclip._filters);
 
 			var gfx = cam.canvas.graphics;
 			filteredBounds.copyToFlash(gfx.__bounds);
@@ -224,14 +227,15 @@ class FilterRenderer
 			gfx.__bounds.height /= scale.y;
 		});
 
+		// TODO: expand the bounds after rendering to save on temp bitmap sizes
+
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
 		filterFrame(frame, filters);
 
 		var mat = new FlxMatrix();
 		mat.scale(scale.x, scale.y);
-
+		mat.translate(filteredBounds.x, filteredBounds.y);
 		movieclip.matrix.identity();
-		movieclip.matrix.translate(filteredBounds.x, filteredBounds.y);
 
 		var element = new AtlasInstance();
 		element.frame = frame;
@@ -240,30 +244,56 @@ class FilterRenderer
 		return element;
 	}
 
-	public static function filterFrame(frame:FlxFrame, ?filters:Array<BitmapFilter>):Void
+	public static function filterFrame(frame:FlxFrame, ?filters:Array<BitmapFilter>, ?point:Point):Void
 	{
 		if (filters == null || filters.length <= 0)
 			return;
 
-		var f = frame.frame;
-		var filterFrame = new FlxFrame(FlxGraphic.fromRectangle(Math.ceil(f.width), Math.ceil(f.height), 0, true));
+		var filterFrame = new FlxFrame(FlxGraphic.fromRectangle(Math.ceil(frame.frame.width), Math.ceil(frame.frame.height), 0, true));
+		filterFrame.parent.bitmap = applyFilter(filterFrame.parent.bitmap, frame.parent.bitmap, filters, point);
+		filterFrame.frame = FlxRect.get(0, 0, filterFrame.parent.bitmap.width, filterFrame.parent.bitmap.height);
 
-		var _filterBmp1:BitmapData = new BitmapData(filterFrame.parent.width, filterFrame.parent.height, 0);
+		// Remove & replace the original bitmap
+		FlxDestroyUtil.dispose(frame.parent.bitmap);
+		filterFrame.copyTo(frame);
+	}
+
+	/**
+	 * Generates a new bitmap with filters from an input bitmap.
+	 * @param target Optional, the bitmap data to use for output
+	 * @param bitmap The input bitmap to use for filtering
+	 * @param filters Array of the filters to apply to the bitmap
+	 * @param point Optional, point used to offset the final rendered output
+	 */
+	public static function applyFilter(?target:BitmapData, bitmap:BitmapData, filters:Array<BitmapFilter>, ?point:Point):BitmapData
+	{
+		if (target == null)
+		{
+			var bounds = FlxRect.get().copyFromFlash(bitmap.rect);
+			expandFilterBounds(bounds, filters);
+			target = new BitmapData(Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
+			point = (point == null) ? new Point(-bounds.x, -bounds.y) : new Point(point.x - bounds.x, point.y - bounds.y);
+		}
+
+		var _filterBmp1:BitmapData = new BitmapData(target.width, target.height, true, 0);
 		var _filterBmp2:BitmapData = null;
 
 		var needsPreserveObject:Bool = false;
 		for (filter in filters)
 		{
 			if (filter != null && filter.__preserveObject)
+			{
 				needsPreserveObject = true;
+				break;
+			}
 		}
 
 		if (needsPreserveObject)
 			_filterBmp2 = new BitmapData(_filterBmp1.width, _filterBmp1.height, true, 0);
-		filterFrame.parent.bitmap = __applyFilter(filterFrame.parent.bitmap, _filterBmp1, _filterBmp2, frame.parent.bitmap, filters);
 
-		filterFrame.frame = FlxRect.get(0, 0, filterFrame.parent.bitmap.width, filterFrame.parent.bitmap.height);
-		filterFrame.copyTo(frame);
+		__applyFilter(target, _filterBmp1, _filterBmp2, bitmap, filters, point);
+
+		return target;
 	}
 
 	static function __applyFilter(target:BitmapData, target1:BitmapData, ?target2:BitmapData, bmp:BitmapData, filters:Array<BitmapFilter>, ?point:Point)
@@ -371,12 +401,19 @@ class FilterRenderer
 	#else
 	// Basic Flash filter baking impl
 	// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
-	public static function bakeFilters(symbol:SymbolInstance, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
 	{
-		var filteredBounds:FlxRect = symbol.getBounds(0);
+		var filteredBounds:FlxRect = movieclip.getBounds(0);
 		expandFilterBounds(filteredBounds, filters);
 
-		var bitmap:BitmapData = getBitmap((cam, mat) -> symbol.draw(cam, 0, null, mat, null, null, true, null), filteredBounds);
+		@:privateAccess
+		var bitmap:BitmapData = getBitmap((cam, mat) ->
+		{
+			var initialDirty:Bool = movieclip._dirty;
+			movieclip._dirty = false;
+			movieclip.draw(cam, frameIndex, null, mat, null, null, true, null);
+			movieclip._dirty = initialDirty;
+		}, filteredBounds);
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
 
 		var rect = new Rectangle(0, 0, bitmap.width, bitmap.height);
@@ -387,9 +424,7 @@ class FilterRenderer
 
 		var mat = new FlxMatrix();
 		mat.translate(filteredBounds.left, filteredBounds.top);
-		var invertMat = symbol.matrix.clone();
-		invertMat.invert();
-		mat.concat(invertMat);
+		movieclip.matrix.identity();
 
 		var element = new AtlasInstance();
 		element.frame = frame;
@@ -553,6 +588,8 @@ class FilterRenderer
 		baseBounds.height = Math.max(baseBounds.height, baseBounds.height + inflate.height);
 
 		#if !flash Rectangle.__pool.release(inflate); #end
+
+		return baseBounds;
 	}
 }
 

@@ -138,7 +138,10 @@ class Frame implements IFlxDestroyable
 	function _bakeFrame(frameIndex:Int):Void
 	{
 		if (layer.parentLayer == null)
+		{
+			_dirty = false;
 			return;
+		}
 
 		if (_bakedFrames == null)
 		{
@@ -210,6 +213,7 @@ class Frame implements IFlxDestroyable
 		elements = FlxDestroyUtil.destroyArray(elements);
 		sound = FlxDestroyUtil.destroy(sound);
 		layer = null;
+		_bakedFrames = FlxDestroyUtil.destroyArray(_bakedFrames);
 	}
 
 	public function toString():String

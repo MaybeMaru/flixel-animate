@@ -2,10 +2,12 @@ package animate.internal.elements;
 
 import animate.FlxAnimateJson;
 import flixel.FlxCamera;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
+import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
@@ -13,9 +15,12 @@ import openfl.geom.ColorTransform;
 
 class MovieClipInstance extends SymbolInstance
 {
+	public var swfMode:Bool = false;
+
 	@:allow(animate.internal.FilterRenderer)
 	var _dirty:Bool = false;
 	var _filters:Array<BitmapFilter> = null;
+	var _bakedFrames:Array<AtlasInstance>;
 
 	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -53,19 +58,28 @@ class MovieClipInstance extends SymbolInstance
 	{
 		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
 
-		// expand filter bounds manually
-		// doing this to keep them consistent, even if openfl changes some shit
-		if (_dirty && includeFilters)
-		{
-			FilterRenderer.expandFilterBounds(bounds, _filters);
-		}
+		if (!includeFilters || _filters == null || _filters.length <= 0)
+			return bounds;
 
-		return bounds;
+		return FilterRenderer.expandFilterBounds(bounds, _filters);
 	}
 
-	function bakeFilters(?filters:Array<BitmapFilter>):Void
+	function _bakeFilters(?filters:Array<BitmapFilter>, frameIndex:Int):Void
 	{
 		if (filters == null || filters.length <= 0)
+		{
+			_dirty = false;
+			return;
+		}
+
+		if (_bakedFrames == null)
+		{
+			_bakedFrames = [];
+			for (i in 0...this.libraryItem.timeline.frameCount)
+				_bakedFrames.push(null);
+		}
+
+		if (_bakedFrames[frameIndex] != null)
 			return;
 
 		var scale = FlxPoint.get(1, 1);
@@ -80,31 +94,60 @@ class MovieClipInstance extends SymbolInstance
 			}
 		}
 
-		bakedElement = FilterRenderer.bakeFilters(this, filters, scale);
-		libraryItem = null;
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters, scale);
 		scale.put();
+
+		if (bakedFrame == null)
+			return;
+
+		_bakedFrames[frameIndex] = bakedFrame;
+		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
+			bakedFrame.visible = false;
+
+		if (_dirty)
+		{
+			if (_bakedFrames.indexOf(null) == -1)
+				_dirty = false;
+		}
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
 		if (_dirty)
-		{
-			_dirty = false;
-			bakeFilters(_filters);
-		}
+			_bakeFilters(_filters, getFrameIndex(index, tlFrame.index));
 
 		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
+	}
+
+	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, mat:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
+			antialiasing:Null<Bool>, shader:Null<FlxShader>)
+	{
+		if (_bakedFrames != null)
+		{
+			var index = getFrameIndex(index, frameIndex);
+			var bakedFrame = _bakedFrames[Std.int(FlxMath.bound(index, 0, _bakedFrames.length - 1))];
+
+			if (bakedFrame != null)
+			{
+				if (bakedFrame.visible)
+					bakedFrame.draw(camera, 0, null, mat, transform, blend, antialiasing, shader);
+				return;
+			}
+		}
+
+		super._drawTimeline(camera, index, frameIndex, mat, transform, blend, antialiasing, shader);
 	}
 
 	override function destroy()
 	{
 		super.destroy();
 		_filters = null;
+		_bakedFrames = FlxDestroyUtil.destroyArray(_bakedFrames);
 	}
 
 	override function getFrameIndex(index:Int, frameIndex:Int):Int
 	{
-		return 0;
+		return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
 	}
 }

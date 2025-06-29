@@ -4,6 +4,7 @@ import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
@@ -81,31 +82,26 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return frameIndex;
 	}
 
+	var _tmpMatrix:FlxMatrix = new FlxMatrix();
+
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		// Prepare the bounds matrix
 		var targetMatrix:FlxMatrix;
 		if (matrix != null)
 		{
-			tmpMatrix.copyFrom(this.matrix);
-			tmpMatrix.concat(matrix);
-			targetMatrix = tmpMatrix;
+			_tmpMatrix.copyFrom(this.matrix);
+			_tmpMatrix.concat(matrix);
+			targetMatrix = _tmpMatrix;
 		}
 		else
 		{
 			targetMatrix = this.matrix;
 		}
 
-		// Return baked bounds, if they exist
-		if (includeFilters && bakedElement != null)
-			return bakedElement.getBounds(0, rect, targetMatrix, includeFilters);
-
 		// Get the bounds of the symbol item timeline
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
 	}
-
-	var bakedElement:AtlasInstance = null;
-	var tmpMatrix:FlxMatrix = new FlxMatrix();
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
@@ -130,15 +126,16 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		var b = Blend.resolve(this.blend, blend);
+		var frameIndex = tlFrame != null ? tlFrame.index : 0;
 
-		if (bakedElement != null && bakedElement.visible)
-		{
-			bakedElement.draw(camera, 0, null, _mat, transform, b, antialiasing, shader);
-			return;
-		}
+		_drawTimeline(camera, index, frameIndex, _mat, transform, b, antialiasing, shader);
+	}
 
-		libraryItem.timeline.currentFrame = getFrameIndex(index, tlFrame != null ? tlFrame.index : 0);
-		libraryItem.timeline.draw(camera, _mat, transform, b, antialiasing, shader);
+	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, mat:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
+			antialiasing:Null<Bool>, shader:Null<FlxShader>)
+	{
+		libraryItem.timeline.currentFrame = getFrameIndex(index, frameIndex);
+		libraryItem.timeline.draw(camera, mat, transform, blend, antialiasing, shader);
 	}
 
 	override function destroy()
@@ -147,13 +144,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		libraryItem = null;
 		transform = null;
 		_transform = null;
-		tmpMatrix = null;
-
-		if (bakedElement != null)
-		{
-			bakedElement.frame.destroy();
-			bakedElement = FlxDestroyUtil.destroy(bakedElement);
-		}
+		_tmpMatrix = null;
 	}
 
 	public function toString():String

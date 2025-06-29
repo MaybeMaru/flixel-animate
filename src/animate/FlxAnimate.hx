@@ -104,47 +104,60 @@ class FlxAnimate extends FlxSprite
 		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
 			return;
 
+		var mat = _matrix;
+		mat.identity();
+
 		var doFlipX = this.checkFlipX();
 		var doFlipY = this.checkFlipY();
 
-		_matrix.setTo(doFlipX ? -1 : 1, 0, 0, doFlipY ? -1 : 1, doFlipX ? frame.sourceSize.x : 0, doFlipY ? frame.sourceSize.y : 0);
+		if (!useLegacyBounds)
+		{
+			@:privateAccess
+			var bounds = timeline._bounds;
+			mat.translate(-bounds.x, -bounds.y);
+		}
+
+		if (doFlipX)
+		{
+			mat.scale(-1, 1);
+			mat.translate(frame.sourceSize.x, 0);
+		}
+
+		if (doFlipY)
+		{
+			mat.scale(1, -1);
+			mat.translate(0, frame.sourceSize.y);
+		}
 
 		if (applyStageMatrix)
-			_matrix.concat(library.matrix);
+			mat.concat(library.matrix);
 
-		_matrix.translate(-origin.x, -origin.y);
-		_matrix.scale(scale.x, scale.y);
+		mat.translate(-origin.x, -origin.y);
+		mat.scale(scale.x, scale.y);
 
 		if (angle != 0)
 		{
 			updateTrig();
-			_matrix.rotateWithTrig(_cosAngle, _sinAngle);
+			mat.rotateWithTrig(_cosAngle, _sinAngle);
 		}
 
 		if (skew.x != 0 || skew.y != 0)
 		{
 			updateSkew();
-			_matrix.concat(_skewMatrix);
+			mat.concat(_skewMatrix);
 		}
 
 		getScreenPosition(_point, camera);
 		_point.add(-offset.x, -offset.y);
 		_point.add(origin.x, origin.y);
 
-		if (!useLegacyBounds)
-		{
-			@:privateAccess
-			var bounds = timeline._bounds;
-			_point.add(-bounds.x, -bounds.y);
-		}
-
-		_matrix.translate(_point.x, _point.y);
+		mat.translate(_point.x, _point.y);
 
 		if (renderStage)
 			drawStage(camera);
 
 		timeline.currentFrame = animation.frameIndex;
-		timeline.draw(camera, _matrix, colorTransform, blend, antialiasing, shader);
+		timeline.draw(camera, mat, colorTransform, blend, antialiasing, shader);
 	}
 
 	var stageBg:FlxSprite;
