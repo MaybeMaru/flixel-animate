@@ -4,7 +4,6 @@ import animate.FlxAnimateJson.TimelineJson;
 import animate.internal.elements.*;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
@@ -43,17 +42,34 @@ class Timeline implements IFlxDestroyable
 		_bounds = getWholeBounds(false, _bounds);
 	}
 
+	/**
+	 * Returns a layer based on name or index.
+	 *
+	 * @param layer Index ``Int`` or name ``String`` of the layer.
+	 * @return		The ``Layer`` found with that name or index, null if not found.
+	 */
 	public function getLayer(name:OneOfTwo<Int, String>):Null<Layer>
 	{
 		return (name is String) ? _layerMap.get(name) : layers[name];
 	}
 
+	/**
+	 * Applies a function to all the layers of the timeline.
+	 *
+	 * @param callback The ``Layer->Void`` function to call for all the existing layers.
+	 */
 	public function forEachLayer(callback:Layer->Void):Void
 	{
 		for (layer in layers)
 			callback(layer);
 	}
 
+	/**
+	 * Returns the frames through all the layers of a timeline at a specific frame index.
+	 * 
+	 * @param index Frame index ``Int`` to get the frames objects from.
+	 * @return		An array of all the ``Frame`` objects at a specific frame index.
+	 */
 	public function getFramesAtIndex(index:Int):Array<Frame>
 	{
 		var frames:Array<Frame> = [];
@@ -66,6 +82,12 @@ class Timeline implements IFlxDestroyable
 		return frames;
 	}
 
+	/**
+	 * Returns the elements through all the layers of a timeline at a specific frame index.
+	 * 
+	 * @param index Frame index ``Int`` to get the element objects from.
+	 * @return		An array of all the ``Element`` objects at a specific frame index.
+	 */
 	public function getElementsAtIndex(index:Int):Array<Element>
 	{
 		var elements:Array<Element> = [];
@@ -81,12 +103,27 @@ class Timeline implements IFlxDestroyable
 		return elements;
 	}
 
+	/**
+	 * Returns an array of all the elements at the current frame displayed on the timeline.
+	 * May be innacurate if theres more than one ``FlxAnimate`` object playing the same timeline.
+	 * For accuracy of your specific needs, I recommend using ``getElementsAtIndex`` more.
+	 *
+	 * @return An array of all the ``Element`` objects at the current frame.
+	 */
 	public function getCurrentElements():Array<Element>
 	{
 		return getElementsAtIndex(currentFrame);
 	}
 
-	// Returns the whole bounds of the timeline
+	/**
+	 * Returns the complete bounds of the timeline throught all the frames.
+	 *
+	 * @param includeHiddenLayers	If to include in the calculation layers currently invisible.
+	 * @param rect					Optional, the rectangle used to input the final calculated values.
+	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
+	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @return						A ``FlxRect`` with the complete timeline's bounds, empty if no elements were found.
+	 */
 	public function getWholeBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var first:Bool = true;
@@ -116,7 +153,16 @@ class Timeline implements IFlxDestroyable
 		return rect;
 	}
 
-	// Returns the bounds of the timeline at a specific frame
+	/**
+	 * Returns the bounds of the timeline at a specific frame index.
+	 *
+	 * @param frameIndex			The frame index where to calculate the bounds from.
+	 * @param includeHiddenLayers	If to include in the calculation layers currently invisible.
+	 * @param rect					Optional, the rectangle used to input the final calculated values.
+	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
+	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @return						A ``FlxRect`` with the complete timeline's bounds, empty if no elements were found.
+	 */
 	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var first:Bool = true;
