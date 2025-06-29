@@ -14,11 +14,11 @@ typedef Element = AnimateElement<Dynamic>;
 
 class AnimateElement<T> implements IFlxDestroyable
 {
-	var _mat:FlxMatrix;
-
 	public var matrix:FlxMatrix;
 	public var visible:Bool;
-	public var elementType:ElementType;
+	public var elementType(default, null):ElementType;
+
+	var _mat:FlxMatrix;
 
 	public function new(data:T, parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -26,10 +26,18 @@ class AnimateElement<T> implements IFlxDestroyable
 		visible = true;
 	}
 
-	public function destroy()
+	/**
+	 * Returns the bounds of the element at a specific frame index.
+	 *
+	 * @param frameIndex			The frame index where to calculate the bounds from.
+	 * @param rect					Optional, the rectangle used to input the final calculated values.
+	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
+	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @return						A ``FlxRect`` with the complete frames's bounds at an index, empty if no elements were found.
+	 */
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
-		_mat = null;
-		matrix = null;
+		return rect ?? FlxRect.get();
 	}
 
 	public function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
@@ -47,9 +55,10 @@ class AnimateElement<T> implements IFlxDestroyable
 	public inline function toButtonInstance():ButtonInstance
 		return cast this;
 
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	public function destroy()
 	{
-		return rect ?? FlxRect.get();
+		_mat = null;
+		matrix = null;
 	}
 }
 

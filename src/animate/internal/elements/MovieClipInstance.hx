@@ -15,6 +15,11 @@ import openfl.geom.ColorTransform;
 
 class MovieClipInstance extends SymbolInstance
 {
+	/**
+	 * If to render the movieclip with the rendering method of Swf files.
+	 * When turned off it renders like in the Animate program, with only the first frame getting rendered.
+	 * When turn on it renders like in a Swf player, with all frames getting rendered (and baked).
+	 */
 	public var swfMode:Bool = false;
 
 	@:allow(animate.internal.FilterRenderer)
@@ -48,10 +53,22 @@ class MovieClipInstance extends SymbolInstance
 		//	frame._dirty = true;
 	}
 
+	/**
+	 * Changes the filters of the movieclip.
+	 * Requires the movieclip to be rebaked when called.
+	 *
+	 * @param filters An array with ``BitmapFilter`` objects to apply to the movieclip.
+	 */
 	public function setFilters(filters:Array<BitmapFilter>):Void
 	{
 		this._filters = filters;
 		this._dirty = true;
+
+		if (_bakedFrames != null)
+		{
+			for (i in 0..._bakedFrames.length)
+				_bakedFrames[i] = FlxDestroyUtil.destroy(_bakedFrames[i]);
+		}
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
@@ -146,7 +163,7 @@ class MovieClipInstance extends SymbolInstance
 		_bakedFrames = FlxDestroyUtil.destroyArray(_bakedFrames);
 	}
 
-	override function getFrameIndex(index:Int, frameIndex:Int):Int
+	override function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
 		return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
 	}

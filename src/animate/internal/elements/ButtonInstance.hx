@@ -24,7 +24,15 @@ using flixel.util.FlxColorTransformUtil;
 
 class ButtonInstance extends SymbolInstance
 {
+	/**
+	 * The current state of the button. Updated on draw passes.
+	 * Use ``updateButtonState`` to update it on command.
+	 */
 	public var curButtonState(default, null):ButtonState;
+
+	/**
+	 * A signal that gets called when the button is clicked.
+	 */
 	public var onClick:FlxSignal;
 
 	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames)
@@ -45,7 +53,7 @@ class ButtonInstance extends SymbolInstance
 		return bounds;
 	}
 
-	override function getFrameIndex(index:Int, frameIndex:Int):Int
+	override function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
 		return curButtonState;
 	}

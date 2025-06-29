@@ -4,13 +4,11 @@ import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
-import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
-import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
 
@@ -64,7 +62,12 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			visible = false;
 	}
 
-	function getFrameIndex(index:Int, frameIndex:Int):Int
+	/**
+	 * Returns the timeline frame index needed to be rendered at a specific frameIndex
+	 * @param index 		Index of the timeline to render.
+	 * @param frameIndex 	Optional, relative frame index of the current keyframe the symbol instance is stored at.
+	 */
+	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
 		var frameIndex = firstFrame + (index - frameIndex);
 		var frameCount = libraryItem.timeline.frameCount;

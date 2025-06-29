@@ -7,19 +7,12 @@ import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
-import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
-import flixel.util.FlxDestroyUtil;
-import flixel.util.FlxSignal;
-import haxe.ds.Vector;
 import openfl.display.BlendMode;
 import openfl.display.Timeline;
-import openfl.filters.BitmapFilter;
-import openfl.filters.BlurFilter;
 import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
@@ -60,10 +53,17 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		}
 	}
 
+	/**
+	 * Replaces the frame used to render the atlas instance.
+	 *
+	 * @param frame 		New ``FlxFrame`` to replace the existing one.
+	 * @param adjustScale 	If to rescale the new frame to fit the dimensions of the old one.
+	 */
 	public function replaceFrame(frame:FlxFrame, adjustScale:Bool = true):Void
 	{
 		var copyFrame = frame.copyTo();
 
+		// TODO: account for frame rotations
 		// Scale adjustment
 		if (adjustScale)
 		{
