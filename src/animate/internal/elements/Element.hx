@@ -55,6 +55,9 @@ class AnimateElement<T> implements IFlxDestroyable
 	public inline function toButtonInstance():ButtonInstance
 		return cast this;
 
+	public inline function toTextFieldInstance():TextFieldInstance
+		return cast this;
+
 	public function destroy()
 	{
 		_mat = null;
@@ -68,4 +71,5 @@ enum abstract ElementType(String) to String
 	var GRAPHIC = "graphic";
 	var MOVIECLIP = "movieclip";
 	var BUTTON = "button";
+	var TEXT = "text";
 }

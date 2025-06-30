@@ -141,7 +141,19 @@ class Frame implements IFlxDestroyable
 			}
 			else
 			{
-				this.elements.push(new AtlasInstance(element.ASI, parent));
+				var asi = element.ASI;
+				if (asi != null)
+				{
+					this.elements.push(new AtlasInstance(asi, parent));
+				}
+				else
+				{
+					var tfi = element.TFI;
+					if (tfi != null)
+					{
+						this.elements.push(new TextFieldInstance(tfi, parent));
+					}
+				}
 			}
 		}
 

@@ -132,12 +132,16 @@ extern abstract ElementJson(Dynamic)
 {
 	public var SI(get, never):Null<SymbolInstanceJson>;
 	public var ASI(get, never):Null<AtlasInstanceJson>;
+	public var TFI(get, never):Null<TextFieldInstanceJson>;
 
 	inline function get_SI()
 		return this.SI ?? this.SYMBOL_Instance;
 
 	inline function get_ASI()
 		return this.ASI ?? this.ATLAS_SPRITE_instance;
+
+	inline function get_TFI()
+		return this.TFI ?? this.textFIELD_Instance;
 }
 
 abstract SymbolInstanceJson(Dynamic)
@@ -428,6 +432,126 @@ extern abstract AtlasInstanceJson(Dynamic)
 
 	inline function get_MX()
 		return MatrixJson.resolve(this);
+}
+
+extern abstract TextFieldInstanceJson(Dynamic)
+{
+	public var MX(get, never):MatrixJson;
+	public var TXT(get, never):String;
+	public var TP(get, never):String;
+	public var IN(get, never):Null<String>;
+	public var ORT(get, never):Null<String>;
+	public var LT(get, never):Null<String>;
+	public var ATR(get, never):Array<TextFieldAttributesJson>;
+	public var BRD(get, never):Bool;
+	public var ALSRP(get, never):Float;
+	public var ALTHK(get, never):Float;
+	public var MAX(get, never):Int;
+
+	inline function get_MX():MatrixJson
+		return MatrixJson.resolve(this);
+
+	inline function get_TXT():String
+		return this.TXT ?? this.text;
+
+	inline function get_TP():String
+		return this.TP ?? this.type;
+
+	inline function get_IN():Null<String>
+		return this.IN ?? this.Instance_name;
+
+	inline function get_ORT():Null<String>
+		return this.ORT ?? this.orientation;
+
+	inline function get_LT():Null<String>
+		return this.LT ?? this.lineType;
+
+	inline function get_ATR():Array<TextFieldAttributesJson>
+		return this.ATR ?? this.attributes;
+
+	inline function get_BRD():Bool
+		return this.BRD ?? this.border;
+
+	inline function get_ALSRP():Float
+		return this.ALSRP ?? this.alias_SHARPNESS;
+
+	inline function get_ALTHK():Float
+		return this.ALTHK ?? this.alias_thickness;
+
+	inline function get_MAX():Int
+		return this.MAX ?? this.maxCharacters;
+}
+
+extern abstract TextFieldAttributesJson(Dynamic)
+{
+	public var OF(get, never):Int;
+	public var LEN(get, never):Int;
+	public var ALS(get, never):Bool;
+	public var ALN(get, never):String;
+	public var AUK(get, never):Bool;
+	public var BL(get, never):Bool;
+	public var IT(get, never):Bool;
+	public var CPS(get, never):String;
+	public var CSP(get, never):Float;
+	public var LSP(get, never):Float;
+	public var F(get, never):String;
+	public var SZ(get, never):Int;
+	public var C(get, never):String;
+	public var IND(get, never):String;
+	public var LFM(get, never):Float;
+	public var RFM(get, never):Float;
+	public var URL(get, never):String;
+
+	inline function get_OF():Int
+		return this.OF ?? this.offset;
+
+	inline function get_LEN():Int
+		return this.LEN ?? this.length;
+
+	inline function get_ALS():Bool
+		return this.ALS ?? this.alias;
+
+	inline function get_ALN():String
+		return this.ALN ?? this.align;
+
+	inline function get_AUK():Bool
+		return this.AUK ?? this.autoKern;
+
+	inline function get_BL():Bool
+		return this.BL ?? this.bold;
+
+	inline function get_IT():Bool
+		return this.IT ?? this.italic;
+
+	inline function get_CPS():String
+		return this.CPS ?? this.charPosition;
+
+	inline function get_CSP():Float
+		return this.CSP ?? this.charSpacing;
+
+	inline function get_LSP():Float
+		return this.LSP ?? this.lineSpacing;
+
+	inline function get_F():String
+		return this.F ?? this.font;
+
+	inline function get_SZ():Int
+		return this.SZ ?? this.Size;
+
+	inline function get_C():String
+		return this.C ?? this.color;
+
+	inline function get_IND():String
+		return this.IND ?? this.indent;
+
+	inline function get_LFM():Float
+		return this.LFM ?? this.leftMargin;
+
+	inline function get_RFM():Float
+		return this.RFM ?? this.rightMargin;
+
+	inline function get_URL():String
+		return this.URL ?? this.URL;
 }
 
 extern abstract SymbolJson(Dynamic)
