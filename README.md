@@ -65,7 +65,7 @@ To install ``flixel-animate``, there are two ways to obtain it:
 3. ``Haxelib Git Installation``: This provides the latest version of ``flixel-animate`` from the Repository.
 
    ```bash
-   haxelib git flixel-animate https://github.com/MAJigsaw77/hxvlc.git
+   haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate.git
    ```
 
 Once you have ``flixel-animate`` installed, you'll need to add it to your project to use. <br/>
