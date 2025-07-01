@@ -1,4 +1,4 @@
-<img src="https://github.com/MaybeMaru/flixel-animate/raw/main/logo.png" align="center" />
+<img src="./logo.png" width="256" height="256" align="center" />
 
 # flixel-animate
 
