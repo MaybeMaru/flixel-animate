@@ -77,6 +77,7 @@ class ButtonInstance extends SymbolInstance
 	{
 		_hitbox = getBounds(0, _hitbox, drawMatrix);
 
+		#if FLX_MOUSE
 		var mousePos = #if (flixel >= "5.9.0") FlxG.mouse.getViewPosition(camera,
 			FlxPoint.get()); #else FlxG.mouse.getScreenPosition(camera, FlxPoint.get()); #end
 
@@ -95,6 +96,31 @@ class ButtonInstance extends SymbolInstance
 		{
 			this.curButtonState = ButtonState.UP;
 		}
+		#elseif FLX_TOUCH
+		var touchPos = #if (flixel >= "5.9.0") FlxG.touches.getFirst()?.getViewPosition(camera,
+			FlxPoint.get()); #else FlxG.touches.getFirst()?.getScreenPosition(camera, FlxPoint.get()); #end
+		if (touchPos != null)
+		{
+			var xPos = touchPos.x;
+			var yPos = touchPos.y;
+			var isOverlaped = xPos >= _hitbox.left && xPos <= _hitbox.right && yPos >= _hitbox.top && yPos <= _hitbox.bottom;
+			touchPos.put();
+			if (isOverlaped)
+			{
+				this.curButtonState = FlxG.touches.getFirst()?.pressed ? ButtonState.DOWN : ButtonState.OVER;
+				if (FlxG.touches.getFirst()?.justPressed)
+					onClick.dispatch();
+			}
+			else
+			{
+				this.curButtonState = ButtonState.UP;
+			}
+		}
+		else
+		{
+			this.curButtonState = ButtonState.UP;
+		}
+		#end
 	}
 
 	override function destroy():Void
