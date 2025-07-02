@@ -16,8 +16,15 @@ class FlxAnimate extends FlxSprite
 {
 	public static var drawDebugLimbs:Bool = false;
 
+	public var anim(default, set):FlxAnimateController = null;
+	private function set_anim(newController:FlxAnimateController):FlxAnimateController
+	{
+		anim = newController;
+		animation = anim;
+		return newController;
+	}
+
 	public var library(default, null):FlxAnimateFrames;
-	public var anim(default, null):FlxAnimateController;
 	public var isAnimate(default, null):Bool = false;
 	public var timeline:Timeline;
 
@@ -229,7 +236,7 @@ class FlxAnimate extends FlxSprite
 	override function destroy():Void
 	{
 		super.destroy();
-		anim = null;
+		anim = FlxDestroyUtil.destroy(anim);
 		library = null;
 		timeline = null;
 		stageBg = FlxDestroyUtil.destroy(stageBg);
