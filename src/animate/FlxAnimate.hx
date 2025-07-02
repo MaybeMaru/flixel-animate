@@ -5,7 +5,6 @@ import flixel.*;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
-import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
@@ -17,13 +16,6 @@ class FlxAnimate extends FlxSprite
 	public static var drawDebugLimbs:Bool = false;
 
 	public var anim(default, set):FlxAnimateController = null;
-	private function set_anim(newController:FlxAnimateController):FlxAnimateController
-	{
-		anim = newController;
-		animation = anim;
-		return newController;
-	}
-
 	public var library(default, null):FlxAnimateFrames;
 	public var isAnimate(default, null):Bool = false;
 	public var timeline:Timeline;
@@ -167,22 +159,14 @@ class FlxAnimate extends FlxSprite
 		timeline.draw(camera, mat, colorTransform, blend, antialiasing, shader);
 	}
 
-	var stageBg:FlxSprite;
+	var stageBg:StageBG;
 
-	function drawStage(camera:FlxCamera)
+	function drawStage(camera:FlxCamera):Void
 	{
 		if (stageBg == null)
-			stageBg = new FlxSprite().makeGraphic(1, 1, FlxColor.WHITE, false, "flxanimate_stagebg_graphic_");
+			stageBg = new StageBG();
 
-		var mat = stageBg._matrix;
-		mat.identity();
-		mat.scale(library.stageRect.width, library.stageRect.height);
-		mat.translate(-0.5 * (mat.a - 1), -0.5 * (mat.d - 1));
-		mat.concat(this._matrix);
-
-		stageBg.color = library.stageColor;
-		stageBg.colorTransform.concat(this.colorTransform);
-		camera.drawPixels(stageBg.frame, stageBg.framePixels, stageBg._matrix, stageBg.colorTransform, blend, antialiasing, shader);
+		stageBg.render(this, camera);
 	}
 
 	// semi stolen from FlxSkewedSprite
@@ -199,6 +183,13 @@ class FlxAnimate extends FlxSprite
 			return super.get_numFrames();
 
 		return animation.curAnim != null ? timeline.frameCount : 0;
+	}
+
+	private function set_anim(newController:FlxAnimateController):FlxAnimateController
+	{
+		anim = newController;
+		animation = anim;
+		return newController;
 	}
 
 	override function updateFramePixels():BitmapData

@@ -178,15 +178,10 @@ class StackBlur
 				{
 					p = yi << 2;
 
-					var blurredR = (r * ms) >>> ss;
-					var blurredG = (g * ms) >>> ss;
-					var blurredB = (b * ms) >>> ss;
-					var blurredA = (a * ms) >>> ss;
-
-					px[p] = blurredR > 255 ? 255 : (blurredR < 0 ? 0 : blurredR);
-					px[p + 1] = blurredG > 255 ? 255 : (blurredG < 0 ? 0 : blurredG);
-					px[p + 2] = blurredB > 255 ? 255 : (blurredB < 0 ? 0 : blurredB);
-					px[p + 3] = blurredA > 255 ? 255 : (blurredA < 0 ? 0 : blurredA);
+					px[p] = (r * ms) >>> ss;
+					px[p + 1] = (g * ms) >>> ss;
+					px[p + 2] = (b * ms) >>> ss;
+					px[p + 3] = (a * ms) >>> ss;
 
 					p = (x + (((p = y + ryp1) < h1 ? p : h1) * w)) << 2;
 					r -= si.r - (si.r = px[p]);
