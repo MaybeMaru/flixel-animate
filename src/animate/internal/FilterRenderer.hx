@@ -3,6 +3,7 @@ package animate.internal;
 import animate.FlxAnimateJson.FilterJson;
 import animate.internal.elements.*;
 import animate.internal.elements.AtlasInstance.BakedInstance;
+import animate.internal.filters.StackBlur;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
@@ -146,6 +147,8 @@ class FilterRenderer
 
 		@:privateAccess
 		gl.readPixels(0, 0, Math.round(bmp.width), Math.round(bmp.height), renderBuffer.__format, gl.UNSIGNED_BYTE, bmp.image.data);
+		bmp.image.version = 0;
+		bmp.__textureVersion = -1;
 
 		if (cacheRTT != null)
 		{
@@ -209,8 +212,13 @@ class FilterRenderer
 						var blur:BlurFilter = cast filter.clone();
 						filters[i] = blur;
 
-						blur.blurX = Math.pow(blur.blurX / scale.x, 0.6);
-						blur.blurY = Math.pow(blur.blurY / scale.y, 0.6);
+						#if desktop
+						blur.blurX = Math.pow(blur.blurX / scale.x, 0.571);
+						blur.blurY = Math.pow(blur.blurY / scale.y, 0.571);
+						#else
+						blur.blurX /= scale.x;
+						blur.blurY /= scale.y;
+						#end
 					}
 				}
 			}
@@ -275,8 +283,11 @@ class FilterRenderer
 			point = (point == null) ? new Point(-bounds.x, -bounds.y) : new Point(point.x - bounds.x, point.y - bounds.y);
 		}
 
-		var _filterBmp1:BitmapData = new BitmapData(target.width, target.height, true, 0);
+		var _filterBmp1:BitmapData = null;
 		var _filterBmp2:BitmapData = null;
+
+		#if desktop
+		_filterBmp1 = new BitmapData(target.width, target.height, true, 0);
 
 		var needsPreserveObject:Bool = false;
 		for (filter in filters)
@@ -290,6 +301,7 @@ class FilterRenderer
 
 		if (needsPreserveObject)
 			_filterBmp2 = new BitmapData(_filterBmp1.width, _filterBmp1.height, true, 0);
+		#end
 
 		__applyFilter(target, _filterBmp1, _filterBmp2, bitmap, filters, point);
 
@@ -325,6 +337,7 @@ class FilterRenderer
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
 		bmp.__renderTransform.identity();
 
+		#if desktop
 		var shader:Shader = null;
 		for (filter in filters)
 		{
@@ -353,6 +366,7 @@ class FilterRenderer
 
 			filter.__renderDirty = false;
 		}
+		#end
 
 		var gl = renderer.__gl;
 		var renderBuffer = bitmap.getTexture(renderer.__context3D);
@@ -366,6 +380,26 @@ class FilterRenderer
 			FlxDestroyUtil.dispose(target1);
 
 		FlxDestroyUtil.dispose(target2);
+
+		// Non-desktop targets perform better with hardware filters
+		// TODO: make gpu/hardware rendering dynamic
+		#if !desktop
+		for (filter in filters)
+		{
+			if (filter != null)
+			{
+				if (filter is BlurFilter)
+				{
+					var blur:BlurFilter = cast filter;
+					StackBlur.blur(bitmap, blur.blurX, blur.blurY, blur.quality);
+				}
+				else
+				{
+					bitmap.applyFilter(bitmap, bitmap.rect, new Point(), filter);
+				}
+			}
+		}
+		#end
 
 		return bitmap;
 	}

@@ -93,10 +93,10 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return _fromAnimateInput(animate, spritemaps, metadata, key);
 	}
 
-	extern static inline function getTextFromPath(path:String):String
+	dynamic static function getTextFromPath(path:String):String
 	{
 		var content:String =
-			#if sys
+			#if (desktop && sys)
 			sys.io.File.getContent(path);
 			#else
 			#if (flixel < "5.9.0")
@@ -109,9 +109,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return content.replace(String.fromCharCode(0xFEFF), "");
 	}
 
-	extern static inline function existsFile(path:String, type:AssetType):Bool
+	dynamic static function existsFile(path:String, type:AssetType):Bool
 	{
-		return #if sys
+		return #if (desktop && sys)
 			sys.FileSystem.exists(path);
 		#else
 			#if (flixel < "5.9.0")
@@ -127,9 +127,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		#end
 	}
 
-	extern static inline function listWithFilter(path:String, filter:String->Bool)
+	dynamic static function listWithFilter(path:String, filter:String->Bool)
 	{
-		#if sys
+		#if (desktop && sys)
 		var list:Array<String> = sys.FileSystem.readDirectory(path);
 		return list.filter(filter);
 		#else
@@ -144,9 +144,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		#end
 	}
 
-	extern static inline function getGraphic(path:String):FlxGraphic
+	dynamic static function getGraphic(path:String):FlxGraphic
 	{
-		return #if sys FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
+		return #if (desktop && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
 	}
 
 	static function listSpritemaps(path:String):Array<String>
