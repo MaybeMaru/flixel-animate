@@ -73,13 +73,16 @@ class FlxAnimate extends FlxSprite
 		return resultFrames;
 	}
 
-	override function draw()
+	override function draw():Void
 	{
 		if (!isAnimate)
 		{
 			super.draw();
 			return;
 		}
+
+		if (alpha <= 0.0 || Math.abs(scale.x) < FlxPoint.EPSILON || Math.abs(scale.y) < FlxPoint.EPSILON)
+			return;
 
 		for (camera in #if (flixel >= "5.7.0") this.getCamerasLegacy() #else this.cameras #end)
 		{
@@ -99,11 +102,8 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
-	function drawAnimate(camera:FlxCamera)
+	function drawAnimate(camera:FlxCamera):Void
 	{
-		if (alpha <= 0.0 || Math.abs(scale.x) < 0.0000001 || Math.abs(scale.y) < 0.0000001)
-			return;
-
 		var mat = _matrix;
 		mat.identity();
 
@@ -148,9 +148,8 @@ class FlxAnimate extends FlxSprite
 		}
 
 		getScreenPosition(_point, camera);
-		_point.add(-offset.x, -offset.y);
-		_point.add(origin.x, origin.y);
-
+		_point.x += origin.x - offset.x;
+		_point.y += origin.y - offset.y;
 		mat.translate(_point.x, _point.y);
 
 		if (renderStage)
@@ -170,7 +169,7 @@ class FlxAnimate extends FlxSprite
 		#if (flixel < "6.1.0") final frame = this._frame; #end
 		final matrix = this._matrix; // TODO: Just use local?
 
-		_frame.prepareMatrix(matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
+		frame.prepareMatrix(matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
 		matrix.translate(-origin.x, -origin.y);
 		matrix.scale(scale.x, scale.y);
 		if (bakedRotationAngle <= 0)
@@ -185,15 +184,15 @@ class FlxAnimate extends FlxSprite
 			_matrix.concat(_skewMatrix);
 		}
 		getScreenPosition(_point, camera);
-		_point.subtract(offset.x, offset.y);
-		_point.add(origin.x, origin.y);
+		_point.x += origin.x - offset.x;
+		_point.y += origin.y - offset.y;
 		matrix.translate(_point.x, _point.y);
 		if (isPixelPerfectRender(camera))
 		{
 			matrix.tx = Math.floor(matrix.tx);
 			matrix.ty = Math.floor(matrix.ty);
 		}
-		camera.drawPixels(_frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
 	var stageBg:StageBG;
@@ -209,7 +208,7 @@ class FlxAnimate extends FlxSprite
 	// semi stolen from FlxSkewedSprite
 	static var _skewMatrix:FlxMatrix = new FlxMatrix();
 
-	function updateSkew()
+	private inline function updateSkew():Void
 	{
 		_skewMatrix.setTo(1, Math.tan(skew.y * FlxAngle.TO_RAD), Math.tan(skew.x * FlxAngle.TO_RAD), 1, 0, 0);
 	}
