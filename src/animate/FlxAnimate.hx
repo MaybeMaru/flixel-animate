@@ -2,6 +2,8 @@ package animate;
 
 import animate.internal.*;
 import flixel.*;
+import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
+import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.*;
 import flixel.system.FlxAssets.FlxGraphicAsset;
@@ -24,7 +26,6 @@ class FlxAnimate extends FlxSprite
 	public var applyStageMatrix:Bool = false;
 	public var renderStage:Bool = false;
 
-	// TODO: implement for normal flixel rendering too
 	public var skew(default, null):FlxPoint;
 
 	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset)
@@ -157,6 +158,42 @@ class FlxAnimate extends FlxSprite
 
 		timeline.currentFrame = animation.frameIndex;
 		timeline.draw(camera, mat, colorTransform, blend, antialiasing, shader);
+	}
+
+	// I dont think theres a way to override the matrix without needing to do this lol
+	#if (flixel >= "6.1.0")
+	override function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
+	#else
+	override function drawComplex(camera:FlxCamera):Void
+	#end
+	{
+		#if (flixel < "6.1.0") final frame = this._frame; #end
+		final matrix = this._matrix; // TODO: Just use local?
+
+		_frame.prepareMatrix(matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
+		matrix.translate(-origin.x, -origin.y);
+		matrix.scale(scale.x, scale.y);
+		if (bakedRotationAngle <= 0)
+		{
+			updateTrig();
+			if (angle != 0)
+				matrix.rotateWithTrig(_cosAngle, _sinAngle);
+		}
+		if (skew.x != 0 || skew.y != 0)
+		{
+			updateSkew();
+			_matrix.concat(_skewMatrix);
+		}
+		getScreenPosition(_point, camera);
+		_point.subtract(offset.x, offset.y);
+		_point.add(origin.x, origin.y);
+		matrix.translate(_point.x, _point.y);
+		if (isPixelPerfectRender(camera))
+		{
+			matrix.tx = Math.floor(matrix.tx);
+			matrix.ty = Math.floor(matrix.ty);
+		}
+		camera.drawPixels(_frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
 	var stageBg:StageBG;

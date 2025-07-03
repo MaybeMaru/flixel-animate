@@ -10,7 +10,7 @@ class StageBG extends FlxSprite
 	{
 		super();
 
-		this.makeGraphic(1, 1, FlxColor.WHITE, false, "flxanimate_stagebg_graphic_");
+		this.makeGraphic(1, 1, FlxColor.WHITE, false, "flx_animate_stagebg_graphic_");
 	}
 
 	public function render(parent:FlxAnimate, camera:FlxCamera):Void
@@ -30,6 +30,6 @@ class StageBG extends FlxSprite
 		mat.translate(-0.5 * (mat.a - 1), -0.5 * (mat.d - 1));
 		mat.concat(parent._matrix);
 
-		camera.drawPixels(this.frame, this.framePixels, mat, this.colorTransform, parent.blend, false, parent.shader);
+		camera.drawPixels(this._frame, this.framePixels, mat, this.colorTransform, parent.blend, false, parent.shader);
 	}
 }
