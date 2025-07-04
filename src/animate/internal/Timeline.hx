@@ -4,6 +4,7 @@ import animate.FlxAnimateJson.TimelineJson;
 import animate.internal.elements.*;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
@@ -113,6 +114,20 @@ class Timeline implements IFlxDestroyable
 	public function getCurrentElements():Array<Element>
 	{
 		return getElementsAtIndex(currentFrame);
+	}
+
+	/**
+	 * Returns the top-left position of the timeline, based on it's bounds.
+	 * Useful as an offset value when migrating from a legacy bounds based project.
+	 *
+	 * @param result 	Optional, point where to store the origin data.
+	 * @return 			A ``FlxPoint`` containing the origin point of the bounds top-left position.
+	 */
+	public function getBoundsOrigin(?result:FlxPoint):FlxPoint
+	{
+		result ??= FlxPoint.get();
+		result.set(_bounds.x, _bounds.y);
+		return result;
 	}
 
 	/**
@@ -303,23 +318,50 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:noCompletion
-	public static function applyMatrixToRect(rect:FlxRect, matrix:FlxMatrix):FlxRect
+	public static function applyMatrixToRect(rect:FlxRect, m:FlxMatrix):FlxRect
 	{
-		var p1x = rect.left * matrix.a + rect.top * matrix.c + matrix.tx;
-		var p1y = rect.left * matrix.b + rect.top * matrix.d + matrix.ty;
-		var p2x = rect.right * matrix.a + rect.top * matrix.c + matrix.tx;
-		var p2y = rect.right * matrix.b + rect.top * matrix.d + matrix.ty;
-		var p3x = rect.left * matrix.a + rect.bottom * matrix.c + matrix.tx;
-		var p3y = rect.left * matrix.b + rect.bottom * matrix.d + matrix.ty;
-		var p4x = rect.right * matrix.a + rect.bottom * matrix.c + matrix.tx;
-		var p4y = rect.right * matrix.b + rect.bottom * matrix.d + matrix.ty;
+		var tx0 = m.a * rect.left + m.c * rect.top;
+		var tx1 = tx0;
+		var ty0 = m.b * rect.left + m.d * rect.top;
+		var ty1 = ty0;
 
-		var minX = Math.min(Math.min(p1x, p2x), Math.min(p3x, p4x));
-		var minY = Math.min(Math.min(p1y, p2y), Math.min(p3y, p4y));
-		var maxX = Math.max(Math.max(p1x, p2x), Math.max(p3x, p4x));
-		var maxY = Math.max(Math.max(p1y, p2y), Math.max(p3y, p4y));
+		var tx = m.a * rect.right + m.c * rect.top;
+		var ty = m.b * rect.right + m.d * rect.top;
 
-		rect.set(minX, minY, maxX - minX, maxY - minY);
+		if (tx < tx0)
+			tx0 = tx;
+		if (ty < ty0)
+			ty0 = ty;
+		if (tx > tx1)
+			tx1 = tx;
+		if (ty > ty1)
+			ty1 = ty;
+
+		tx = m.a * rect.right + m.c * rect.bottom;
+		ty = m.b * rect.right + m.d * rect.bottom;
+
+		if (tx < tx0)
+			tx0 = tx;
+		if (ty < ty0)
+			ty0 = ty;
+		if (tx > tx1)
+			tx1 = tx;
+		if (ty > ty1)
+			ty1 = ty;
+
+		tx = m.a * rect.left + m.c * rect.bottom;
+		ty = m.b * rect.left + m.d * rect.bottom;
+
+		if (tx < tx0)
+			tx0 = tx;
+		if (ty < ty0)
+			ty0 = ty;
+		if (tx > tx1)
+			tx1 = tx;
+		if (ty > ty1)
+			ty1 = ty;
+
+		rect.set(tx0 + m.tx, ty0 + m.ty, tx1 - tx0, ty1 - ty0);
 		return rect;
 	}
 }

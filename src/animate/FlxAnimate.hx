@@ -22,7 +22,6 @@ class FlxAnimate extends FlxSprite
 	public var isAnimate(default, null):Bool = false;
 	public var timeline:Timeline;
 
-	public var useLegacyBounds:Bool = #if FLX_ANIMATE_LEGACY_BOUNDS true; #else false; #end
 	public var applyStageMatrix:Bool = false;
 	public var renderStage:Bool = false;
 
@@ -86,7 +85,7 @@ class FlxAnimate extends FlxSprite
 
 		for (camera in #if (flixel >= "5.7.0") this.getCamerasLegacy() #else this.cameras #end)
 		{
-			if (!camera.visible || !camera.exists || (useLegacyBounds ? false : !isOnScreen(camera)))
+			if (!camera.visible || !camera.exists || !isOnScreen(camera))
 				continue;
 
 			drawAnimate(camera);
@@ -107,15 +106,12 @@ class FlxAnimate extends FlxSprite
 		var mat = _matrix;
 		mat.identity();
 
+		@:privateAccess
+		var bounds = timeline._bounds;
+		mat.translate(-bounds.x, -bounds.y);
+
 		var doFlipX = this.checkFlipX();
 		var doFlipY = this.checkFlipY();
-
-		if (!useLegacyBounds)
-		{
-			@:privateAccess
-			var bounds = timeline._bounds;
-			mat.translate(-bounds.x, -bounds.y);
-		}
 
 		if (doFlipX)
 		{

@@ -6,10 +6,10 @@ Flixel-animate is a [HaxeFlixel](https://haxeflixel.com/) library meant to load 
 The library is heavily inspired by [FlxAnimate](https://github.com/Dot-Stuff/flxanimate), though with some differences to work similarly to the Flash/Animate JSFL implementation.
 
 > [!WARNING]
-> By default ``flixel-animate`` will work with a bounds method that acts similarly to how a normal Sparrow flixel sprite would load. <br/>
+> ``flixel-animate`` uses a bounds method that acts similarly to how a normal Sparrow flixel sprite would load. <br/>
+> This "flixel accurate" bounds come with support for functions that require accurate ``width`` and ``height`` values like ``updateHitbox`` and ``centerOrigin``, which give closer parity with FlxSprite.
 > If you are migrating from ``FlxAnimate`` these bounds may be different to FlxAnimate's ones. <br/>
-> If you don't want to go through the trouble of fixing them, use the ``FLX_ANIMATE_LEGACY_BOUNDS`` define. <br/>
-> I heavily recommend using the default flixel-animate bounds though, to have support for functions that require accurate ``width`` and ``height`` values like ``updateHitbox`` and ``centerOrigin``
+> This offset value can be accessible through the function ``getPivotPoint`` inside each ``Timeline`` object. <br/>
 
 ## Usage
 

@@ -94,6 +94,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		if (!isOnScreen(camera, _mat))
 			return;
 
+		if (camera.pixelPerfectRender)
+		{
+			_mat.tx = Math.floor(_mat.tx);
+			_mat.ty = Math.floor(_mat.ty);
+		}
+
 		#if flash
 		drawPixelsFlash(camera, _mat, transform, blend, antialiasing);
 		#else
@@ -150,7 +156,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
-		var rect = super.getBounds(0, rect);
+		rect = super.getBounds(0, rect);
 		rect.set(0, 0, frame.frame.width, frame.frame.height);
 
 		Timeline.applyMatrixToRect(rect, tileMatrix);
