@@ -9,7 +9,7 @@ The library is heavily inspired by [FlxAnimate](https://github.com/Dot-Stuff/flx
 > ``flixel-animate`` uses a bounds method that acts similarly to how a normal Sparrow flixel sprite would load. <br/>
 > This "flixel accurate" bounds come with support for functions that require accurate ``width`` and ``height`` values like ``updateHitbox`` and ``centerOrigin``, which give closer parity with FlxSprite.
 > If you are migrating from ``FlxAnimate`` these bounds may be different to FlxAnimate's ones. <br/>
-> This offset value can be accessible through the function ``getPivotPoint`` inside each ``Timeline`` object. <br/>
+> This offset value can be accessible through the function ``getBoundsOrigin`` inside each ``Timeline`` object. <br/>
 
 ## Usage
 
