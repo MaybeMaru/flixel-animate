@@ -194,7 +194,7 @@ class FilterRenderer
 			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
 
 			movieclip._dirty = false;
-			movieclip.draw(cam, frameIndex, null, mat, null, null, true, null);
+			movieclip.draw(cam, frameIndex, null, mat, null, null, false, null);
 			movieclip._dirty = initialDirty;
 			cam.render();
 
@@ -445,7 +445,7 @@ class FilterRenderer
 		{
 			var initialDirty:Bool = movieclip._dirty;
 			movieclip._dirty = false;
-			movieclip.draw(cam, frameIndex, null, mat, null, null, true, null);
+			movieclip.draw(cam, frameIndex, null, mat, null, null, false, null);
 			movieclip._dirty = initialDirty;
 		}, filteredBounds);
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
@@ -479,10 +479,10 @@ class FilterRenderer
 			return null;
 
 		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
-		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, mat, null, null, true, null), maskerBounds);
+		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, mat, null, null, false, null), maskerBounds);
 
 		var maskedBounds = frame.getBounds(currentFrame - frame.index);
-		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, mat, null, null, true, null), maskedBounds);
+		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, mat, null, null, false, null), maskedBounds);
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
 		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);
