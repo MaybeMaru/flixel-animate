@@ -20,11 +20,14 @@ class MaskShader extends GraphicsShader
             
 			vec2 maskCoord = (openfl_TextureCoordv * maskUVScale) + maskUVOffset;			
 			vec4 maskerColor = texture2D(maskBitmap, maskCoord);
-        
-            color *= maskerColor.a;
-            gl_FragColor = color;
-        }
-    ')
+    ' +
+		#if html5
+		'color.a *= maskerColor.a;'
+		#else
+		'color *= maskerColor.a;'
+		#end
+		+ 'gl_FragColor = color;
+        }')
 	public function new()
 	{
 		super();
