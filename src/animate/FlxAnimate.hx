@@ -256,6 +256,21 @@ class FlxAnimate extends FlxSprite
 		return framePixels;
 	}
 
+	override function getScreenBounds(?newRect:FlxRect, ?camera:FlxCamera):FlxRect
+	{
+		var bounds = super.getScreenBounds(newRect, camera);
+
+		if (isAnimate)
+		{
+			if (applyStageMatrix)
+				Timeline.applyMatrixToRect(bounds, library.matrix);
+		}
+
+		// TODO: add skewed bounds expansion
+
+		return bounds;
+	}
+
 	override function destroy():Void
 	{
 		super.destroy();

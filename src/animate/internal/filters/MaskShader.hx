@@ -28,13 +28,21 @@ class MaskShader extends GraphicsShader
 	public function new()
 	{
 		super();
+
+		this.maskUVOffset.value = [];
+		this.maskUVScale.value = [];
 	}
 
 	public function setup(masked:BitmapData, masker:BitmapData, x:Float, y:Float)
 	{
 		this.maskBitmap.input = masker;
-		this.maskUVOffset.value = [x / masker.width, y / masker.height];
-		this.maskUVScale.value = [masked.width / masker.width, masked.height / masker.height];
+
+		this.maskUVOffset.value[0] = x / masker.width;
+		this.maskUVOffset.value[1] = y / masker.height;
+
+		this.maskUVScale.value[0] = masked.width / masker.width;
+		this.maskUVScale.value[1] = masked.height / masker.height;
+
 		return this;
 	}
 
@@ -50,9 +58,15 @@ class MaskShader extends GraphicsShader
 		if (masked == null || masker == null || masked.width <= 0 || masked.height <= 0 || masker.width <= 0 || masker.height <= 0)
 			return;
 
+		// Preparing the shader and extra bitmaps needed
 		var shader = shader.setup(masked, masker, rect.x, rect.y);
 		var maskedClone = masked.clone();
+
+		// Render the mask
 		FilterRenderer.renderWithShader(masked, maskedClone, shader);
+
+		// Dispose crap after rendering
 		maskedClone = FlxDestroyUtil.dispose(maskedClone);
+		shader.maskBitmap.input = null;
 	}
 }
