@@ -1,8 +1,2 @@
-export
-dump
 .DS_Store
-assets
-Project.xml
-src/Main.hx
-src/PlayState.hx
-src/animate/FlxChainedShader.hx
+sample/export

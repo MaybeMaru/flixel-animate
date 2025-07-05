@@ -1,6 +1,6 @@
 {
 	"search.exclude": {
-		"export/**/*.hx": true
+		"sample/export/**/*.hx": true
 	},
 	"[haxe]": {
 		"editor.formatOnSave": true,
@@ -9,5 +9,6 @@
 			"source.sortImports": "explicit"
 		}
 	},
+	"lime.projectFile": "sample/project.xml",
 	"haxe.enableExtendedIndentation": true
 }
