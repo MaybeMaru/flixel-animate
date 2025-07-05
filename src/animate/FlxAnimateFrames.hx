@@ -146,6 +146,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	dynamic static function getGraphic(path:String):FlxGraphic
 	{
+		if (FlxG.bitmap.checkCache(path))
+			return FlxG.bitmap.get(path);
+
 		return #if (desktop && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
 	}
 
