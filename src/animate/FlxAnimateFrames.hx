@@ -227,7 +227,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			if (graphic == null)
 				continue;
 
-			var atlas = new FlxAnimateSpritemap(graphic);
+			var atlas = new FlxAtlasFrames(graphic);
 			var spritemap:SpritemapJson = Json.parse(spritemap.json);
 
 			for (sprite in spritemap.ATLAS.SPRITES)
