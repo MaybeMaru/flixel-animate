@@ -30,7 +30,8 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	public function new(graphic:FlxGraphic)
 	{
 		super(graphic);
-		dictionary = [];
+		this.dictionary = [];
+		this.addedCollections = [];
 	}
 
 	public function getSymbol(name:String)
@@ -65,6 +66,12 @@ class FlxAnimateFrames extends FlxAtlasFrames
 				dictionary.set(timeline.name, symbol);
 				return symbol;
 			}
+		}
+
+		for (collection in addedCollections)
+		{
+			if (collection.dictionary.exists(name))
+				return collection.dictionary.get(name);
 		}
 
 		FlxG.log.warn('SymbolItem with name "$name" doesnt exist.');
@@ -246,6 +253,19 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	public var stageColor:FlxColor;
 	public var matrix:FlxMatrix;
 	public var frameRate:Float;
+
+	var addedCollections:Array<FlxAnimateFrames>;
+
+	override function addAtlas(collection:FlxAtlasFrames, overwriteHash:Bool = false):FlxAtlasFrames
+	{
+		if (collection is FlxAnimateFrames)
+		{
+			addedCollections.push(cast collection);
+			return this;
+		}
+
+		return super.addAtlas(collection, overwriteHash);
+	}
 
 	override function destroy():Void
 	{

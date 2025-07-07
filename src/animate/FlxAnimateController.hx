@@ -193,7 +193,7 @@ class FlxAnimateController extends FlxAnimationController
 	}
 
 	@:allow(animate.FlxAnimate)
-	function updateTimelineBounds()
+	function updateTimelineBounds():Void
 	{
 		if (animateFrame == null)
 		{
@@ -208,6 +208,18 @@ class FlxAnimateController extends FlxAnimationController
 		animateFrame.sourceSize.set(bounds.width, bounds.height);
 		animateFrame.frame.copyFrom(bounds);
 		_animate.frame = animateFrame;
+	}
+
+	override function play(animName:String, force:Bool = false, reversed:Bool = false, frame:Int = 0)
+	{
+		var anim = _animations.get(animName);
+		if (anim != null)
+		{
+			@:privateAccess
+			_animate.isAnimate = anim is FlxAnimateAnimation;
+		}
+
+		super.play(animName, force, reversed, frame);
 	}
 
 	var _animate(get, never):FlxAnimate;

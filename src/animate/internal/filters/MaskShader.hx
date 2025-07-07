@@ -8,26 +8,36 @@ import openfl.geom.Rectangle;
 class MaskShader extends GraphicsShader
 {
 	@:glFragmentSource('
-        #pragma header
-        
-        uniform sampler2D maskBitmap;
-        uniform vec2 maskUVOffset;
-        uniform vec2 maskUVScale;
-        
-        void main()
-        {
-            vec4 color = texture2D(bitmap, openfl_TextureCoordv);
-            
+		#pragma header
+
+		uniform sampler2D maskBitmap;
+		uniform vec2 maskUVOffset;
+		uniform vec2 maskUVScale;
+
+		vec4 animate_mask()
+		{
 			vec2 maskCoord = (openfl_TextureCoordv * maskUVScale) + maskUVOffset;			
 			vec4 maskerColor = texture2D(maskBitmap, maskCoord);
-    ' +
+
+			if (maskerColor.a <= 0.0)
+				return vec4(0.0);
+		
+			vec4 color = texture2D(bitmap, openfl_TextureCoordv);
+	' +
 		#if html5
 		'color.a *= maskerColor.a;'
 		#else
 		'color *= maskerColor.a;'
 		#end
-		+ 'gl_FragColor = color;
-        }')
+		+ '
+		return color;
+		}
+		
+		void main()
+		{
+			gl_FragColor = animate_mask();
+		}
+	')
 	public function new()
 	{
 		super();
