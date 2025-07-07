@@ -1,6 +1,7 @@
 package animate;
 
 import animate.internal.filters.AdjustColorFilter;
+import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
 import openfl.display.BlendMode;
@@ -11,6 +12,12 @@ import openfl.filters.DropShadowFilter;
 import openfl.filters.GlowFilter;
 
 using StringTools;
+
+#if flash
+import flash.filters.BevelFilter;
+#elseif (openfl >= "9.5.0")
+import openfl.filters.BevelFilter;
+#end
 
 extern typedef SpritemapJson =
 {
@@ -353,14 +360,16 @@ abstract FilterJson(Dynamic)
 				// case "bevelFilter" | "BF":
 				// case "gradientBevelFilter" | "GBF":
 				// case "gradientGlowFilter" | "GGF":
-			#if flash
+
+			#if (flash || openfl >= "9.5.0")
 			case "bevelFilter" | "BF":
 				var highlightColor = FlxColor.fromString(HC);
 				var shadowColor = FlxColor.fromString(SC);
 				var type:BitmapFilterType = getBitmapFilterType();
-				var bf = new flash.filters.BevelFilter(D, AL, highlightColor, HA, shadowColor, SA, BLX, BLY, STR, Q, type, KK);
+				var bf = new BevelFilter(D, AL, highlightColor, HA, shadowColor, SA, BLX, BLY, STR, Q, type, KK);
 				return bf;
-
+			#end
+			#if flash
 			case "gradientBevelFilter" | "GBF":
 				var type:BitmapFilterType = getBitmapFilterType();
 				var ga = getGradientArray();
@@ -375,6 +384,7 @@ abstract FilterJson(Dynamic)
 			#end
 
 			default:
+				FlxG.log.warn('Filter with name "${this.N}" is not currently supported on this target.');
 				return null;
 		}
 	}
