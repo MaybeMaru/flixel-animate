@@ -1,4 +1,4 @@
-package flixel.addons.animate.internal;
+package animate.internal;
 
 import flixel.util.FlxDestroyUtil;
 

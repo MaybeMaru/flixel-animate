@@ -1,7 +1,7 @@
-package flixel.addons.animate;
+package animate;
 
 import flixel.FlxG;
-import flixel.addons.animate.internal.Timeline;
+import animate.internal.Timeline;
 import flixel.animation.FlxAnimation;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxFrame;
@@ -192,7 +192,7 @@ class FlxAnimateController extends FlxAnimationController
 		return frameIndex;
 	}
 
-	@:allow(flixel.addons.animate.FlxAnimate)
+	@:allow(animate.FlxAnimate)
 	function updateTimelineBounds()
 	{
 		if (animateFrame == null)

@@ -1,10 +1,10 @@
-package flixel.addons.animate.internal.elements;
+package animate.internal.elements;
 
 import flixel.FlxCamera;
 import flixel.FlxG;
-import flixel.addons.animate.FlxAnimateJson;
-import flixel.addons.animate.internal.elements.Element;
-import flixel.addons.animate.internal.filters.Blend;
+import animate.FlxAnimateJson;
+import animate.internal.elements.Element;
+import animate.internal.filters.Blend;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;

@@ -1,8 +1,12 @@
-package flixel.addons.animate;
+package animate;
 
-import flixel.addons.animate.internal.Frame;
-import flixel.addons.animate.internal.StageBG;
-import flixel.addons.animate.internal.Timeline;
+import animate.internal.Frame;
+import animate.internal.StageBG;
+import animate.internal.Timeline;
+import flixel.FlxBasic;
+import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxAngle;

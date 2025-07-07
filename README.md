@@ -22,8 +22,8 @@ normal atlases (such as Sparrow) and Adobe Animate texture atlases.
 Here's a small sample:
 
 ```haxe
-import flixel.addons.animate.FlxAnimate;
-import flixel.addons.animate.FlxAnimateFrames;
+import animate.FlxAnimate;
+import animate.FlxAnimateFrames;
 
 var sprite:FlxAnimate = new FlxAnimate();
 sprite.frames = FlxAnimateFrames.fromAnimate('path/to/atlas');

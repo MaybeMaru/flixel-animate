@@ -1,6 +1,6 @@
-package flixel.addons.animate;
+package animate;
 
-import flixel.addons.animate.internal.filters.AdjustColorFilter;
+import animate.internal.filters.AdjustColorFilter;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
 import openfl.display.BlendMode;

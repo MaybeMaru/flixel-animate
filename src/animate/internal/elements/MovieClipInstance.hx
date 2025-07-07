@@ -1,7 +1,7 @@
-package flixel.addons.animate.internal.elements;
+package animate.internal.elements;
 
 import flixel.FlxCamera;
-import flixel.addons.animate.FlxAnimateJson;
+import animate.FlxAnimateJson;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
@@ -22,7 +22,7 @@ class MovieClipInstance extends SymbolInstance
 	 */
 	public var swfMode:Bool = false;
 
-	@:allow(flixel.addons.animate.internal.FilterRenderer)
+	@:allow(animate.internal.FilterRenderer)
 	var _dirty:Bool = false;
 	var _filters:Array<BitmapFilter> = null;
 	var _bakedFrames:Array<AtlasInstance>;

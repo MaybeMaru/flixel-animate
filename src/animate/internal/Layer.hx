@@ -1,6 +1,6 @@
-package flixel.addons.animate.internal;
+package animate.internal;
 
-import flixel.addons.animate.FlxAnimateJson.LayerJson;
+import animate.FlxAnimateJson.LayerJson;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
@@ -116,7 +116,7 @@ class Layer implements IFlxDestroyable
 		return rect;
 	}
 
-	@:allow(flixel.addons.animate.internal.Timeline)
+	@:allow(animate.internal.Timeline)
 	function _loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
 	{
 		this.name = layer.LN;

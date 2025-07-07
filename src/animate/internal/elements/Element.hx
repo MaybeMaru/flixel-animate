@@ -1,4 +1,4 @@
-package flixel.addons.animate.internal.elements;
+package animate.internal.elements;
 
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;

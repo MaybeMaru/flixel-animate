@@ -7,7 +7,6 @@
 		"adobe"
 	],
 	"description": "Personal HaxeFlixel Adobe Animate texture atlas implementation.",
-	"classPath": "source",
 	"version": "1.1.0",
 	"releasenote": "New bounds method, optimizations, docs, and more FlxSprite compatibility.",
 	"contributors": [

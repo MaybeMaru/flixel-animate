@@ -1,10 +1,10 @@
-package flixel.addons.animate;
+package animate;
 
 import flixel.FlxG;
-import flixel.addons.animate.FlxAnimateJson;
-import flixel.addons.animate.internal.SymbolItem;
-import flixel.addons.animate.internal.Timeline;
-import flixel.addons.animate.internal.elements.SymbolInstance;
+import animate.FlxAnimateJson;
+import animate.internal.SymbolItem;
+import animate.internal.Timeline;
+import animate.internal.elements.SymbolInstance;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.math.FlxMatrix;

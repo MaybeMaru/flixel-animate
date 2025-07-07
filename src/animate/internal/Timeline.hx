@@ -1,8 +1,8 @@
-package flixel.addons.animate.internal;
+package animate.internal;
 
 import flixel.FlxCamera;
-import flixel.addons.animate.FlxAnimateJson.TimelineJson;
-import flixel.addons.animate.internal.elements.Element;
+import animate.FlxAnimateJson.TimelineJson;
+import animate.internal.elements.Element;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -218,7 +218,7 @@ class Timeline implements IFlxDestroyable
 		return rect;
 	}
 
-	@:allow(flixel.addons.animate.FlxAnimateController)
+	@:allow(animate.FlxAnimateController)
 	private function signalFrameChange(frameIndex:Int):Void
 	{
 		for (layer in layers)

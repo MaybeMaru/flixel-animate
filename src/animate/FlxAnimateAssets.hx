@@ -1,4 +1,4 @@
-package flixel.addons.animate;
+package animate;
 
 import flixel.FlxG;
 import haxe.io.Bytes;

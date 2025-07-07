@@ -1,8 +1,8 @@
-package flixel.addons.animate.internal.elements;
+package animate.internal.elements;
 
 import flixel.FlxCamera;
 import flixel.FlxG;
-import flixel.addons.animate.FlxAnimateJson.TextFieldInstanceJson;
+import animate.FlxAnimateJson.TextFieldInstanceJson;
 import flixel.math.FlxMatrix;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;

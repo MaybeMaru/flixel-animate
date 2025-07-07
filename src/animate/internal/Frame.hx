@@ -1,9 +1,9 @@
-package flixel.addons.animate.internal;
+package animate.internal;
 
 import flixel.FlxCamera;
 import flixel.FlxG;
-import flixel.addons.animate.FlxAnimateJson.FrameJson;
-import flixel.addons.animate.internal.elements.*;
+import animate.FlxAnimateJson.FrameJson;
+import animate.internal.elements.*;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
@@ -13,7 +13,7 @@ import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
-@:allow(flixel.addons.animate.internal.Layer)
+@:allow(animate.internal.Layer)
 class Frame implements IFlxDestroyable
 {
 	public var layer(default, null):Null<Layer>;
@@ -118,7 +118,7 @@ class Frame implements IFlxDestroyable
 		return rect;
 	}
 
-	@:allow(flixel.addons.animate.internal.Layer)
+	@:allow(animate.internal.Layer)
 	function _loadJson(frame:FrameJson, parent:FlxAnimateFrames):Void
 	{
 		this.index = frame.I;
@@ -163,7 +163,7 @@ class Frame implements IFlxDestroyable
 		}
 	}
 
-	@:allow(flixel.addons.animate.internal.Layer)
+	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
 	var _bakedFrames:Array<AtlasInstance>;
 
@@ -200,10 +200,10 @@ class Frame implements IFlxDestroyable
 		}
 	}
 
-	@:allow(flixel.addons.animate.internal.elements.SymbolInstance)
-	@:allow(flixel.addons.animate.internal.FilterRenderer)
-	@:allow(flixel.addons.animate.internal.filters.Blend)
-	@:allow(flixel.addons.animate.internal.elements.AtlasInstance)
+	@:allow(animate.internal.elements.SymbolInstance)
+	@:allow(animate.internal.FilterRenderer)
+	@:allow(animate.internal.filters.Blend)
+	@:allow(animate.internal.elements.AtlasInstance)
 	private static var __isDirtyCall:Bool = false;
 
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
@@ -229,7 +229,7 @@ class Frame implements IFlxDestroyable
 		_drawElements(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
-	@:allow(flixel.addons.animate.internal.FilterRenderer)
+	@:allow(animate.internal.FilterRenderer)
 	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
 			?shader:FlxShader)
 	{

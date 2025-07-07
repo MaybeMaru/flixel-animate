@@ -1,4 +1,4 @@
-package flixel.addons.animate.internal.filters;
+package animate.internal.filters;
 
 import haxe.ds.Vector;
 import openfl.display.BitmapData;

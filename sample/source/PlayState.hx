@@ -3,8 +3,8 @@ package;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxState;
-import flixel.addons.animate.FlxAnimate;
-import flixel.addons.animate.FlxAnimateFrames;
+import animate.FlxAnimate;
+import animate.FlxAnimateFrames;
 import flixel.util.FlxColor;
 import openfl.display.FPS;
 

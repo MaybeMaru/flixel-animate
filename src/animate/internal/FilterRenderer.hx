@@ -1,9 +1,9 @@
-package flixel.addons.animate.internal;
+package animate.internal;
 
 import flixel.FlxCamera;
 import flixel.FlxG;
-import flixel.addons.animate.internal.elements.AtlasInstance;
-import flixel.addons.animate.internal.elements.MovieClipInstance;
+import animate.internal.elements.AtlasInstance;
+import animate.internal.elements.MovieClipInstance;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMath;
@@ -23,10 +23,10 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 #if !desktop
-import flixel.addons.animate.internal.filters.StackBlur;
+import animate.internal.filters.StackBlur;
 #end
 #if !flash
-import flixel.addons.animate.internal.filters.MaskShader;
+import animate.internal.filters.MaskShader;
 import openfl.display.Graphics;
 import openfl.display.OpenGLRenderer;
 import openfl.display.Shader;

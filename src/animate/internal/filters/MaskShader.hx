@@ -1,4 +1,4 @@
-package flixel.addons.animate.internal.filters;
+package animate.internal.filters;
 
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BitmapData;
