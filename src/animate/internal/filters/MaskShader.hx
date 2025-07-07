@@ -8,11 +8,11 @@ import openfl.geom.Rectangle;
 class MaskShader extends GraphicsShader
 {
 	@:glFragmentSource('
-        #pragma header
-        
-        uniform sampler2D maskBitmap;
-        uniform vec2 maskUVOffset;
-        uniform vec2 maskUVScale;
+		#pragma header
+
+		uniform sampler2D maskBitmap;
+		uniform vec2 maskUVOffset;
+		uniform vec2 maskUVScale;
 
 		vec4 animate_mask()
 		{
@@ -34,7 +34,7 @@ class MaskShader extends GraphicsShader
 		}
 		
 		void main()
-        {
+		{
 			gl_FragColor = animate_mask();
 		}
 	')
