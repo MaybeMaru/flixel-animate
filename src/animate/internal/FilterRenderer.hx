@@ -1,9 +1,9 @@
 package animate.internal;
 
-import flixel.FlxCamera;
-import flixel.FlxG;
 import animate.internal.elements.AtlasInstance;
 import animate.internal.elements.MovieClipInstance;
+import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMath;

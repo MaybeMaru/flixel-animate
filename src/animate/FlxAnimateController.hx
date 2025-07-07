@@ -1,7 +1,7 @@
 package animate;
 
-import flixel.FlxG;
 import animate.internal.Timeline;
+import flixel.FlxG;
 import flixel.animation.FlxAnimation;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxFrame;

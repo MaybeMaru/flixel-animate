@@ -1,10 +1,10 @@
 package animate;
 
-import flixel.FlxG;
 import animate.FlxAnimateJson;
 import animate.internal.SymbolItem;
 import animate.internal.Timeline;
 import animate.internal.elements.SymbolInstance;
+import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.math.FlxMatrix;
@@ -15,8 +15,6 @@ import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import haxe.io.Path;
-import openfl.utils.AssetType;
-import openfl.utils.Assets;
 
 using StringTools;
 

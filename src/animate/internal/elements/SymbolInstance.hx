@@ -1,9 +1,9 @@
 package animate.internal.elements;
 
-import flixel.FlxCamera;
 import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
+import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;

@@ -1,8 +1,8 @@
 package animate.internal.elements;
 
+import animate.FlxAnimateJson;
 import flixel.FlxCamera;
 import flixel.FlxG;
-import animate.FlxAnimateJson;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
