@@ -1,7 +1,12 @@
 package animate.internal;
 
 import animate.FlxAnimateJson.FrameJson;
-import animate.internal.elements.*;
+import animate.internal.elements.AtlasInstance;
+import animate.internal.elements.ButtonInstance;
+import animate.internal.elements.Element;
+import animate.internal.elements.MovieClipInstance;
+import animate.internal.elements.SymbolInstance;
+import animate.internal.elements.TextFieldInstance;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;

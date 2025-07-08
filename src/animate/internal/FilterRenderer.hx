@@ -1,8 +1,7 @@
 package animate.internal;
 
-import animate.FlxAnimateJson.FilterJson;
-import animate.internal.elements.*;
-import animate.internal.elements.AtlasInstance.BakedInstance;
+import animate.internal.elements.AtlasInstance;
+import animate.internal.elements.MovieClipInstance;
 import animate.internal.filters.StackBlur;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -12,7 +11,6 @@ import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxPool;
 import openfl.display.BitmapData;
@@ -31,6 +29,9 @@ import openfl.display.Graphics;
 import openfl.display.OpenGLRenderer;
 import openfl.display.Shader;
 import openfl.display._internal.Context3DGraphics;
+#else
+import animate.internal.elements.AtlasInstance.BakedInstance;
+import flixel.util.FlxColor;
 #end
 
 #if !flash

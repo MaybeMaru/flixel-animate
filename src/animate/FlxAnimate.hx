@@ -1,17 +1,27 @@
 package animate;
 
-import animate.internal.*;
-import flixel.*;
-import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
+import animate.internal.Frame;
+import animate.internal.StageBG;
+import animate.internal.Timeline;
+import flixel.FlxCamera;
+import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
-import flixel.math.*;
+import flixel.math.FlxAngle;
+import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
 
 using flixel.util.FlxColorTransformUtil;
+
+#if FLX_DEBUG
+import flixel.FlxBasic;
+import flixel.FlxG;
+#end
 
 class FlxAnimate extends FlxSprite
 {
@@ -237,7 +247,7 @@ class FlxAnimate extends FlxSprite
 			var mat = new FlxMatrix(checkFlipX() ? -1 : 1, 0, 0, checkFlipY() ? -1 : 1, 0, 0);
 
 			#if flash
-			framePixels = FilterRenderer.getBitmap((cam, _) -> timeline.draw(cam, mat, null, NORMAL, true, null), timeline._bounds);
+			framePixels = animate.internal.FilterRenderer.getBitmap((cam, _) -> timeline.draw(cam, mat, null, NORMAL, true, null), timeline._bounds);
 			#else
 			var cam = new FlxCamera();
 			Frame.__isDirtyCall = true;

@@ -2,20 +2,25 @@ package animate.internal.elements;
 
 import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
-import animate.internal.filters.*;
+import animate.internal.filters.Blend;
 import flixel.FlxCamera;
-import flixel.FlxG;
-import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
-import flixel.util.FlxColor;
 import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
+
+#if FLX_DEBUG
+import flixel.FlxG;
+import flixel.util.FlxColor;
+#end
+#if flash
+import flixel.graphics.FlxGraphic;
+#end
 
 @:access(openfl.geom.Point)
 @:access(openfl.geom.Matrix)

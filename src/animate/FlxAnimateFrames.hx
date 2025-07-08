@@ -1,8 +1,9 @@
 package animate;
 
 import animate.FlxAnimateJson;
-import animate.internal.*;
-import animate.internal.elements.*;
+import animate.internal.SymbolItem;
+import animate.internal.Timeline;
+import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;

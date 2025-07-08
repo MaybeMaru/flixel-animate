@@ -1,6 +1,6 @@
 package animate;
 
-import animate.internal.*;
+import animate.internal.Timeline;
 import flixel.FlxG;
 import flixel.animation.FlxAnimation;
 import flixel.animation.FlxAnimationController;
