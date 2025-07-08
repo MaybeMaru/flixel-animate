@@ -15,8 +15,6 @@ import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import haxe.io.Path;
-import openfl.utils.AssetType;
-import openfl.utils.Assets;
 
 using StringTools;
 
@@ -95,69 +93,37 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		if (!unique && _cachedAtlases.exists(key))
 			return _cachedAtlases.get(key);
 
-		if (existsFile(animate + "/Animation.json", TEXT))
+		if (FlxAnimateAssets.exists(animate + "/Animation.json", TEXT))
 			return _fromAnimatePath(animate, key);
 
 		return _fromAnimateInput(animate, spritemaps, metadata, key);
 	}
 
-	dynamic static function getTextFromPath(path:String):String
+	static function getTextFromPath(path:String):String
 	{
-		var content:String =
-			#if (desktop && sys)
-			sys.io.File.getContent(path);
-			#else
-			#if (flixel < "5.9.0")
-			Assets.getText(path);
-			#else
-			FlxG.assets.getText(path);
-			#end
-			#end
-
-		return content.replace(String.fromCharCode(0xFEFF), "");
+		return FlxAnimateAssets.getText(path).replace(String.fromCharCode(0xFEFF), "");
 	}
 
-	dynamic static function existsFile(path:String, type:AssetType):Bool
+	static function listWithFilter(path:String, filter:String->Bool)
 	{
-		return #if (desktop && sys)
-			sys.FileSystem.exists(path);
-		#else
-			#if (flixel < "5.9.0")
-			Assets.exists(path, type);
-			#else // TODO: give better support for FlxG.assets on sys targets
-			FlxG.assets.exists(path, switch (type)
-			{
-				case BINARY: BINARY;
-				case IMAGE: IMAGE;
-				default: TEXT;
-			});
-			#end
-		#end
-	}
-
-	dynamic static function listWithFilter(path:String, filter:String->Bool)
-	{
-		#if (desktop && sys)
-		var list:Array<String> = sys.FileSystem.readDirectory(path);
-		return list.filter(filter);
-		#else
-		var openflList = Assets.list(TEXT).filter((str) -> return str.startsWith(path));
 		var list:Array<String> = [];
-		for (i in openflList)
+
+		for (i in FlxAnimateAssets.list(TEXT, path.substring(0, path.indexOf(':')))
+			.filter((str) -> return str.startsWith(path.substring(path.indexOf(':') + 1, path.length))))
 		{
 			if (filter(i))
 				list.push(i.split("/").pop());
 		}
+
 		return list;
-		#end
 	}
 
-	dynamic static function getGraphic(path:String):FlxGraphic
+	static function getGraphic(path:String):FlxGraphic
 	{
 		if (FlxG.bitmap.checkCache(path))
 			return FlxG.bitmap.get(path);
 
-		return #if (desktop && sys) FlxGraphic.fromBitmapData(openfl.display.BitmapData.fromFile(path), false, path); #else FlxG.bitmap.add(path); #end
+		return FlxG.bitmap.add(FlxAnimateAssets.getBitmapData(path));
 	}
 
 	static function listSpritemaps(path:String):Array<String>
@@ -176,7 +142,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	static function _fromAnimatePath(path:String, ?key:String)
 	{
-		var hasAnimation:Bool = existsFile(path + "/Animation.json", TEXT);
+		var hasAnimation:Bool = FlxAnimateAssets.exists(path + "/Animation.json", TEXT);
 		if (!hasAnimation)
 		{
 			FlxG.log.warn('No Animation.json file was found for path "$path".');
@@ -184,7 +150,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		}
 
 		var animation = getTextFromPath(path + "/Animation.json");
-		var isInlined = !existsFile(path + "/metadata.json", TEXT);
+		var isInlined = !FlxAnimateAssets.exists(path + "/metadata.json", TEXT);
 		var libraryList:Null<Array<String>> = null;
 		var spritemaps:Array<SpritemapInput> = [];
 		var metadata:Null<String> = isInlined ? null : getTextFromPath(path + "/metadata.json");
