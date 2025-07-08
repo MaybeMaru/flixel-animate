@@ -18,6 +18,18 @@ import haxe.io.Path;
 
 using StringTools;
 
+/**
+ * Settings used when first loading a texture atlas.
+ * @param swfMode 	Used if the movieclips of the symbol should render similarly to SWF files.
+ * 					See ``animate.internal.elements.MovieClipInstance`` for more.
+ */
+typedef FlxAnimateSettings =
+{
+	?swfMode:Bool
+	// TODO: add more settings
+	// As an idea, a filter quality setting could be useful
+}
+
 class FlxAnimateFrames extends FlxAtlasFrames
 {
 	public var timeline:Timeline;
@@ -86,7 +98,8 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 * @param   unique  	Optional, ensures that the texture atlas uses a new slot in the cache.
 	 * @return  Newly created `FlxAnimateFrames` collection.
 	 */
-	public static function fromAnimate(animate:String, ?spritemaps:Array<SpritemapInput>, ?metadata:String, ?key:String, ?unique:Bool = false):FlxAnimateFrames
+	public static function fromAnimate(animate:String, ?spritemaps:Array<SpritemapInput>, ?metadata:String, ?key:String, ?unique:Bool = false,
+			?settings:FlxAnimateSettings):FlxAnimateFrames
 	{
 		var key:String = key ?? animate;
 
@@ -94,9 +107,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			return _cachedAtlases.get(key);
 
 		if (FlxAnimateAssets.exists(animate + "/Animation.json", TEXT))
-			return _fromAnimatePath(animate, key);
+			return _fromAnimatePath(animate, key, settings);
 
-		return _fromAnimateInput(animate, spritemaps, metadata, key);
+		return _fromAnimateInput(animate, spritemaps, metadata, key, settings);
 	}
 
 	static function getTextFromPath(path:String):String
@@ -134,12 +147,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	var _loadedData:AnimationJson;
 	var _isInlined:Bool;
 	var _libraryList:Array<String>;
+	var _settings:Null<FlxAnimateSettings>;
 
 	// since FlxAnimateFrames can have more than one graphic im gonna need use do this
 	// TODO: use another method that works closer to flixel's frame collection crap
 	static var _cachedAtlases:Map<String, FlxAnimateFrames> = [];
 
-	static function _fromAnimatePath(path:String, ?key:String)
+	static function _fromAnimatePath(path:String, ?key:String, ?settings:FlxAnimateSettings)
 	{
 		var hasAnimation:Bool = FlxAnimateAssets.exists(path + "/Animation.json", TEXT);
 		if (!hasAnimation)
@@ -170,11 +184,11 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			});
 		}
 
-		return _fromAnimateInput(animation, spritemaps, metadata, key ?? path, isInlined, libraryList);
+		return _fromAnimateInput(animation, spritemaps, metadata, key ?? path, isInlined, libraryList, settings);
 	}
 
 	static function _fromAnimateInput(animation:String, spritemaps:Array<SpritemapInput>, ?metadata:String, ?path:String, ?isInlined:Bool = true,
-			?libraryList:Array<String>):FlxAnimateFrames
+			?libraryList:Array<String>, settings:FlxAnimateSettings):FlxAnimateFrames
 	{
 		var animation:AnimationJson = Json.parse(animation);
 		var frames = new FlxAnimateFrames(null);
@@ -182,6 +196,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames._loadedData = animation;
 		frames._isInlined = isInlined;
 		frames._libraryList = libraryList;
+		frames._settings = settings;
 
 		var spritemapCollection = new FlxAnimateSpritemapCollection(frames);
 		frames.parent = spritemapCollection;
@@ -239,6 +254,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		// clear the temp data crap
 		frames._loadedData = null;
 		frames._libraryList = null;
+		frames._settings = null;
 
 		_cachedAtlases.set(path, frames);
 

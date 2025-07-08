@@ -34,6 +34,13 @@ class MovieClipInstance extends SymbolInstance
 		this.elementType = MOVIECLIP;
 		this.blend = #if flash animate.internal.filters.Blend.fromInt(data.B); #else data.B; #end
 
+		// Add settings from parent frames
+		@:privateAccess {
+			if (parent._settings != null)
+				swfMode = parent._settings.swfMode ?? false;
+		}
+
+		// Resolve and precache bitmap filters
 		var jsonFilters = data.F;
 		if (jsonFilters != null && jsonFilters.length > 0)
 		{
