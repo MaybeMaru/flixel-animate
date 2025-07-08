@@ -108,8 +108,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	{
 		var list:Array<String> = [];
 
-		for (i in FlxAnimateAssets.list(TEXT, path.substring(0, path.indexOf(':')))
-			.filter((str) -> return str.startsWith(path.substring(path.indexOf(':') + 1, path.length))))
+		for (i in FlxAnimateAssets.list(path, TEXT, path.substring(0, path.indexOf(':'))))
 		{
 			if (filter(i))
 				list.push(i.split("/").pop());
@@ -123,7 +122,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		if (FlxG.bitmap.checkCache(path))
 			return FlxG.bitmap.get(path);
 
-		return FlxG.bitmap.add(FlxAnimateAssets.getBitmapData(path));
+		return FlxG.bitmap.add(FlxAnimateAssets.getBitmapData(path), false, path);
 	}
 
 	static function listSpritemaps(path:String):Array<String>
