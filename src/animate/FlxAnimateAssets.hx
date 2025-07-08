@@ -69,7 +69,7 @@ class FlxAnimateAssets
 		// Check if the image is obtainable through filesystem
 		#if (sys && desktop)
 		if (sys.FileSystem.exists(path))
-			return FlxG.bitmap.add(BitmapData.fromFile(path), false, path).bitmap;
+			return BitmapData.fromFile(path);
 		#end
 
 		// Fallback to openfl/flixel assets
