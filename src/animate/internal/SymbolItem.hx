@@ -32,6 +32,12 @@ class SymbolItem implements IFlxDestroyable
 		return '{name: $name}';
 	}
 
+	/**
+	 * Creates an instance of the symbol item object.
+	 *
+	 * @param type 	Optional, type of symbol instance to create (``GRAPHIC``, ``MOVIECLIP``, ``BUTTON``).
+	 * @return		An new symbol instance of the library symbol item.
+	 */
 	@:access(animate.internal.elements.SymbolInstance)
 	public function createInstance(?type:ElementType = GRAPHIC):Null<SymbolInstance>
 	{

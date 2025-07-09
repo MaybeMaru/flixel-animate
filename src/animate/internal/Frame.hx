@@ -58,8 +58,17 @@ class Frame implements IFlxDestroyable
 		}
 	}
 
+	/**
+	 *	Packs and replaces the selected elements from the frame into a new symbol item and instance.
+	 *	NOTE: Doesn't include the new symbol item into the texture atlas library/dictionary.
+	 *
+	 * @param fromIndex Index where to start converting elements from.
+	 * @param toIndex 	Index where to stop converting elements from.
+	 * @param type 		Optional, type of symbol instance to create (``GRAPHIC``, ``MOVIECLIP``, ``BUTTON``).
+	 * @return 			An new symbol instance containing the selected elements.
+	 */
 	@:access(animate.internal.Layer)
-	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC)
+	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC):SymbolInstance
 	{
 		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
 
