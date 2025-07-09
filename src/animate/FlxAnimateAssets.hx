@@ -17,7 +17,9 @@ class FlxAnimateAssets
 	{
 		// Check if the file exists inside of the filesystem
 		#if (sys && desktop)
-		if (sys.FileSystem.exists(path))
+		final truePath:String = openfl.utils.Assets.getPath(path);
+
+		if (sys.FileSystem.exists(truePath))
 			return true;
 		#end
 
@@ -33,8 +35,10 @@ class FlxAnimateAssets
 	{
 		// Check if the text is obtainable through filesystem
 		#if (sys && desktop)
-		if (sys.FileSystem.exists(path))
-			return sys.io.File.getContent(path);
+		final truePath:String = openfl.utils.Assets.getPath(path);
+
+		if (sys.FileSystem.exists(truePath))
+			return sys.io.File.getContent(truePath);
 		#end
 
 		// Fallback to openfl/flixel assets
@@ -49,8 +53,10 @@ class FlxAnimateAssets
 	{
 		// Check if the bytes are obtainable through filesystem
 		#if (sys && desktop)
-		if (sys.FileSystem.exists(path))
-			return sys.io.File.getBytes(path);
+		final truePath:String = openfl.utils.Assets.getPath(path);
+
+		if (sys.FileSystem.exists(truePath))
+			return sys.io.File.getBytes(truePath);
 		#end
 
 		// Fallback to openfl/flixel assets
@@ -63,13 +69,12 @@ class FlxAnimateAssets
 
 	public static dynamic function getBitmapData(path:String):BitmapData
 	{
-		if (FlxG.bitmap.checkCache(path))
-			return FlxG.bitmap.get(path).bitmap;
-
 		// Check if the image is obtainable through filesystem
 		#if (sys && desktop)
-		if (sys.FileSystem.exists(path))
-			return BitmapData.fromFile(path);
+		final truePath:String = openfl.utils.Assets.getPath(path);
+
+		if (sys.FileSystem.exists(truePath))
+			return BitmapData.fromFile(truePath);
 		#end
 
 		// Fallback to openfl/flixel assets
@@ -84,7 +89,7 @@ class FlxAnimateAssets
 	{
 		// Check if the list is obtainable through filesystem
 		#if (sys && desktop)
-		if (library == null || library.length == 0)
+		if (sys.FileSystem.exists(path) && (library == null || library.length == 0))
 			return sys.FileSystem.readDirectory(path);
 		#end
 
