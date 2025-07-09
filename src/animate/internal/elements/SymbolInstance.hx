@@ -29,6 +29,10 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		super(data, parent);
 
 		this.elementType = GRAPHIC;
+
+		if (data == null)
+			return;
+
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
 		this.loopType = data.LP;

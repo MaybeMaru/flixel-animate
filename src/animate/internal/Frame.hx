@@ -33,7 +33,7 @@ class Frame implements IFlxDestroyable
 		this.elements = [];
 		this.name = "";
 		this.layer = layer;
-		this.duration = 0;
+		this.duration = 1;
 		this.index = 0;
 	}
 
@@ -56,6 +56,32 @@ class Frame implements IFlxDestroyable
 			_bakedFrames = null;
 			_dirty = true;
 		}
+	}
+
+	@:access(animate.internal.Layer)
+	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC)
+	{
+		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
+
+		var frame = new Frame();
+		for (element in elements)
+			frame.add(element);
+
+		var timeline = new animate.internal.Timeline(null, null, "tempSymbol");
+		var layer = new Layer(timeline);
+
+		layer.frames.push(frame);
+		layer.frameIndices.push(0);
+		timeline.layers.push(layer);
+
+		layer.frameCount = 1;
+		timeline.frameCount = 1;
+
+		var item = new SymbolItem(timeline);
+		var instance = item.createInstance(type);
+		this.elements.insert(fromIndex, instance);
+
+		return instance;
 	}
 
 	/**

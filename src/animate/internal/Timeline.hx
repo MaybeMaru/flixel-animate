@@ -27,7 +27,7 @@ class Timeline implements IFlxDestroyable
 	var _bounds:FlxRect;
 	var parent:FlxAnimateFrames;
 
-	public function new(timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
+	public function new(?timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
 	{
 		this.layers = [];
 		this.currentFrame = 0;
@@ -39,8 +39,8 @@ class Timeline implements IFlxDestroyable
 		if (name != null)
 			this.name = name;
 
-		_loadJson(timeline);
-		_bounds = getWholeBounds(false, _bounds);
+		if (timeline != null)
+			_loadJson(timeline);
 	}
 
 	/**
@@ -268,6 +268,8 @@ class Timeline implements IFlxDestroyable
 			if (layer.frameCount > frameCount)
 				frameCount = layer.frameCount;
 		}
+
+		_bounds = getWholeBounds(false, _bounds);
 	}
 
 	public function destroy():Void
