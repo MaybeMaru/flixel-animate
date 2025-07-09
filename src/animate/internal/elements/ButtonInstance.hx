@@ -3,6 +3,7 @@ package animate.internal.elements;
 import animate.FlxAnimateJson;
 import flixel.FlxCamera;
 import flixel.FlxG;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -44,7 +45,8 @@ class ButtonInstance extends SymbolInstance
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
-		var bounds = this.libraryItem.timeline.getBounds(ButtonState.HIT, false, rect, this.matrix);
+		var boundsIndex = FlxMath.minInt(ButtonState.HIT, this.libraryItem.timeline.frameCount - 1);
+		var bounds = this.libraryItem.timeline.getBounds(boundsIndex, false, rect, this.matrix);
 		if (matrix != null)
 			bounds = Timeline.applyMatrixToRect(bounds, matrix);
 		return bounds;
@@ -52,7 +54,7 @@ class ButtonInstance extends SymbolInstance
 
 	override function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
-		return curButtonState;
+		return FlxMath.minInt(curButtonState, this.libraryItem.timeline.frameCount - 1);
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,

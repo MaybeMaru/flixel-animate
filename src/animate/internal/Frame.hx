@@ -33,7 +33,7 @@ class Frame implements IFlxDestroyable
 		this.elements = [];
 		this.name = "";
 		this.layer = layer;
-		this.duration = 0;
+		this.duration = 1;
 		this.index = 0;
 	}
 
@@ -56,6 +56,41 @@ class Frame implements IFlxDestroyable
 			_bakedFrames = null;
 			_dirty = true;
 		}
+	}
+
+	/**
+	 *	Packs and replaces the selected elements from the frame into a new symbol item and instance.
+	 *	NOTE: Doesn't include the new symbol item into the texture atlas library/dictionary.
+	 *
+	 * @param fromIndex Index where to start converting elements from.
+	 * @param toIndex 	Index where to stop converting elements from.
+	 * @param type 		Optional, type of symbol instance to create (``GRAPHIC``, ``MOVIECLIP``, ``BUTTON``).
+	 * @return 			An new symbol instance containing the selected elements.
+	 */
+	@:access(animate.internal.Layer)
+	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC):SymbolInstance
+	{
+		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
+
+		var frame = new Frame();
+		for (element in elements)
+			frame.add(element);
+
+		var timeline = new animate.internal.Timeline(null, null, "tempSymbol");
+		var layer = new Layer(timeline);
+
+		layer.frames.push(frame);
+		layer.frameIndices.push(0);
+		timeline.layers.push(layer);
+
+		layer.frameCount = 1;
+		timeline.frameCount = 1;
+
+		var item = new SymbolItem(timeline);
+		var instance = item.createInstance(type);
+		this.elements.insert(fromIndex, instance);
+
+		return instance;
 	}
 
 	/**
