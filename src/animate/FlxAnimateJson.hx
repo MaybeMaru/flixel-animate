@@ -177,7 +177,7 @@ abstract SymbolInstanceJson(Dynamic)
 		return this.TRP ?? this.transformationPoint;
 
 	extern inline function get_LP()
-		return this.LP ?? this.loop;
+		return this.LP ?? this.loop ?? "LP";
 
 	extern inline function get_MX()
 		return MatrixJson.resolve(this);
