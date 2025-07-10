@@ -15,50 +15,61 @@ class FlxAnimateAssets
 {
 	public static dynamic function exists(path:String, type:AssetType):Bool
 	{
-		// Check if the file exists inside of the filesystem
-		#if (sys && desktop)
-		if (sys.FileSystem.exists(path))
+		// Check openfl/flixel assets first
+		#if (flixel >= "5.9.0")
+		if (FlxG.assets.exists(path, type))
+			return true;
+		#else
+		if (openfl.utils.Assets.exists(path, type))
 			return true;
 		#end
 
-		// Fallback to openfl/flixel assets
-		#if (flixel >= "5.9.0")
-		return FlxG.assets.exists(path, type);
-		#else
-		return openfl.utils.Assets.exists(path, type);
+		// Fallback to filesystem
+		#if (sys && desktop)
+		return sys.FileSystem.exists(path);
 		#end
+
+		return false;
 	}
 
 	public static dynamic function getText(path:String):String
 	{
-		// Check if the text is obtainable through filesystem
+		// Check openfl/flixel assets first
+		#if (flixel >= "5.9.0")
+		if (FlxG.assets.exists(path, AssetType.TEXT))
+			return FlxG.assets.getText(path);
+		#else
+		if (openfl.utils.Assets.exists(path, AssetType.TEXT))
+			return openfl.utils.Assets.getText(path);
+		#end
+
+		// Fallback to filesystem
 		#if (sys && desktop)
 		if (sys.FileSystem.exists(path))
 			return sys.io.File.getContent(path);
 		#end
 
-		// Fallback to openfl/flixel assets
-		#if (flixel >= "5.9.0")
-		return FlxG.assets.getText(path);
-		#else
-		return openfl.utils.Assets.getText(path);
-		#end
+		return null;
 	}
 
 	public static dynamic function getBytes(path:String):Bytes
 	{
-		// Check if the bytes are obtainable through filesystem
+		// Check openfl/flixel assets first
+		#if (flixel >= "5.9.0")
+		if (FlxG.assets.exists(path, AssetType.BINARY))
+			return FlxG.assets.getBytes(path);
+		#else
+		if (openfl.utils.Assets.exists(path, AssetType.BINARY))
+			return openfl.utils.Assets.getBytes(path);
+		#end
+
+		// Fallback to filesystem
 		#if (sys && desktop)
 		if (sys.FileSystem.exists(path))
 			return sys.io.File.getBytes(path);
 		#end
 
-		// Fallback to openfl/flixel assets
-		#if (flixel >= "5.9.0")
-		return FlxG.assets.getBytes(path);
-		#else
-		return openfl.utils.Assets.getBytes(path);
-		#end
+		return null;
 	}
 
 	public static dynamic function getBitmapData(path:String):BitmapData
@@ -66,36 +77,33 @@ class FlxAnimateAssets
 		if (FlxG.bitmap.checkCache(path))
 			return FlxG.bitmap.get(path).bitmap;
 
-		// Check if the image is obtainable through filesystem
+		// Check openfl/flixel assets first
+		#if (flixel >= "5.9.0")
+		if (FlxG.assets.exists(path, AssetType.IMAGE))
+			return FlxG.assets.getBitmapData(path);
+		#else
+		if (openfl.utils.Assets.exists(path, AssetType.IMAGE))
+			return openfl.utils.Assets.getBitmapData(path);
+		#end
+
+		// Fallback to filesystem
 		#if (sys && desktop)
 		if (sys.FileSystem.exists(path))
 			return BitmapData.fromFile(path);
 		#end
 
-		// Fallback to openfl/flixel assets
-		#if (flixel >= "5.9.0")
-		return FlxG.assets.getBitmapData(path);
-		#else
-		return openfl.utils.Assets.getBitmapData(path);
-		#end
+		return null;
 	}
 
 	public static dynamic function list(path:String, ?type:AssetType, ?library:String):Array<String>
 	{
-		// Check if the list is obtainable through filesystem
-		#if (sys && desktop)
-		if (library == null || library.length == 0)
-			return sys.FileSystem.readDirectory(path);
-		#end
-
-		// Fallback to openfl/flixel assets list for library assets
 		var result:Array<String> = null;
 
+		// Check openfl/flixel assets first
 		#if (flixel >= "5.9.0")
 		if (library != null && library.length > 0)
 		{
 			var lib = openfl.utils.Assets.getLibrary(library);
-
 			if (lib != null)
 				result = lib.list(cast type.toOpenFlType());
 		}
@@ -105,15 +113,24 @@ class FlxAnimateAssets
 		if (library != null && library.length > 0)
 		{
 			var lib = openfl.utils.Assets.getLibrary(library);
-
 			if (lib != null)
 				result = lib.list(cast type);
 		}
-
-		result = openfl.utils.Assets.list(type);
+		if (result == null)
+			result = openfl.utils.Assets.list(type);
 		#end
 
-		return result.filter((str) -> return str.startsWith(path.substring(path.indexOf(':') + 1, path.length)));
+		if (result == null)
+			result = [];
+
+		// Fallback to filesystem for non-library assets
+		#if (sys && desktop)
+		if (library == null || library.length == 0)
+			if (sys.FileSystem.exists(path))
+				return sys.FileSystem.readDirectory(path);
+		#end
+
+		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length)));
 	}
 }
 
