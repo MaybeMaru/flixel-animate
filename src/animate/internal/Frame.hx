@@ -81,10 +81,9 @@ class Frame implements IFlxDestroyable
 
 		layer.frames.push(frame);
 		layer.frameIndices.push(0);
-		timeline.layers.push(layer);
 
-		layer.frameCount = 1;
-		timeline.frameCount = 1;
+		timeline.layers.push(layer);
+		timeline.frameCount = layer.frameCount;
 
 		var item = new SymbolItem(timeline);
 		var instance = item.createInstance(type);

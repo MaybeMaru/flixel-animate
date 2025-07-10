@@ -24,7 +24,7 @@ class FlxSpriteElement extends Element
 	var _screenPoint:FlxPoint;
 	var _angle:Float;
 
-	public function new(sprite:FlxSprite)
+	public function new(?sprite:FlxSprite)
 	{
 		super(null, null, null);
 		this.sprite = sprite;
@@ -47,6 +47,9 @@ class FlxSpriteElement extends Element
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
+		if (sprite == null)
+			return;
+
 		// if (sprite.animation.curAnim != null)
 		//	sprite.animation.curAnim.curFrame = index;
 		sprite.update(FlxG.elapsed);
@@ -100,7 +103,9 @@ class FlxSpriteElement extends Element
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
-		bounds = sprite.getScreenBounds(bounds);
+
+		if (sprite != null)
+			bounds = sprite.getScreenBounds(bounds);
 
 		if (matrix != null)
 			bounds = Timeline.applyMatrixToRect(bounds, matrix);

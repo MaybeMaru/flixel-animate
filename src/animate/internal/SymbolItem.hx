@@ -7,7 +7,6 @@ import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxDestroyUtil;
-import openfl.display.MovieClip;
 import openfl.geom.ColorTransform;
 
 class SymbolItem implements IFlxDestroyable
@@ -45,11 +44,11 @@ class SymbolItem implements IFlxDestroyable
 		switch (type)
 		{
 			case GRAPHIC:
-				instance = new SymbolInstance(null, null, null);
+				instance = new SymbolInstance();
 			case MOVIECLIP:
-				instance = new MovieClipInstance(null, null, null);
+				instance = new MovieClipInstance();
 			case BUTTON:
-				instance = new ButtonInstance(null, null);
+				instance = new ButtonInstance();
 			default:
 				FlxG.log.warn('Invalid Symbol Instance type.');
 				return null;

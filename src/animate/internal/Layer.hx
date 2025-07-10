@@ -9,7 +9,7 @@ class Layer implements IFlxDestroyable
 {
 	public var timeline:Null<Timeline>;
 	public var frames:Null<Array<Frame>>;
-	public var frameCount:Int;
+	public var frameCount(get, never):Int;
 	public var visible:Bool;
 	public var name:String;
 	public var layerType:LayerType;
@@ -23,7 +23,6 @@ class Layer implements IFlxDestroyable
 		this.frameIndices = [];
 		this.visible = true;
 		this.timeline = timeline;
-		this.frameCount = 0;
 		this.name = "";
 		this.layerType = NORMAL;
 	}
@@ -35,8 +34,11 @@ class Layer implements IFlxDestroyable
 	 */
 	public function forEachFrame(callback:Frame->Void)
 	{
-		for (frame in frames)
-			callback(frame);
+		if (frames != null)
+		{
+			for (frame in frames)
+				callback(frame);
+		}
 	}
 
 	/**
@@ -48,7 +50,7 @@ class Layer implements IFlxDestroyable
 	public function getFrameAtIndex(index:Int):Null<Frame>
 	{
 		index = Std.int(Math.max(index, 0));
-		if (index > frameIndices.length - 1)
+		if (index > (frameCount - 1))
 			return null;
 
 		var frameIndex = frameIndices[index];
@@ -184,8 +186,6 @@ class Layer implements IFlxDestroyable
 					frame._dirty = true;
 			}
 		}
-
-		frameCount = frameIndices.length;
 	}
 
 	public function destroy():Void
@@ -200,6 +200,11 @@ class Layer implements IFlxDestroyable
 
 		frames = null;
 		frameIndices = null;
+	}
+
+	inline function get_frameCount():Int
+	{
+		return frameIndices.length;
 	}
 
 	public function toString():String

@@ -20,7 +20,7 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	var _mat:FlxMatrix;
 
-	public function new(data:T, parent:FlxAnimateFrames, ?frame:Frame)
+	public function new(?data:T, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		_mat = new FlxMatrix();
 		visible = true;

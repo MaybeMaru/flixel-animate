@@ -33,7 +33,7 @@ class ButtonInstance extends SymbolInstance
 	 */
 	public var onClick:FlxSignal;
 
-	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames)
+	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames)
 	{
 		super(data, parent);
 

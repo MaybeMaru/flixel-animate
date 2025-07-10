@@ -4,6 +4,7 @@ import flixel.FlxCamera;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
 
+@:nullSafety(Strict)
 class StageBG extends FlxSprite
 {
 	public function new()

@@ -27,7 +27,7 @@ class MovieClipInstance extends SymbolInstance
 	var _filters:Array<BitmapFilter> = null;
 	var _bakedFrames:Array<AtlasInstance>;
 
-	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
+	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent, frame);
 

@@ -24,7 +24,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	var transform:ColorTransform;
 	var _transform:ColorTransform;
 
-	public function new(data:SymbolInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
+	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent);
 

@@ -124,10 +124,11 @@ class StackBlur
 				si = ssx;
 				for (x in 0...w)
 				{
-					px[yi++] = (r * ms) >>> ss;
-					px[yi++] = (g * ms) >>> ss;
-					px[yi++] = (b * ms) >>> ss;
-					px[yi++] = (a * ms) >>> ss;
+					px[yi] = (r * ms) >>> ss;
+					px[yi + 1] = (g * ms) >>> ss;
+					px[yi + 2] = (b * ms) >>> ss;
+					px[yi + 3] = (a * ms) >>> ss;
+					yi += 4;
 					p = (yw + ((p = x + radiusX + 1) < w1 ? p : w1)) << 2;
 					r -= si.r - (si.r = px[p]);
 					g -= si.g - (si.g = px[p + 1]);
