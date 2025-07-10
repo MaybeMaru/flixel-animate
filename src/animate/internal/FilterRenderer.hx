@@ -487,8 +487,6 @@ class FilterRenderer
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
 		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);
-		var intersectWidth = Math.min(maskerBounds.right, maskedBounds.right) - intersectX;
-		var intersectHeight = Math.min(maskerBounds.bottom, maskedBounds.bottom) - intersectY;
 
 		var maskedBitmap = maskBitmap(masked, masker);
 		var frame = FlxGraphic.fromBitmapData(maskedBitmap).imageFrame.frame;
@@ -515,7 +513,7 @@ class FilterRenderer
 		Frame.__isDirtyCall = lastDirtyCall;
 
 		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
-		bitmap.draw(cam.buffer, new Matrix(1, 0, 0, 1, 0, 0));
+		bitmap.copyPixels(cam.buffer, bitmap.rect, new Point(), null, null, true);
 		cam.put();
 		cam.buffer.lock();
 

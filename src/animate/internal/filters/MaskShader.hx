@@ -1,5 +1,6 @@
 package animate.internal.filters;
 
+#if !flash
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BitmapData;
 import openfl.display.GraphicsShader;
@@ -83,3 +84,4 @@ class MaskShader extends GraphicsShader
 		shader.maskBitmap.input = null;
 	}
 }
+#end

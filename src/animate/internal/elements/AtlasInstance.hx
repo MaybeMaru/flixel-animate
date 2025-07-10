@@ -121,19 +121,15 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	@:access(flixel.FlxCamera)
 	inline function drawPixelsFlash(cam:FlxCamera, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool):Void
 	{
-		var smooth:Bool = (cam.antialiasing || antialiasing);
+		final smooth:Bool = (cam.antialiasing || antialiasing);
 		cam._helperMatrix.copyFrom(matrix);
 
 		if (cam._useBlitMatrix)
-		{
 			cam._helperMatrix.concat(cam._blitMatrix);
-			cam.buffer.draw(frame.parent.bitmap, cam._helperMatrix, transform, blend, null, smooth);
-		}
 		else
-		{
 			cam._helperMatrix.translate(-cam.viewMarginLeft, -cam.viewMarginTop);
-			cam.buffer.draw(frame.parent.bitmap, cam._helperMatrix, transform, blend, null, smooth);
-		}
+
+		cam.buffer.draw(frame.parent.bitmap, cam._helperMatrix, transform, blend, null, smooth);
 	}
 	#end
 
