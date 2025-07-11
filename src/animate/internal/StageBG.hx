@@ -19,7 +19,8 @@ class StageBG extends FlxSprite
 		if (!visible || alpha <= 0)
 			return;
 
-		this.color = parent.library.stageColor;
+		color = parent.library.stageColor;
+		updateColorTransform();
 		colorTransform.concat(parent.colorTransform);
 
 		if (colorTransform.alphaMultiplier <= 0)
