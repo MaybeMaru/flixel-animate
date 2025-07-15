@@ -204,7 +204,7 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
-	var _bakedFrames:Array<AtlasInstance>;
+	var _bakedFrames:BakedFramesVector;
 
 	function _bakeFrame(frameIndex:Int):Void
 	{
@@ -215,11 +215,7 @@ class Frame implements IFlxDestroyable
 		}
 
 		if (_bakedFrames == null)
-		{
-			_bakedFrames = [];
-			for (i in 0...duration)
-				_bakedFrames.push(null);
-		}
+			_bakedFrames = new BakedFramesVector(duration);
 
 		if (_bakedFrames[frameIndex] != null)
 			return;
@@ -232,11 +228,9 @@ class Frame implements IFlxDestroyable
 		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 
-		if (_dirty)
-		{
-			if (_bakedFrames.indexOf(null) == -1)
-				_dirty = false;
-		}
+		// All frames have been baked
+		if (_dirty && _bakedFrames.isFull())
+			_dirty = false;
 	}
 
 	@:allow(animate.internal.elements.SymbolInstance)
@@ -284,7 +278,12 @@ class Frame implements IFlxDestroyable
 		elements = FlxDestroyUtil.destroyArray(elements);
 		sound = FlxDestroyUtil.destroy(sound);
 		layer = null;
-		_bakedFrames = FlxDestroyUtil.destroyArray(_bakedFrames);
+
+		if (_bakedFrames != null)
+		{
+			_bakedFrames.dispose();
+			_bakedFrames = null;
+		}
 	}
 
 	public function toString():String

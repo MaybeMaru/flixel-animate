@@ -1,5 +1,6 @@
 package animate.internal;
 
+import animate.FlxAnimateFrames.FilterQuality;
 import animate.internal.elements.AtlasInstance;
 import animate.internal.elements.MovieClipInstance;
 import animate.internal.filters.StackBlur;
@@ -183,7 +184,8 @@ class FilterRenderer
 		return bitmap;
 	}
 
-	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint,
+			quality:FilterQuality = MEDIUM):AtlasInstance
 	{
 		var bitmap:BitmapData;
 		var bounds:FlxRect;
@@ -214,8 +216,16 @@ class FilterRenderer
 						filters[i] = blur;
 
 						#if desktop
-						blur.blurX = Math.pow(blur.blurX / scale.x, 0.571);
-						blur.blurY = Math.pow(blur.blurY / scale.y, 0.571);
+						// value... fresh from my ass
+						var qualityFactor:Float = switch (quality)
+						{
+							case HIGH: 1.25;
+							case MEDIUM: 1.75;
+							case LOW: 2.0;
+							case RUDY: 2.5;
+						}
+						blur.blurX = Math.pow(blur.blurX, 0.85) / (scale.x * qualityFactor);
+						blur.blurY = Math.pow(blur.blurY, 0.85) / (scale.y * qualityFactor);
 						#else
 						blur.blurX /= scale.x;
 						blur.blurY /= scale.y;
@@ -335,6 +345,7 @@ class FilterRenderer
 			bmp.__renderTransform.translate(point.x, point.y);
 
 		renderer.__setRenderTarget(bitmap);
+		renderer.__scissorRect(null);
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
 		bmp.__renderTransform.identity();
 
@@ -436,7 +447,8 @@ class FilterRenderer
 	#else
 	// Basic Flash filter baking impl
 	// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
-	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint,
+			quality:FilterQuality = MEDIUM):AtlasInstance
 	{
 		var filteredBounds:FlxRect = movieclip.getBounds(0);
 		expandFilterBounds(filteredBounds, filters);
@@ -464,7 +476,6 @@ class FilterRenderer
 		var element = new AtlasInstance();
 		element.frame = frame;
 		element.matrix = mat;
-		scale.put();
 
 		return element;
 	}

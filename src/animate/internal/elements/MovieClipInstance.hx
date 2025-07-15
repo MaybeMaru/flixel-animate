@@ -1,6 +1,8 @@
 package animate.internal.elements;
 
+import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson;
+import animate.internal.elements.AtlasInstance;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
@@ -25,7 +27,8 @@ class MovieClipInstance extends SymbolInstance
 	@:allow(animate.internal.FilterRenderer)
 	var _dirty:Bool = false;
 	var _filters:Array<BitmapFilter> = null;
-	var _bakedFrames:Array<AtlasInstance>;
+	var _filterQuality:FilterQuality = FilterQuality.MEDIUM;
+	var _bakedFrames:BakedFramesVector;
 
 	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -36,7 +39,10 @@ class MovieClipInstance extends SymbolInstance
 		// Add settings from parent frames
 		@:privateAccess {
 			if (parent != null && parent._settings != null)
+			{
 				swfMode = parent._settings.swfMode ?? false;
+				_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
+			}
 		}
 
 		if (data == null)
@@ -77,10 +83,7 @@ class MovieClipInstance extends SymbolInstance
 		this._dirty = true;
 
 		if (_bakedFrames != null)
-		{
-			for (i in 0..._bakedFrames.length)
-				_bakedFrames[i] = FlxDestroyUtil.destroy(_bakedFrames[i]);
-		}
+			_bakedFrames.dispose();
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
@@ -102,28 +105,44 @@ class MovieClipInstance extends SymbolInstance
 		}
 
 		if (_bakedFrames == null)
-		{
-			_bakedFrames = [];
-			for (i in 0...this.libraryItem.timeline.frameCount)
-				_bakedFrames.push(null);
-		}
+			_bakedFrames = new BakedFramesVector(this.libraryItem.timeline.frameCount);
 
 		if (_bakedFrames[frameIndex] != null)
 			return;
 
 		var scale = FlxPoint.get(1, 1);
+		var pixelFactor:Float = 1.0;
+		var qualityFactor:Float = 1.0;
+
+		switch (_filterQuality)
+		{
+			case HIGH: // No scaling
+			case MEDIUM:
+				pixelFactor = 16;
+				qualityFactor = 1.75;
+			case LOW:
+				pixelFactor = 12;
+				qualityFactor = 2.0;
+			case RUDY:
+				pixelFactor = 8;
+				qualityFactor = 2.5;
+		}
 
 		for (filter in filters)
 		{
 			if (filter is BlurFilter)
 			{
 				var blur:BlurFilter = cast filter;
-				scale.x *= Math.max(((blur.blurX) / 16) * (blur.quality * 1.75), 1);
-				scale.y *= Math.max(((blur.blurY) / 16) * (blur.quality * 1.75), 1);
+				if (_filterQuality != FilterQuality.HIGH)
+				{
+					var qualityMult = FlxMath.remapToRange(blur.quality, 0, 3, 1, 3) * qualityFactor;
+					scale.x *= Math.max(((blur.blurX) / pixelFactor) * qualityMult, 1);
+					scale.y *= Math.max(((blur.blurY) / pixelFactor) * qualityMult, 1);
+				}
 			}
 		}
 
-		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters, scale);
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters, scale, _filterQuality);
 		scale.put();
 
 		if (bakedFrame == null)
@@ -133,11 +152,9 @@ class MovieClipInstance extends SymbolInstance
 		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 
-		if (_dirty)
-		{
-			if (_bakedFrames.indexOf(null) == -1)
-				_dirty = false;
-		}
+		// All frames have been baked
+		if (_dirty && _bakedFrames.isFull())
+			_dirty = false;
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
@@ -155,7 +172,7 @@ class MovieClipInstance extends SymbolInstance
 		if (_bakedFrames != null)
 		{
 			var index = getFrameIndex(index, frameIndex);
-			var bakedFrame = _bakedFrames[Std.int(FlxMath.bound(index, 0, _bakedFrames.length - 1))];
+			var bakedFrame = _bakedFrames.findFrame(index);
 
 			if (bakedFrame != null)
 			{
@@ -168,15 +185,66 @@ class MovieClipInstance extends SymbolInstance
 		super._drawTimeline(camera, index, frameIndex, mat, transform, blend, antialiasing, shader);
 	}
 
-	override function destroy()
+	override function destroy():Void
 	{
 		super.destroy();
 		_filters = null;
-		_bakedFrames = FlxDestroyUtil.destroyArray(_bakedFrames);
+
+		if (_bakedFrames != null)
+		{
+			_bakedFrames.dispose();
+			_bakedFrames = null;
+		}
 	}
 
 	override function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
 		return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
 	}
+}
+
+abstract BakedFramesVector(Array<AtlasInstance>)
+{
+	public inline function new(length:Int)
+	{
+		this = [];
+		for (i in 0...length)
+			this.push(null);
+	}
+
+	public inline function isFull():Bool
+	{
+		return this.indexOf(null) == -1;
+	}
+
+	public inline function dispose():Void
+	{
+		for (i => frame in this)
+		{
+			if (frame == null)
+				continue;
+
+			// Manually clear the baked bitmaps
+			if (frame.frame != null)
+			{
+				frame.frame.parent = FlxDestroyUtil.destroy(frame.frame.parent);
+				frame.frame = FlxDestroyUtil.destroy(frame.frame);
+			}
+
+			this[i] = FlxDestroyUtil.destroy(frame);
+		}
+	}
+
+	public inline function findFrame(index:Int):Null<AtlasInstance>
+	{
+		return this[Std.int(FlxMath.bound(index, 0, this.length - 1))];
+	}
+
+	@:arrayAccess
+	public inline function get(index:Int):AtlasInstance
+		return this[index];
+
+	@:arrayAccess
+	public inline function set(index:Int, value:AtlasInstance):AtlasInstance
+		return this[index] = value;
 }
