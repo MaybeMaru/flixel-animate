@@ -59,7 +59,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		this.addedCollections = [];
 	}
 
-	public function getSymbol(name:String)
+	/**
+	 * Returns a ``SymbolItem`` object contained inside the texture atlas dictionary/library.
+	 *
+	 * @param name Name of the symbol item to return.
+	 * @return ``SymbolItem`` found with the given name, null if not found.
+	 */
+	public function getSymbol(name:String):Null<SymbolItem>
 	{
 		if (dictionary.exists(name))
 			return dictionary.get(name);
@@ -259,7 +265,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		// stage background color
 		var w = metadata.W;
 		var h = metadata.H;
-		frames.stageRect = (w > 0 && h > 0) ? FlxRect.get(0, 0, w, h) : FlxRect.get();
+		frames.stageRect = (w > 0 && h > 0) ? FlxRect.get(0, 0, w, h) : FlxRect.get(0, 0, 1280, 720);
 		frames.stageColor = FlxColor.fromString(metadata.BGC);
 
 		// stage instance of the main symbol
@@ -368,10 +374,32 @@ typedef SpritemapInput =
 	json:String
 }
 
-enum abstract FilterQuality(Int)
+enum abstract FilterQuality(Int) to Int
 {
 	var HIGH = 0;
 	var MEDIUM = 1;
 	var LOW = 2;
 	var RUDY = 3;
+
+	public inline function getQualityFactor():Float
+	{
+		return switch (this)
+		{
+			case FilterQuality.MEDIUM: 1.75;
+			case FilterQuality.LOW: 2.0;
+			case FilterQuality.RUDY: 2.25;
+			default: 1.0;
+		}
+	}
+
+	public inline function getPixelFactor():Float
+	{
+		return switch (this)
+		{
+			case FilterQuality.MEDIUM: 16.0;
+			case FilterQuality.LOW: 12.0;
+			case FilterQuality.RUDY: 8.0;
+			default: 1.0;
+		}
+	}
 }

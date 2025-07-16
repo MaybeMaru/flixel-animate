@@ -111,22 +111,8 @@ class MovieClipInstance extends SymbolInstance
 			return;
 
 		var scale = FlxPoint.get(1, 1);
-		var pixelFactor:Float = 1.0;
-		var qualityFactor:Float = 1.0;
-
-		switch (_filterQuality)
-		{
-			case HIGH: // No scaling
-			case MEDIUM:
-				pixelFactor = 16;
-				qualityFactor = 1.75;
-			case LOW:
-				pixelFactor = 12;
-				qualityFactor = 2.0;
-			case RUDY:
-				pixelFactor = 8;
-				qualityFactor = 2.5;
-		}
+		var pixelFactor:Float = _filterQuality.getPixelFactor();
+		var qualityFactor:Float = _filterQuality.getQualityFactor();
 
 		for (filter in filters)
 		{

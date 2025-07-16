@@ -212,18 +212,12 @@ class FilterRenderer
 
 					if (filter is BlurFilter)
 					{
-						var blur:BlurFilter = cast filter.clone();
+						final blur:BlurFilter = cast filter.clone();
 						filters[i] = blur;
 
 						#if desktop
 						// value... fresh from my ass
-						var qualityFactor:Float = switch (quality)
-						{
-							case HIGH: 1.25;
-							case MEDIUM: 1.75;
-							case LOW: 2.0;
-							case RUDY: 2.5;
-						}
+						final qualityFactor:Float = (quality == FilterQuality.HIGH) ? 1.25 : quality.getQualityFactor();
 						blur.blurX = Math.pow(blur.blurX, 0.85) / (scale.x * qualityFactor);
 						blur.blurY = Math.pow(blur.blurY, 0.85) / (scale.y * qualityFactor);
 						#else
