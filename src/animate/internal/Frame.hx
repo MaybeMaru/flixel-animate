@@ -17,6 +17,9 @@ import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
+import openfl.media.Sound;
+
+using StringTools;
 
 @:allow(animate.internal.Layer)
 class Frame implements IFlxDestroyable
@@ -198,7 +201,20 @@ class Frame implements IFlxDestroyable
 
 		if (frame.SND != null)
 		{
-			sound = FlxG.sound.load(parent.path + '/LIBRARY/' + frame.SND.N);
+			final soundPath:String = parent.path + '/LIBRARY/' + frame.SND.N;
+
+			#if (cpp || hl) // Default sound loading has issues with WAV files on native for some reason
+			if (soundPath.endsWith(".wav"))
+			{
+				var bytes = FlxAnimateAssets.getBytes(soundPath);
+				var buffer = lime.media.AudioBuffer.fromBytes(bytes);
+				var openflSound = Sound.fromAudioBuffer(buffer);
+				sound = FlxG.sound.load(openflSound);
+				return;
+			}
+			#end
+
+			sound = FlxG.sound.load(soundPath);
 		}
 	}
 

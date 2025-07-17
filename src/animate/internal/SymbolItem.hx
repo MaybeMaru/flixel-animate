@@ -43,11 +43,11 @@ class SymbolItem implements IFlxDestroyable
 		var instance:SymbolInstance;
 		switch (type)
 		{
-			case GRAPHIC:
+			case ElementType.GRAPHIC:
 				instance = new SymbolInstance();
-			case MOVIECLIP:
+			case ElementType.MOVIECLIP:
 				instance = new MovieClipInstance();
-			case BUTTON:
+			case ElementType.BUTTON:
 				instance = new ButtonInstance();
 			default:
 				FlxG.log.warn('Invalid Symbol Instance type.');
