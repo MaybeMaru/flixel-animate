@@ -485,10 +485,15 @@ class FilterRenderer
 			return null;
 
 		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
-		var masker = getBitmap((cam, mat) -> maskerFrame.draw(cam, currentFrame, mat, null, null, false, null), maskerBounds);
+		if (maskerBounds.isEmpty) // Has no masker, render as normal
+			return null;
 
 		var maskedBounds = frame.getBounds(currentFrame - frame.index);
-		var masked = getBitmap((cam, mat) -> frame.draw(cam, currentFrame, mat, null, null, false, null), maskedBounds);
+		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
+			return new AtlasInstance();
+
+		var masker = getBitmap((cam, mat) -> maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, false, null), maskerBounds);
+		var masked = getBitmap((cam, mat) -> frame._drawElements(cam, currentFrame, mat, null, NORMAL, false, null), maskedBounds);
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
 		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);
@@ -500,13 +505,15 @@ class FilterRenderer
 		element.frame = frame;
 		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
 
+		FlxDestroyUtil.dispose(masker);
+
 		return element;
 	}
 
 	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect)
 	{
 		var cam = CamPool.get();
-		cam.buffer.unlock();
+		cam.buffer.lock();
 		cam.buffer.fillRect(new Rectangle(0, 0, cam.buffer.width, cam.buffer.height), FlxColor.TRANSPARENT);
 
 		var mat = new FlxMatrix();
@@ -520,41 +527,38 @@ class FilterRenderer
 		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
 		bitmap.copyPixels(cam.buffer, bitmap.rect, new Point(), null, null, true);
 		cam.put();
-		cam.buffer.lock();
+		cam.buffer.unlock();
 
 		return bitmap;
 	}
 
 	static function maskBitmap(masked:BitmapData, masker:BitmapData):BitmapData
 	{
-		var width = Std.int(Math.min(masked.width, masker.width));
-		var height = Std.int(Math.min(masked.height, masker.height));
-		var result = new BitmapData(width, height, true, 0);
-
 		masked.lock();
 		masker.lock();
-		result.lock();
 
-		for (y in 0...height)
+		for (y in 0...masked.height)
 		{
-			for (x in 0...width)
+			for (x in 0...masked.width)
 			{
 				var maskColor:FlxColor = masker.getPixel32(x, y);
 				var maskAlpha = maskColor.alphaFloat;
 				if (maskAlpha <= 0)
+				{
+					masked.setPixel32(x, y, FlxColor.TRANSPARENT);
 					continue;
+				}
 
 				var finalColor:FlxColor = masked.getPixel32(x, y);
 				finalColor.alphaFloat *= maskAlpha;
-				result.setPixel32(x, y, finalColor);
+				masked.setPixel32(x, y, finalColor);
 			}
 		}
 
 		masked.unlock();
 		masker.unlock();
-		result.unlock();
 
-		return result;
+		return masked;
 	}
 	#end
 
