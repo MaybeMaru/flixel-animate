@@ -4,7 +4,6 @@ import animate.internal.filters.AdjustColorFilter;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
-import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BitmapFilterType;
 import openfl.filters.BlurFilter;
@@ -160,7 +159,7 @@ abstract SymbolInstanceJson(Dynamic)
 	public var LP(get, never):String;
 	public var MX(get, never):MatrixJson;
 
-	public var B(get, never):Null< #if flash Int #else BlendMode #end>;
+	public var B(get, never):Null< #if flash Int #else openfl.display.BlendMode #end>;
 	public var C(get, never):Null<ColorJson>;
 	public var F(get, never):Null<Array<FilterJson>>;
 

@@ -18,6 +18,11 @@ import haxe.io.Path;
 
 using StringTools;
 
+#if (target.threaded)
+import sys.thread.Lock;
+import sys.thread.Thread;
+#end
+
 /**
  * Settings used when first loading a texture atlas.
  * @param swfMode 			Used if the movieclips of the symbol should render similarly to SWF files. Disabled by default.
@@ -196,14 +201,46 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		}
 
 		// Load all spritemaps
-		for (sm in listSpritemaps(path))
+		final spritemapList = listSpritemaps(path);
+		final spritemapLength = spritemapList.length;
+		final loadSpritemap = (id:String) ->
 		{
-			var id = sm.split("spritemap")[1].split(".")[0];
 			spritemaps.push({
 				source: getGraphic(path + '/spritemap$id.png'),
 				json: getTextFromPath(path + '/spritemap$id.json')
 			});
 		}
+
+		// Use multithreading for multispritemap texture atlases, if available by the target
+		#if (!flash && target.threaded)
+		var lock:Null<Lock> = null;
+		if (spritemapLength > 1)
+			lock = new Lock();
+		#end
+
+		for (i in 0...spritemapLength)
+		{
+			final id:String = spritemapList[i].split("spritemap")[1].split(".")[0];
+
+			#if (!flash && target.threaded)
+			if (i != spritemapLength - 1)
+			{
+				Thread.create(() ->
+				{
+					loadSpritemap(id);
+					lock.release();
+				});
+				continue;
+			}
+			#end
+
+			loadSpritemap(id);
+		}
+
+		#if (!flash && target.threaded)
+		for (i in 0...spritemapLength - 1)
+			lock.wait();
+		#end
 
 		return _fromAnimateInput(animation, spritemaps, metadata, key ?? path, isInlined, libraryList, settings);
 	}
