@@ -47,25 +47,29 @@ class FlxSpriteElement extends Element
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
-		if (sprite == null)
+		if (sprite == null || !sprite.visible || sprite.alpha <= 0.0)
 			return;
+
+		var hasTransform = transform != null;
+		if (hasTransform)
+		{
+			if (transform.alphaMultiplier <= 0.0)
+				return;
+
+			_transform.setMultipliers(1, 1, 1, 1);
+			_transform.setOffsets(0, 0, 0, 0);
+			_transform.concat(transform);
+		}
 
 		// if (sprite.animation.curAnim != null)
 		//	sprite.animation.curAnim.curFrame = index;
 		sprite.update(FlxG.elapsed);
 
+		// Prepare all necessary render values
 		var _blend = sprite.blend;
 		var _camera = sprite.camera;
 		_point.set(sprite.x, sprite.y);
 		_angle = sprite.angle;
-
-		var hasTransform = transform != null;
-		if (hasTransform)
-		{
-			_transform.setMultipliers(1, 1, 1, 1);
-			_transform.setOffsets(0, 0, 0, 0);
-			_transform.concat(transform);
-		}
 
 		var x = parentMatrix.transformX(sprite.x, sprite.y);
 		var y = parentMatrix.transformY(sprite.x, sprite.y);
@@ -73,21 +77,21 @@ class FlxSpriteElement extends Element
 
 		sprite.setPosition(0, 0);
 		var screenPoint = sprite.getScreenPosition(_screenPoint, camera);
-
 		sprite.setPosition(x - screenPoint.x, y - screenPoint.y);
+
+		// Apply sprite render values
 		sprite.angle += Math.atan2(parentMatrix.b, parentMatrix.a) * 180 / Math.PI;
 		if (hasTransform)
 			sprite.colorTransform.concat(transform);
 		sprite.blend = b;
 		sprite.antialiasing = antialiasing;
-
 		sprite.camera = camera;
 
-		if (sprite.visible)
-			sprite.draw();
+		// Finally render the sprite
+		sprite.draw();
 
-		sprite.x = _point.x;
-		sprite.y = _point.y;
+		// Apply back the og sprite's values
+		sprite.setPosition(_point.x, _point.y);
 		sprite.angle = _angle;
 		sprite.blend = _blend;
 		sprite.camera = _camera;

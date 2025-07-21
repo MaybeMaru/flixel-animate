@@ -80,7 +80,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			case "LP" | "loop":
 				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
 			case "PO" | "playonce":
-				frameIndex = Std.int(Math.min(frameIndex, frameCount - 1));
+				frameIndex = FlxMath.minInt(frameIndex, frameCount - 1);
 			case "SF" | "singleframe":
 				frameIndex = firstFrame;
 		}

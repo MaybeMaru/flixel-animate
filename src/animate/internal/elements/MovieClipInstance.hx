@@ -197,13 +197,17 @@ class MovieClipInstance extends SymbolInstance
 	}
 }
 
-abstract BakedFramesVector(Array<AtlasInstance>)
+extern abstract BakedFramesVector(Array<AtlasInstance>)
 {
 	public inline function new(length:Int)
 	{
+		#if cpp
+		this = cpp.NativeArray.create(length);
+		#else
 		this = [];
 		for (i in 0...length)
 			this.push(null);
+		#end
 	}
 
 	public inline function isFull():Bool
@@ -231,7 +235,9 @@ abstract BakedFramesVector(Array<AtlasInstance>)
 
 	public inline function findFrame(index:Int):Null<AtlasInstance>
 	{
-		return this[Std.int(FlxMath.bound(index, 0, this.length - 1))];
+		final max:Int = this.length - 1;
+		final lowerBound:Int = (index < 0) ? 0 : index;
+		return this[(lowerBound > max) ? max : lowerBound];
 	}
 
 	@:arrayAccess

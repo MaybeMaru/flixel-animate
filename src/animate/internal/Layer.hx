@@ -1,6 +1,7 @@
 package animate.internal;
 
 import animate.FlxAnimateJson.LayerJson;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
@@ -49,7 +50,7 @@ class Layer implements IFlxDestroyable
 	 */
 	public function getFrameAtIndex(index:Int):Null<Frame>
 	{
-		index = Std.int(Math.max(index, 0));
+		index = FlxMath.maxInt(index, 0);
 		if (index > (frameCount - 1))
 			return null;
 
