@@ -160,8 +160,8 @@ class MovieClipInstance extends SymbolInstance
 		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
-	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, mat:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
-			antialiasing:Null<Bool>, shader:Null<FlxShader>)
+	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, transform:Null<ColorTransform>,
+			blend:Null<BlendMode>, antialiasing:Null<Bool>, shader:Null<FlxShader>)
 	{
 		if (_bakedFrames != null)
 		{
@@ -171,12 +171,12 @@ class MovieClipInstance extends SymbolInstance
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)
-					bakedFrame.draw(camera, 0, null, mat, transform, blend, antialiasing, shader);
+					bakedFrame.draw(camera, 0, null, parentMatrix, transform, blend, antialiasing, shader);
 				return;
 			}
 		}
 
-		super._drawTimeline(camera, index, frameIndex, mat, transform, blend, antialiasing, shader);
+		super._drawTimeline(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
 	override function destroy():Void

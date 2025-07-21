@@ -50,6 +50,7 @@ import flixel.util.FlxColor;
 @:access(openfl.filters.BitmapFilter)
 @:access(lime.graphics.Image)
 @:access(openfl.display3D.textures.TextureBase)
+@:access(animate.internal.elements.MovieClipInstance)
 #end
 class FilterRenderer
 {
@@ -190,15 +191,18 @@ class FilterRenderer
 		var bitmap:BitmapData;
 		var bounds:FlxRect;
 		var filteredBounds:FlxRect;
-		var initialDirty:Bool = movieclip._dirty;
+
+		var resultFilteredBounds:FlxRect;
+		var scaledFilters:Array<BitmapFilter> = [];
 
 		bitmap = renderToBitmap((cam, mat) ->
 		{
-			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
+			bounds = movieclip.getBounds(frameIndex, null, null, false);
+			@:privateAccess
+			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), movieclip._filters);
 
-			movieclip._dirty = false;
-			movieclip.draw(cam, frameIndex, null, mat, null, null, false, null);
-			movieclip._dirty = initialDirty;
+			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
+			movieclip._drawTimeline(cam, frameIndex, 0, mat, null, NORMAL, false, null);
 			cam.render();
 
 			if (filters != null && filters.length > 0)
@@ -216,6 +220,11 @@ class FilterRenderer
 						filters[i] = blur;
 
 						#if desktop
+						var copyBlur:BlurFilter = cast blur.clone();
+						copyBlur.blurX /= scale.x;
+						copyBlur.blurY /= scale.y;
+						scaledFilters.push(copyBlur);
+
 						// value... fresh from my ass
 						final qualityFactor:Float = (quality == FilterQuality.HIGH) ? 1.25 : quality.getQualityFactor();
 						blur.blurX = Math.pow(blur.blurX, 0.85) / (scale.x * qualityFactor);
@@ -223,31 +232,32 @@ class FilterRenderer
 						#else
 						blur.blurX /= scale.x;
 						blur.blurY /= scale.y;
+						scaledFilters.push(blur);
 						#end
+					}
+					else
+					{
+						scaledFilters.push(filter);
 					}
 				}
 			}
 
-			bounds = movieclip.getBounds(frameIndex, null, null, false);
-			@:privateAccess
-			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), movieclip._filters);
-
 			var gfx = cam.canvas.graphics;
-			filteredBounds.copyToFlash(gfx.__bounds);
-			gfx.__bounds.x /= scale.x;
-			gfx.__bounds.y /= scale.y;
-			gfx.__bounds.width /= scale.x;
-			gfx.__bounds.height /= scale.y;
+			var gfxBounds = gfx.__bounds;
+			resultFilteredBounds = expandFilterBounds(FlxRect.get().copyFromFlash(gfxBounds), scaledFilters);
+			resultFilteredBounds.copyToFlash(gfxBounds);
 		});
-
-		// TODO: expand the bounds after rendering to save on temp bitmap sizes
 
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
 		filterFrame(frame, filters);
 
+		// Small offset to account for pixel-innacuracies
+		var xOffset:Float = ((resultFilteredBounds.width * scale.x) - filteredBounds.width) / 2;
+		var yOffset:Float = ((resultFilteredBounds.height * scale.y) - filteredBounds.height) / 2;
+
 		var mat = new FlxMatrix();
 		mat.scale(scale.x, scale.y);
-		mat.translate(filteredBounds.x, filteredBounds.y);
+		mat.translate(filteredBounds.x - xOffset, filteredBounds.y - yOffset);
 		movieclip.matrix.identity();
 
 		var element = new AtlasInstance();
@@ -450,10 +460,7 @@ class FilterRenderer
 		@:privateAccess
 		var bitmap:BitmapData = getBitmap((cam, mat) ->
 		{
-			var initialDirty:Bool = movieclip._dirty;
-			movieclip._dirty = false;
-			movieclip.draw(cam, frameIndex, null, mat, null, null, false, null);
-			movieclip._dirty = initialDirty;
+			movieclip._drawTimeline(cam, frameIndex, 0, mat, null, NORMAL, false, null);
 		}, filteredBounds);
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
 
@@ -638,6 +645,12 @@ class FilterRenderer
 class CamPool extends FlxCamera implements IFlxPooled
 {
 	public static final pool:FlxPool<CamPool> = new FlxPool(PoolFactory.fromFunction(() -> new CamPool()));
+
+	public function new()
+	{
+		super();
+		pixelPerfectRender = true;
+	}
 
 	public static function get()
 	{

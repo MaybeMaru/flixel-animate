@@ -356,8 +356,7 @@ abstract FilterJson(Dynamic)
 				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR, Q, IN, KK);
 				return gf;
 
-				// TODO: add bevel support for other targets
-				// case "bevelFilter" | "BF":
+				// TODO: add missing filters support for other targets
 				// case "gradientBevelFilter" | "GBF":
 				// case "gradientGlowFilter" | "GGF":
 

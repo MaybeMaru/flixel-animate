@@ -21,6 +21,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public var firstFrame:Int;
 	public var loopType:String;
 
+	var isColored:Bool;
 	var transform:ColorTransform;
 	var _transform:ColorTransform;
 
@@ -36,10 +37,15 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		this.matrix = data.MX.toMatrix();
 		this.loopType = data.LP;
 		this.firstFrame = data.FF;
+		this.isColored = false;
+
+		if (libraryItem == null)
+			visible = false;
 
 		var color = data.C;
 		if (color != null)
 		{
+			isColored = true;
 			transform = new ColorTransform();
 			_transform = new ColorTransform();
 			switch (color.M)
@@ -60,9 +66,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 					transform.setOffsets(c.red * m, c.green * m, c.blue * m, 0.0);
 			}
 		}
-
-		if (libraryItem == null)
-			visible = false;
 	}
 
 	/**
@@ -112,11 +115,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		_mat.copyFrom(matrix);
-		_mat.concat(parentMatrix);
-
-		// Is colored
-		if (this.transform != null)
+		if (isColored) // Concat symbol's color to the current color transform
 		{
 			var t = this.transform;
 			_transform.setMultipliers(t.redMultiplier, t.greenMultiplier, t.blueMultiplier, t.alphaMultiplier);
@@ -127,21 +126,23 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 			transform = _transform;
 
-			if (transform.alphaMultiplier <= 0 && !Frame.__isDirtyCall) // TODO: make this shit work without this lol
+			if (transform.alphaMultiplier <= 0)
 				return;
 		}
 
 		var b = Blend.resolve(this.blend, blend);
 		var frameIndex = tlFrame != null ? tlFrame.index : 0;
 
-		_drawTimeline(camera, index, frameIndex, _mat, transform, b, antialiasing, shader);
+		_drawTimeline(camera, index, frameIndex, parentMatrix, transform, b, antialiasing, shader);
 	}
 
-	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, mat:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
+	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
 			antialiasing:Null<Bool>, shader:Null<FlxShader>)
 	{
+		_mat.copyFrom(matrix);
+		_mat.concat(parentMatrix);
 		libraryItem.timeline.currentFrame = getFrameIndex(index, frameIndex);
-		libraryItem.timeline.draw(camera, mat, transform, blend, antialiasing, shader);
+		libraryItem.timeline.draw(camera, _mat, transform, blend, antialiasing, shader);
 	}
 
 	override function destroy()
