@@ -1,5 +1,6 @@
 package animate;
 
+import animate.FlxAnimateFrames.FlxAnimateSettings;
 import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
@@ -37,7 +38,7 @@ class FlxAnimate extends FlxSprite
 
 	public var skew(default, null):FlxPoint;
 
-	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset)
+	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset, ?settings:FlxAnimateSettings)
 	{
 		var loadedAnimateAtlas:Bool = false;
 		if (simpleGraphic != null && simpleGraphic is String)
@@ -49,7 +50,7 @@ class FlxAnimate extends FlxSprite
 		super(x, y, loadedAnimateAtlas ? null : simpleGraphic);
 
 		if (loadedAnimateAtlas)
-			frames = FlxAnimateFrames.fromAnimate(simpleGraphic);
+			frames = FlxAnimateFrames.fromAnimate(simpleGraphic, null, null, null, false, settings);
 	}
 
 	override function initVars()

@@ -33,14 +33,15 @@ class MovieClipInstance extends SymbolInstance
 	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		super(data, parent, frame);
-
 		this.elementType = MOVIECLIP;
 
 		// Add settings from parent frames
+		var cacheOnLoad:Bool = false;
 		@:privateAccess {
 			if (parent != null && parent._settings != null)
 			{
 				swfMode = parent._settings.swfMode ?? false;
+				cacheOnLoad = parent._settings.cacheOnLoad ?? false;
 				_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
 			}
 		}
@@ -69,6 +70,13 @@ class MovieClipInstance extends SymbolInstance
 		// Set whole frame for blending
 		// if (this.blend != null && !Blend.isGpuSupported(this.blend))
 		//	frame._dirty = true;
+
+		// Cache all frames on start, if set by the settings
+		if (cacheOnLoad && _dirty)
+		{
+			for (i in 0...this.libraryItem.timeline.frameCount)
+				_bakeFilters(_filters, getFrameIndex(i, 0));
+		}
 	}
 
 	/**

@@ -178,12 +178,28 @@ class Layer implements IFlxDestroyable
 			}
 		}
 
-		if (isMasked)
+		if (!isMasked)
+			return;
+
+		// Add settings from parent frames
+		var cacheOnLoad:Bool = false;
+		@:privateAccess {
+			if (parent != null && parent._settings != null)
+				cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+		}
+
+		for (frame in frames)
 		{
-			for (frame in frames)
+			if (frame.elements.length <= 0)
+				continue;
+
+			frame._dirty = true;
+
+			// Cache all frames on start, if set by the settings
+			if (cacheOnLoad)
 			{
-				if (frame.elements.length > 0)
-					frame._dirty = true;
+				for (i in 0...frame.duration)
+					frame._bakeFrame(i);
 			}
 		}
 	}

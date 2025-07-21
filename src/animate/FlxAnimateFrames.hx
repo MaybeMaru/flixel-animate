@@ -25,8 +25,14 @@ import sys.thread.Thread;
 
 /**
  * Settings used when first loading a texture atlas.
+ *
  * @param swfMode 			Used if the movieclips of the symbol should render similarly to SWF files. Disabled by default.
  * 							See ``animate.internal.elements.MovieClipInstance`` for more.
+ *
+ * @param cacheOnLoad		If to cache all necessary filters and masks when the texture atlas is first loaded. Disabled by default.
+ *							This setting may be useful for reducing lag on filter heavy atlases. But take into account that
+ *							it can also heavily increase loading times.
+ *
  * @param filterQuality		Level of compression used to render filters. Set to ``MEDIUM`` by default.
  *							``HIGH`` 	-> Will render filters at their full quality, with no resolution loss.
  *							``MEDIUM`` 	-> Will apply some lossless compression to the filter, most recommended option.
@@ -36,9 +42,8 @@ import sys.thread.Thread;
 typedef FlxAnimateSettings =
 {
 	?swfMode:Bool,
+	?cacheOnLoad:Bool,
 	?filterQuality:FilterQuality
-	// TODO: add more settings
-	// As an idea, a filter quality setting could be useful
 }
 
 /**
