@@ -131,18 +131,16 @@ class FilterRenderer
 		if (gfx.__bounds == null)
 			return null;
 
-		var cacheRTT = renderer.__context3D.__state.renderToTexture;
-		var cacheRTTDepthStencil = renderer.__context3D.__state.renderToTextureDepthStencil;
-		var cacheRTTAntiAlias = renderer.__context3D.__state.renderToTextureAntiAlias;
-		var cacheRTTSurfaceSelector = renderer.__context3D.__state.renderToTextureSurfaceSelector;
+		var context = renderer.__context3D;
+		var cacheRTT = context.__state.renderToTexture;
+		var cacheRTTDepthStencil = context.__state.renderToTextureDepthStencil;
+		var cacheRTTAntiAlias = context.__state.renderToTextureAntiAlias;
+		var cacheRTTSurfaceSelector = context.__state.renderToTextureSurfaceSelector;
 
-		var bounds = gfx.__owner.getBounds(null);
+		var bounds = gfx.__bounds;
 		var bmp = new BitmapData(Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
 
 		renderer.__worldTransform.translate(-bounds.x, -bounds.y);
-
-		var context = renderer.__context3D;
-
 		renderer.__setRenderTarget(bmp);
 		context.setRenderToTexture(bmp.getTexture(context));
 
@@ -154,18 +152,12 @@ class FilterRenderer
 		var renderBuffer = bmp.getTexture(context);
 
 		@:privateAccess
-		gl.readPixels(0, 0, Math.round(bmp.width), Math.round(bmp.height), renderBuffer.__format, gl.UNSIGNED_BYTE, bmp.image.data);
+		gl.readPixels(0, 0, bmp.width, bmp.height, renderBuffer.__format, gl.UNSIGNED_BYTE, bmp.image.data);
 		bmp.image.version = 0;
 		bmp.__textureVersion = -1;
 
-		if (cacheRTT != null)
-		{
-			renderer.__context3D.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias, cacheRTTSurfaceSelector);
-		}
-		else
-		{
-			renderer.__context3D.setRenderToBackBuffer();
-		}
+		(cacheRTT != null) ? context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias,
+			cacheRTTSurfaceSelector) : context.setRenderToBackBuffer();
 
 		return bmp;
 	}
