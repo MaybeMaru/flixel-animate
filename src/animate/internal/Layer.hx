@@ -110,12 +110,13 @@ class Layer implements IFlxDestroyable
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect ??= FlxRect.get();
+
 		var frame = getFrameAtIndex(frameIndex);
 		if (frame != null)
 			return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters);
 
-		if (matrix != null)
-			Timeline.applyMatrixToRect(rect, matrix);
+		Timeline.applyMatrixToRect(rect, matrix);
+
 		return rect;
 	}
 

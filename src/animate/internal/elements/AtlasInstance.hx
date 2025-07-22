@@ -158,12 +158,13 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
 		rect = super.getBounds(0, rect);
-		rect.set(0, 0, frame.frame.width, frame.frame.height);
+
+		if (frame != null)
+			rect.set(0, 0, frame.frame.width, frame.frame.height);
 
 		Timeline.applyMatrixToRect(rect, tileMatrix);
 		Timeline.applyMatrixToRect(rect, this.matrix);
-		if (matrix != null)
-			Timeline.applyMatrixToRect(rect, matrix);
+		Timeline.applyMatrixToRect(rect, matrix);
 
 		return rect;
 	}

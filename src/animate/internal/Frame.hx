@@ -57,6 +57,7 @@ class Frame implements IFlxDestroyable
 		if (_bakedFrames != null)
 		{
 			_bakedFrames = null;
+			_bakedIndices = null;
 			_dirty = true;
 		}
 	}
@@ -221,6 +222,7 @@ class Frame implements IFlxDestroyable
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
 	var _bakedFrames:BakedFramesVector;
+	var _bakedIndices:Array<Int>;
 
 	function _bakeFrame(frameIndex:Int):Void
 	{
@@ -230,9 +232,31 @@ class Frame implements IFlxDestroyable
 			return;
 		}
 
+		// Prepare vector to store masks
 		if (_bakedFrames == null)
 			_bakedFrames = new BakedFramesVector(duration);
 
+		// Prepare indices vector
+		// This is used as a way to save on the necessary bitmaps to render a mask
+		if (_bakedIndices == null)
+		{
+			var isSimpleRender:Bool = true;
+			for (element in elements)
+			{
+				if (element is AtlasInstance)
+					continue;
+
+				if (!element.toSymbolInstance().isSimpleSymbol())
+				{
+					isSimpleRender = false;
+					break;
+				}
+			}
+
+			_bakedIndices = isSimpleRender ? [for (i in 0...duration) 0] : [for (i in 0...duration) i];
+		}
+
+		frameIndex = _bakedIndices[frameIndex];
 		if (_bakedFrames[frameIndex] != null)
 			return;
 
@@ -266,7 +290,7 @@ class Frame implements IFlxDestroyable
 
 		if (_bakedFrames != null)
 		{
-			var bakedFrame = _bakedFrames[currentFrame - this.index];
+			var bakedFrame = _bakedFrames[_bakedIndices[currentFrame - this.index]];
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)

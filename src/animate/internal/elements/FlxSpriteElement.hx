@@ -111,8 +111,7 @@ class FlxSpriteElement extends Element
 		if (sprite != null)
 			bounds = sprite.getScreenBounds(bounds);
 
-		if (matrix != null)
-			bounds = Timeline.applyMatrixToRect(bounds, matrix);
+		Timeline.applyMatrixToRect(bounds, matrix);
 
 		return bounds;
 	}

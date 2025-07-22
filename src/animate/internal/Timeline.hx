@@ -320,8 +320,11 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:noCompletion
-	public static function applyMatrixToRect(rect:FlxRect, m:FlxMatrix):FlxRect
+	public static function applyMatrixToRect(rect:FlxRect, ?m:FlxMatrix):FlxRect
 	{
+		if (m == null)
+			return rect;
+
 		var tx0 = m.a * rect.left + m.c * rect.top;
 		var tx1 = tx0;
 		var ty0 = m.b * rect.left + m.d * rect.top;

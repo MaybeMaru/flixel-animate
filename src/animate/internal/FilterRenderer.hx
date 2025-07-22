@@ -73,18 +73,23 @@ class FilterRenderer
 		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
 			return new AtlasInstance();
 
-		var masker = renderToBitmap((cam, mat) ->
+		var masked:Null<BitmapData> = renderToBitmap((cam, mat) ->
+		{
+			frame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
+			cam.render();
+			if (cam.canvas.graphics.__bounds != null)
+				cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
+		});
+
+		// Nothing was rendered on the mask
+		if (masked == null)
+			return new AtlasInstance();
+
+		var masker:Null<BitmapData> = renderToBitmap((cam, mat) ->
 		{
 			maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
 			cam.render();
 			cam.canvas.graphics.__bounds = maskerBounds.copyToFlash(new Rectangle());
-		});
-
-		var masked = renderToBitmap((cam, mat) ->
-		{
-			frame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
-			cam.render();
-			cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
 		});
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
@@ -165,7 +170,7 @@ class FilterRenderer
 		return bmp;
 	}
 
-	static function renderToBitmap(draw:(FlxCamera, FlxMatrix) -> Void):BitmapData
+	static function renderToBitmap(draw:(FlxCamera, FlxMatrix) -> Void):Null<BitmapData>
 	{
 		final lastDirtyCall:Bool = Frame.__isDirtyCall;
 		Frame.__isDirtyCall = true;
@@ -174,7 +179,7 @@ class FilterRenderer
 		var gfx = cam.canvas.graphics;
 		draw(cam, new FlxMatrix());
 
-		var bitmap:BitmapData = renderGfx(gfx);
+		var bitmap:Null<BitmapData> = renderGfx(gfx);
 
 		cam.clearDrawStack();
 		gfx.clear();

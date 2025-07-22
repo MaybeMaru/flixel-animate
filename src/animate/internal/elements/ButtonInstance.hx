@@ -47,8 +47,7 @@ class ButtonInstance extends SymbolInstance
 	{
 		var boundsIndex = FlxMath.minInt(ButtonState.HIT, this.libraryItem.timeline.frameCount - 1);
 		var bounds = this.libraryItem.timeline.getBounds(boundsIndex, false, rect, this.matrix);
-		if (matrix != null)
-			bounds = Timeline.applyMatrixToRect(bounds, matrix);
+		Timeline.applyMatrixToRect(bounds, matrix);
 		return bounds;
 	}
 

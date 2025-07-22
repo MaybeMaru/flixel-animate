@@ -69,9 +69,10 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	}
 
 	/**
-	 * Returns the timeline frame index needed to be rendered at a specific frameIndex
+	 * Returns the timeline frame index needed to be rendered at a specific frame, while taking loop types into consideration.
 	 * @param index 		Index of the timeline to render.
 	 * @param frameIndex 	Optional, relative frame index of the current keyframe the symbol instance is stored at.
+	 * @return				Found frame index for rendering at a specific frame.
 	 */
 	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
@@ -89,6 +90,25 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		return frameIndex;
+	}
+
+	/**
+	 * Method used internally to check if a symbol has simple rendering (one frame).
+	 * @return If the symbol has simple rendering or not.
+	 */
+	public function isSimpleSymbol():Bool
+	{
+		var timeline = libraryItem.timeline;
+
+		if (timeline.frameCount == 1)
+			return true;
+
+		if (loopType == "SF" || loopType == "singleframe")
+			return true;
+
+		// TODO: more indepth check through layers
+
+		return false;
 	}
 
 	var _tmpMatrix:FlxMatrix = new FlxMatrix();

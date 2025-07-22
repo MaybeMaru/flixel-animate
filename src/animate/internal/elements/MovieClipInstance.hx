@@ -195,6 +195,11 @@ class MovieClipInstance extends SymbolInstance
 	{
 		return swfMode ? super.getFrameIndex(index, frameIndex) : 0;
 	}
+
+	override function isSimpleSymbol():Bool
+	{
+		return swfMode ? super.isSimpleSymbol() : true;
+	}
 }
 
 extern abstract BakedFramesVector(Array<AtlasInstance>)
