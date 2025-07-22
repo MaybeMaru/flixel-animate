@@ -255,7 +255,6 @@ class FilterRenderer
 		var mat = new FlxMatrix();
 		mat.scale(scale.x, scale.y);
 		mat.translate(filteredBounds.x - xOffset, filteredBounds.y - yOffset);
-		movieclip.matrix.identity();
 
 		var element = new AtlasInstance();
 		element.frame = frame;
@@ -469,7 +468,6 @@ class FilterRenderer
 
 		var mat = new FlxMatrix();
 		mat.translate(filteredBounds.left, filteredBounds.top);
-		movieclip.matrix.identity();
 
 		var element = new AtlasInstance();
 		element.frame = frame;
