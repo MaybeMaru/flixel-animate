@@ -52,6 +52,21 @@ sprite.anim.addByFrameLabel("labelAnim", "frameLabelName");
 sprite.anim.addByFrameLabelIndices("labelIndicesAnim", "frameLabelName", [0, 1, 2, 3])
 ```
 
+### Load Settings
+
+When first loading a texture atlas, there are some settings available to change several factors
+about how the texture atlas will be rendered and cached. For more information check [the docs](https://github.com/MaybeMaru/flixel-animate/blob/main/src/animate/FlxAnimateFrames.hx#L37).
+
+Here's a small sample of how to use the currently available settings:
+
+```haxe
+var frames = FlxAnimateFrames.fromAnimate('path/to/atlas', {
+   swfMode: false,         // If to render like in a SWF file, rather than the Animate editor.
+   cacheOnLoad: false,     // If to precache all animation filters and masks at once, rather than at runtime.
+   filterQuality: MEDIUM   // Level of quality used to render filters. (HIGH, MEDIUM, LOW, RUDY)
+});
+```
+
 ## Installation
 
 To install ``flixel-animate``, there are two ways to obtain it:
