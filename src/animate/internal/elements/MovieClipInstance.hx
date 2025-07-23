@@ -136,6 +136,9 @@ class MovieClipInstance extends SymbolInstance
 			}
 		}
 
+		scale.x /= Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
+		scale.y /= Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
+
 		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters, scale, _filterQuality);
 		scale.put();
 
