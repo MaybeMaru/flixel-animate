@@ -198,7 +198,7 @@ class Layer implements IFlxDestroyable
 			frame._dirty = true;
 
 			// Cache all frames on start, if set by the settings
-			if (cacheOnLoad)
+			if (cacheOnLoad) // TODO: fix some size issues when using cacheOnLoad with masks
 			{
 				for (i in 0...frame.duration)
 					frame._bakeFrame(i);

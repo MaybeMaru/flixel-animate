@@ -145,15 +145,8 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	static function listWithFilter(path:String, filter:String->Bool)
 	{
-		var list:Array<String> = [];
-
-		for (i in FlxAnimateAssets.list(path, TEXT, path.substring(0, path.indexOf(':'))))
-		{
-			if (filter(i))
-				list.push(i.split("/").pop());
-		}
-
-		return list;
+		var list = FlxAnimateAssets.list(path, null, path.substring(0, path.indexOf(':')));
+		return list.filter(filter);
 	}
 
 	static function getGraphic(path:String):FlxGraphic
@@ -162,12 +155,6 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			return FlxG.bitmap.get(path);
 
 		return FlxG.bitmap.add(FlxAnimateAssets.getBitmapData(path), false, path);
-	}
-
-	static function listSpritemaps(path:String):Array<String>
-	{
-		final filter = (str:String) -> return str.contains("spritemap") && str.endsWith(".json");
-		return listWithFilter(path, filter);
 	}
 
 	var _loadedData:AnimationJson;
@@ -201,12 +188,17 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		}
 
 		// Load all spritemaps
-		for (sm in listSpritemaps(path))
+		var spritemapList = listWithFilter(path, (file) -> file.startsWith("spritemap"));
+		var jsonList = spritemapList.filter((file) -> file.endsWith(".json"));
+
+		for (sm in jsonList)
 		{
 			var id = sm.split("spritemap")[1].split(".")[0];
+			var imageFile = spritemapList.filter((file) -> file.startsWith('spritemap$id') && !file.endsWith(".json"))[0];
+
 			spritemaps.push({
-				source: getGraphic(path + '/spritemap$id.png'),
-				json: getTextFromPath(path + '/spritemap$id.json')
+				source: getGraphic('$path/$imageFile'),
+				json: getTextFromPath('$path/$sm')
 			});
 		}
 

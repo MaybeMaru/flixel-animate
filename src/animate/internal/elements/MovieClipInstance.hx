@@ -237,7 +237,7 @@ extern abstract BakedFramesVector(Array<AtlasInstance>)
 				frame.frame = FlxDestroyUtil.destroy(frame.frame);
 			}
 
-			this[i] = FlxDestroyUtil.destroy(frame);
+			set(i, FlxDestroyUtil.destroy(frame));
 		}
 	}
 
@@ -245,14 +245,14 @@ extern abstract BakedFramesVector(Array<AtlasInstance>)
 	{
 		final max:Int = this.length - 1;
 		final lowerBound:Int = (index < 0) ? 0 : index;
-		return this[(lowerBound > max) ? max : lowerBound];
+		return get((lowerBound > max) ? max : lowerBound);
 	}
 
 	@:arrayAccess
 	public inline function get(index:Int):AtlasInstance
-		return this[index];
+		return #if cpp cpp.NativeArray.unsafeGet(this, index) #else this[index] #end;
 
 	@:arrayAccess
 	public inline function set(index:Int, value:AtlasInstance):AtlasInstance
-		return this[index] = value;
+		return #if cpp cpp.NativeArray.unsafeSet(this, index, value) #else this[index] = value #end;
 }

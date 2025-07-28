@@ -130,7 +130,7 @@ class FlxAnimateAssets
 				return sys.FileSystem.readDirectory(path);
 		#end
 
-		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length)));
+		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length))).map((str) -> str.split("/").pop());
 	}
 }
 
