@@ -161,6 +161,16 @@ class Frame implements IFlxDestroyable
 		return rect;
 	}
 
+	public inline function iterator()
+	{
+		return elements.iterator();
+	}
+
+	public inline function keyValueIterator()
+	{
+		return elements.keyValueIterator();
+	}
+
 	@:allow(animate.internal.Layer)
 	function _loadJson(frame:FrameJson, parent:FlxAnimateFrames):Void
 	{

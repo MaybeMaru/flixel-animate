@@ -218,6 +218,16 @@ class Timeline implements IFlxDestroyable
 		return rect;
 	}
 
+	public inline function iterator()
+	{
+		return layers.iterator();
+	}
+
+	public inline function keyValueIterator()
+	{
+		return layers.keyValueIterator();
+	}
+
 	@:allow(animate.FlxAnimateController)
 	private function signalFrameChange(frameIndex:Int):Void
 	{

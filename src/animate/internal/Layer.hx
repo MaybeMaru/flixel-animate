@@ -120,6 +120,16 @@ class Layer implements IFlxDestroyable
 		return rect;
 	}
 
+	public inline function iterator()
+	{
+		return frames.iterator();
+	}
+
+	public inline function keyValueIterator()
+	{
+		return frames.keyValueIterator();
+	}
+
 	@:allow(animate.internal.Timeline)
 	function _loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
 	{
