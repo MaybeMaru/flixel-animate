@@ -512,9 +512,18 @@ class FilterRenderer
 		return element;
 	}
 
-	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect)
+	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect, forceDirty:Bool = true)
 	{
 		var cam = CamPool.get();
+
+		if ((cam.buffer.width < rect.width) || (cam.buffer.height < rect.height))
+		{
+			var lastBuffer = cam.buffer;
+			cam.buffer = new BitmapData(Math.ceil(Math.max(lastBuffer.width, rect.width)), Math.ceil(Math.max(lastBuffer.height, rect.height)));
+			lastBuffer.dispose();
+			lastBuffer.disposeImage();
+		}
+
 		cam.buffer.lock();
 		cam.buffer.fillRect(new Rectangle(0, 0, cam.buffer.width, cam.buffer.height), FlxColor.TRANSPARENT);
 
@@ -522,7 +531,7 @@ class FilterRenderer
 		mat.translate(-rect.left, -rect.top);
 
 		final lastDirtyCall:Bool = Frame.__isDirtyCall;
-		Frame.__isDirtyCall = true;
+		Frame.__isDirtyCall = forceDirty;
 		draw(cam, mat);
 		Frame.__isDirtyCall = lastDirtyCall;
 

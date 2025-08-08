@@ -26,18 +26,62 @@ import flixel.FlxG;
 
 class FlxAnimate extends FlxSprite
 {
+	/**
+	 * Whether to draw the hitboxes of limbs in a Texture Atlas animation.
+	 */
 	public static var drawDebugLimbs:Bool = false;
 
-	public var anim(default, set):FlxAnimateController = null;
-	public var library(default, null):FlxAnimateFrames;
-	public var isAnimate(default, null):Bool = false;
-	public var timeline(default, null):Timeline;
-
-	public var applyStageMatrix:Bool = false;
-	public var renderStage:Bool = false;
-
+	/**
+	 * Change the skew of your sprite's graphic.
+	 */
 	public var skew(default, null):FlxPoint;
 
+	/**
+	 * Class that handles adding and playing animations on this sprite.
+	 * Can be interchanged or act as a replacement of ``animation``.
+	 * Only exists as a way to access missing add animation functions for Texture Atlas.
+	 */
+	public var anim(default, set):FlxAnimateController = null;
+
+	/**
+	 * Class that contains all the animation data for a Texture Atlas.
+	 * Can be used to get symbol items, timelines, etc.
+	 */
+	public var library(default, null):FlxAnimateFrames;
+
+	/**
+	 * Whether the sprite is currently handling a Texture Atlas animation or not.
+	 */
+	public var isAnimate(default, null):Bool = false;
+
+	/**
+	 * Current ``Timeline`` object being rendered from a Texture Atlas animation.
+	 */
+	public var timeline(default, null):Timeline;
+
+	/**
+	 * Whether to apply the stage matrix of the Texture Atlas, if it
+	 * was exported from a symbol instance.
+	 */
+	public var applyStageMatrix:Bool = false;
+
+	/**
+	 * Whether to render the colored background rectangle found in Adobe Animate.
+	 * Only available for Texture Atlases exported using BetterTextureAtlas.
+	 * @see https://github.com/Dot-Stuff/BetterTextureAtlas
+	 */
+	public var renderStage:Bool = false;
+
+	/**
+	 * Creates a `FlxAnimate` at a specified position with a specified one-frame graphic or Texture Atlas path.
+	 * If none is provided, a 16x16 image of the HaxeFlixel logo is used.
+	 *
+	 * @param   x               The initial X position of the sprite.
+	 * @param   y               The initial Y position of the sprite.
+	 * @param   simpleGraphic   (OPTIONAL) The graphic or Texture Atlas you want to display.
+	 * @param	settings		(OPTIONAL) The settings used to load the Texture Atlas from ``simpleGraphic``.
+	 *
+	 */
 	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset, ?settings:FlxAnimateSettings)
 	{
 		var loadedAnimateAtlas:Bool = false;
@@ -243,22 +287,37 @@ class FlxAnimate extends FlxSprite
 		if (timeline == null || !dirty)
 			return framePixels;
 
+		if (framePixels != null)
+		{
+			framePixels.dispose();
+			framePixels.disposeImage();
+		}
+
 		@:privateAccess
 		{
-			var mat = new FlxMatrix(checkFlipX() ? -1 : 1, 0, 0, checkFlipY() ? -1 : 1, 0, 0);
+			final bounds = timeline._bounds;
+			final flipX = checkFlipX();
+			final flipY = checkFlipY();
+			final mat = new FlxMatrix(flipX ? -1 : 1, 0, 0, flipY ? -1 : 1, flipX ? bounds.width : 0, flipY ? bounds.height : 0);
 
 			#if flash
-			framePixels = animate.internal.FilterRenderer.getBitmap((cam, _) -> timeline.draw(cam, mat, null, NORMAL, true, null), timeline._bounds);
+			framePixels = animate.internal.FilterRenderer.getBitmap((cam, m) ->
+			{
+				m.concat(mat);
+				timeline.draw(cam, m, null, NORMAL, true, null);
+			}, bounds, false);
 			#else
+			// TODO: optimize this to use FilterRenderer stuff
+			var resultMat = new FlxMatrix(1, 0, 0, 1, -bounds.x, -bounds.y);
+			resultMat.concat(mat);
+			mat.identity();
+
 			var cam = new FlxCamera();
-			Frame.__isDirtyCall = true;
-			timeline.draw(cam, mat, null, NORMAL, true, null);
-			Frame.__isDirtyCall = false;
+			timeline.draw(cam, resultMat, null, NORMAL, true, null);
 			cam.render();
 
-			var bounds = timeline._bounds;
 			framePixels = new BitmapData(Std.int(bounds.width), Std.int(bounds.height), true, 0);
-			framePixels.draw(cam.canvas, new openfl.geom.Matrix(1, 0, 0, 1, -bounds.x, -bounds.y), null, null, null, true);
+			framePixels.draw(cam.canvas, mat, null, null, null, true);
 			cam.canvas.graphics.clear();
 			#end
 		}
