@@ -312,7 +312,7 @@ class FlxAnimate extends FlxSprite
 			resultMat.concat(mat);
 			mat.identity();
 
-			var cam = new FlxCamera();
+			var cam = new FlxCamera(0, 0, Math.ceil(bounds.width), Math.ceil(bounds.height));
 			timeline.draw(cam, resultMat, null, NORMAL, true, null);
 			cam.render();
 

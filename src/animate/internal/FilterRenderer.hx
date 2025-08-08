@@ -514,7 +514,7 @@ class FilterRenderer
 
 	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect, forceDirty:Bool = true)
 	{
-		var cam = CamPool.get();
+		var cam = CamPool.getForBounds(rect);
 
 		if ((cam.buffer.width < rect.width) || (cam.buffer.height < rect.height))
 		{
@@ -654,6 +654,14 @@ class CamPool extends FlxCamera implements IFlxPooled
 	{
 		super();
 		pixelPerfectRender = true;
+	}
+
+	// TODO: use this as a replacement of Frame.__isDirtyCall
+	public static function getForBounds(rect:FlxRect)
+	{
+		var cam = get();
+		cam.setSize(Math.ceil(Math.max(rect.width, cam.width)), Math.ceil(Math.max(rect.height, cam.height)));
+		return cam;
 	}
 
 	public static function get()
