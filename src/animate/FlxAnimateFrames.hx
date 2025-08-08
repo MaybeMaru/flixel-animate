@@ -202,16 +202,38 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			});
 		}
 
+		if (spritemaps.length <= 0)
+		{
+			FlxG.log.warn('No spritemaps were found for key "$path". Is the texture atlas incomplete?');
+			return null;
+		}
+
 		return _fromAnimateInput(animation, spritemaps, metadata, key ?? path, isInlined, libraryList, settings);
 	}
 
 	static function _fromAnimateInput(animation:String, spritemaps:Array<SpritemapInput>, ?metadata:String, ?path:String, ?isInlined:Bool = true,
 			?libraryList:Array<String>, settings:FlxAnimateSettings):FlxAnimateFrames
 	{
-		var animation:AnimationJson = Json.parse(animation);
+		var animData:AnimationJson = null;
+		try
+		{
+			animData = Json.parse(animation);
+		}
+		catch (e)
+		{
+			FlxG.log.warn('Couldnt load Animation.json with input "$animation". Is the texture atlas missing?');
+			return null;
+		}
+
+		if (spritemaps == null || spritemaps.length <= 0)
+		{
+			FlxG.log.warn('No spritemaps were added for key "$path".');
+			return null;
+		}
+
 		var frames = new FlxAnimateFrames(null);
 		frames.path = path;
-		frames._loadedData = animation;
+		frames._loadedData = animData;
 		frames._isInlined = isInlined;
 		frames._libraryList = libraryList;
 		frames._settings = settings;
@@ -241,7 +263,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			spritemapCollection.addSpritemap(graphic);
 		}
 
-		var symbols = animation.SD;
+		var symbols = animData.SD;
 		if (symbols != null && symbols.length > 0)
 		{
 			var i = symbols.length - 1;
@@ -253,10 +275,10 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			}
 		}
 
-		var metadata:MetadataJson = (metadata == null) ? animation.MD : Json.parse(metadata);
+		var metadata:MetadataJson = (metadata == null) ? animData.MD : Json.parse(metadata);
 
 		frames.frameRate = metadata.FRT;
-		frames.timeline = new Timeline(animation.AN.TL, frames, animation.AN.SN);
+		frames.timeline = new Timeline(animData.AN.TL, frames, animData.AN.SN);
 		frames.dictionary.set(frames.timeline.name, new SymbolItem(frames.timeline)); // Add main symbol to the library too
 
 		// stage background color
@@ -266,7 +288,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames.stageColor = FlxColor.fromString(metadata.BGC);
 
 		// stage instance of the main symbol
-		var stageInstance:Null<SymbolInstanceJson> = animation.AN.STI;
+		var stageInstance:Null<SymbolInstanceJson> = animData.AN.STI;
 		frames.matrix = (stageInstance != null) ? stageInstance.MX.toMatrix() : new FlxMatrix();
 
 		// clear the temp data crap

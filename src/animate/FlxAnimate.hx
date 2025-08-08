@@ -31,7 +31,7 @@ class FlxAnimate extends FlxSprite
 	public var anim(default, set):FlxAnimateController = null;
 	public var library(default, null):FlxAnimateFrames;
 	public var isAnimate(default, null):Bool = false;
-	public var timeline:Timeline;
+	public var timeline(default, null):Timeline;
 
 	public var applyStageMatrix:Bool = false;
 	public var renderStage:Bool = false;
@@ -63,7 +63,7 @@ class FlxAnimate extends FlxSprite
 
 	override function set_frames(frames:FlxFramesCollection):FlxFramesCollection
 	{
-		isAnimate = frames != null && (frames is FlxAnimateFrames);
+		isAnimate = (frames != null) && (frames is FlxAnimateFrames);
 
 		var resultFrames = super.set_frames(frames);
 

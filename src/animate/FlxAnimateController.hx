@@ -10,6 +10,7 @@ import flixel.util.FlxDestroyUtil;
 
 using StringTools;
 
+@:access(animate.FlxAnimate)
 class FlxAnimateController extends FlxAnimationController
 {
 	public function addByFrameLabel(name:String, label:String, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool, ?timeline:Timeline):Void
