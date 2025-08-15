@@ -95,7 +95,7 @@ class FlxAnimateAssets
 		return null;
 	}
 
-	public static dynamic function list(path:String, ?type:AssetType, ?library:String):Array<String>
+	public static dynamic function list(path:String, ?type:AssetType, ?library:String, includeSubDirectories:Bool = false):Array<String>
 	{
 		var result:Array<String> = null;
 
@@ -126,11 +126,36 @@ class FlxAnimateAssets
 		// Fallback to filesystem for non-library assets
 		#if (sys && desktop)
 		if (library == null || library.length == 0)
+		{
 			if (sys.FileSystem.exists(path))
-				return sys.FileSystem.readDirectory(path);
+			{
+				var files:Array<String> = sys.FileSystem.readDirectory(path);
+				var result:Array<String> = [];
+				var checkSubDirectory:String->Void = null;
+
+				checkSubDirectory = (file) ->
+				{
+					if (sys.FileSystem.isDirectory('$path/$file') && includeSubDirectories)
+					{
+						var files = sys.FileSystem.readDirectory('$path/$file').map((subFile) -> '$file/$subFile');
+						for (file in files)
+							checkSubDirectory(file);
+					}
+					else
+					{
+						result.push(file);
+					}
+				};
+
+				for (file in files)
+					checkSubDirectory(file);
+
+				return result;
+			}
+		}
 		#end
 
-		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length))).map((str) -> str.split("/").pop());
+		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length))).map((str) -> str.split('$path/').pop());
 	}
 }
 

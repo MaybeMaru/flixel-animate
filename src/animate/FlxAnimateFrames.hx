@@ -143,9 +143,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return FlxAnimateAssets.getText(path).replace(String.fromCharCode(0xFEFF), "");
 	}
 
-	static function listWithFilter(path:String, filter:String->Bool)
+	static function listWithFilter(path:String, filter:String->Bool, includeSubDirectories:Bool = false)
 	{
-		var list = FlxAnimateAssets.list(path, null, path.substring(0, path.indexOf(':')));
+		var list = FlxAnimateAssets.list(path, null, path.substring(0, path.indexOf(':')), includeSubDirectories);
 		return list.filter(filter);
 	}
 
@@ -183,12 +183,16 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		if (!isInlined)
 		{
-			var list = listWithFilter(path + "/LIBRARY", (str) -> str.endsWith(".json"));
-			libraryList = list.map((str) -> Path.withoutExtension(Path.withoutDirectory(str)));
+			var list = listWithFilter(path + "/LIBRARY", (str) -> str.endsWith(".json"), true);
+			libraryList = list.map((str) ->
+			{
+				str = str.split("/LIBRARY/").pop();
+				return Path.withoutExtension(str);
+			});
 		}
 
 		// Load all spritemaps
-		var spritemapList = listWithFilter(path, (file) -> file.startsWith("spritemap"));
+		var spritemapList = listWithFilter(path, (file) -> file.startsWith("spritemap"), false);
 		var jsonList = spritemapList.filter((file) -> file.endsWith(".json"));
 
 		for (sm in jsonList)
