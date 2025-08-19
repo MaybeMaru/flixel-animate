@@ -80,7 +80,7 @@ class Frame implements IFlxDestroyable
 		for (element in elements)
 			frame.add(element);
 
-		var timeline = new animate.internal.Timeline(null, null, "tempSymbol");
+		var timeline = new animate.internal.Timeline(null, layer.timeline.parent, "tempSymbol");
 		var layer = new Layer(timeline);
 
 		layer.frames.push(frame);

@@ -72,7 +72,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 */
 	public function getSymbol(name:String):Null<SymbolItem>
 	{
-		if (dictionary.exists(name))
+		if (existsSymbol(name))
 			return dictionary.get(name);
 
 		if (_isInlined)
@@ -112,6 +112,12 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		FlxG.log.warn('SymbolItem with name "$name" doesnt exist.');
 		return null;
+	}
+
+	// TODO: add docs
+	public function existsSymbol(name:String)
+	{
+		return (dictionary.exists(name));
 	}
 
 	/**

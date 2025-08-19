@@ -22,10 +22,10 @@ class Timeline implements IFlxDestroyable
 	public var name:String;
 	public var currentFrame:Int;
 	public var frameCount:Int;
+	public var parent(default, null):FlxAnimateFrames;
 
 	var _layerMap:Map<String, Layer>;
 	var _bounds:FlxRect;
-	var parent:FlxAnimateFrames;
 
 	public function new(?timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
 	{

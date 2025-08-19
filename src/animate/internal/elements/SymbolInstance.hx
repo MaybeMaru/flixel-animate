@@ -20,6 +20,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public var blend:BlendMode;
 	public var firstFrame:Int;
 	public var loopType:String;
+	public var symbolName(get, never):String;
 
 	var isColored:Bool;
 	var transform:ColorTransform;
@@ -66,6 +67,17 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 					transform.setOffsets(c.red * m, c.green * m, c.blue * m, 0.0);
 			}
 		}
+	}
+
+	public extern overload inline function setColorTransform(rMult:Float = 1, gMult:Float = 1, bMult:Float = 1, aMult:Float = 1, rOffset:Float = 0,
+			gOffset:Float, bOffset:Float = 0, aOffset:Float = 0):Void
+	{
+		_setColorTransform(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
+	}
+
+	public extern overload inline function setColorTransform(color:FlxColor):Void
+	{
+		_setColorTransform(color.redFloat, color.greenFloat, color.blueFloat, 1, 0, 0, 0, 0);
 	}
 
 	/**
@@ -115,6 +127,11 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
 	{
+		// TODO: look into this
+		// Patch-on fix for a really weird fucking bug
+		if (libraryItem != null && libraryItem.timeline.parent.existsSymbol(symbolName))
+			libraryItem = libraryItem.timeline.parent.getSymbol(symbolName);
+
 		// Prepare the bounds matrix
 		var targetMatrix:FlxMatrix;
 		if (matrix != null)
@@ -163,6 +180,19 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		_mat.concat(parentMatrix);
 		libraryItem.timeline.currentFrame = getFrameIndex(index, frameIndex);
 		libraryItem.timeline.draw(camera, _mat, transform, blend, antialiasing, shader);
+	}
+
+	function _setColorTransform(rMult:Float, gMult:Float, bMult:Float, aMult:Float, rOffset:Float, gOffset:Float, bOffset:Float, aOffset:Float)
+	{
+		transform ??= new ColorTransform();
+		_transform ??= new ColorTransform();
+		isColored = true;
+		transform.set(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
+	}
+
+	inline function get_symbolName():String
+	{
+		return libraryItem?.name;
 	}
 
 	override function destroy()
