@@ -187,7 +187,9 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		transform ??= new ColorTransform();
 		_transform ??= new ColorTransform();
 		isColored = true;
-		transform.set(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
+
+		transform.setMultipliers(rMult, gMult, bMult, aMult);
+		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
 	}
 
 	inline function get_symbolName():String
