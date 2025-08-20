@@ -21,6 +21,7 @@ import openfl.media.Sound;
 
 using StringTools;
 
+@:access(animate.FlxAnimateFrames)
 @:allow(animate.internal.Layer)
 class Frame implements IFlxDestroyable
 {

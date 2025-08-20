@@ -135,7 +135,7 @@ class FlxAnimate extends FlxSprite
 			return;
 		}
 
-		if (alpha <= 0.0 || Math.abs(scale.x) < FlxPoint.EPSILON || Math.abs(scale.y) < FlxPoint.EPSILON)
+		if (alpha <= 0.0 || Math.abs(scale.x) <= 0.0 || Math.abs(scale.y) <= 0.0)
 			return;
 
 		for (camera in #if (flixel >= "5.7.0") this.getCamerasLegacy() #else this.cameras #end)

@@ -52,10 +52,37 @@ typedef FlxAnimateSettings =
  */
 class FlxAnimateFrames extends FlxAtlasFrames
 {
+	// TODO:
+	// public var instance:SymbolInstance;
+	// public var stageInstance:SymbolInstanceJson;
+
+	/**
+	 * The main ``Timeline`` that the Texture Atlas was exported from.
+	 */
 	public var timeline:Timeline;
-	public var instance:SymbolInstance;
-	public var dictionary:Map<String, SymbolItem>;
-	public var path:String;
+
+	/**
+	 * Rectangle with the resolution of the Animate stage background.
+	 * Defaults to 1280x720 if the Texture Atlas wasnt exported using BetterTA.
+	 */
+	public var stageRect:FlxRect;
+
+	/**
+	 * Color of the Animate stage background.
+	 * Defaults to WHITE if the Texture Atlas wasnt exported using BetterTA.
+	 */
+	public var stageColor:FlxColor;
+
+	/**
+	 * Matrix of the Texture Atlas on the Animate stage.
+	 * Defaults to an empty matrix if not exported from an instanced symbol.
+	 */
+	public var matrix:FlxMatrix; // TODO: to be replaced with library.instance
+
+	/**
+	 * Default frame rate that the Texture Atlas was exported from.
+	 */
+	public var frameRate:Float;
 
 	public function new(graphic:FlxGraphic)
 	{
@@ -114,10 +141,25 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return null;
 	}
 
-	// TODO: add docs
-	public function existsSymbol(name:String)
+	/**
+	 * Returns if a ``SymbolItem`` object is contained inside the texture atlas dictionary/library.
+	 *
+	 * @param name Name of the symbol item to check for.
+	 * @return Whether the symbol exists in the dictionary or not.
+	 */
+	public function existsSymbol(name:String):Bool
 	{
 		return (dictionary.exists(name));
+	}
+
+	/**
+	 * Adds a ``SymbolItem`` object to the texture atlas dictionary/library.
+	 *
+	 * @param name Name of the symbol item to add.
+	 */
+	public function setSymbol(name:String, symbolItem:SymbolItem):Void
+	{
+		dictionary.set(name, symbolItem);
 	}
 
 	/**
@@ -311,12 +353,8 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return frames;
 	}
 
-	// public var stageInstance:SymbolInstanceJson;
-	public var stageRect:FlxRect;
-	public var stageColor:FlxColor;
-	public var matrix:FlxMatrix;
-	public var frameRate:Float;
-
+	var dictionary:Map<String, SymbolItem>;
+	var path:String;
 	var addedCollections:Array<FlxAnimateFrames>;
 
 	override function addAtlas(collection:FlxAtlasFrames, overwriteHash:Bool = false):FlxAtlasFrames
