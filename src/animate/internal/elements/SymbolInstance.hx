@@ -125,7 +125,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	var _tmpMatrix:FlxMatrix = new FlxMatrix();
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		// TODO: look into this
 		// Patch-on fix for a really weird fucking bug
@@ -146,7 +146,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		// Get the bounds of the symbol item timeline
-		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix);
+		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix, includeFilters, useCachedBounds);
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,

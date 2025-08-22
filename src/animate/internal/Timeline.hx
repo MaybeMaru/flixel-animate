@@ -137,6 +137,7 @@ class Timeline implements IFlxDestroyable
 	 * @param rect					Optional, the rectangle used to input the final calculated values.
 	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 *								But, in case the user changed something from the Texture Atlas, a recache may be needed.
 	 * @return						A ``FlxRect`` with the complete timeline's bounds, empty if no elements were found.
 	 */
 	public function getWholeBounds(?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
@@ -147,7 +148,7 @@ class Timeline implements IFlxDestroyable
 
 		for (i in 0...this.frameCount)
 		{
-			var frameBounds = getBounds(i, includeHiddenLayers, tmpRect, matrix, includeFilters);
+			var frameBounds = getBounds(i, includeHiddenLayers, tmpRect, null, includeFilters, true);
 			if (frameBounds.isEmpty)
 				continue;
 
@@ -160,13 +161,13 @@ class Timeline implements IFlxDestroyable
 				rect = expandBounds(rect, frameBounds);
 		}
 
-		// Apply matrix in case the rect is empty
-		if (rect.isEmpty && matrix != null)
-			rect.set(matrix.tx, matrix.ty, 0, 0);
+		applyMatrixToRect(rect, matrix);
 
 		tmpRect.put();
 		return rect;
 	}
+
+	var _cachedBounds:Map<Int, FlxRect> = [];
 
 	/**
 	 * Returns the bounds of the timeline at a specific frame index.
@@ -176,15 +177,27 @@ class Timeline implements IFlxDestroyable
 	 * @param rect					Optional, the rectangle used to input the final calculated values.
 	 * @param matrix				Optional, the matrix to apply to the bounds calculation.
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
+	 * @param useCachedBounds		Optional, if to use previously cached bounds. Greatly improves the performance of the function, but wont work
+	 * 								if something from the Texture Atlas was manually changed by the user in code (i.e. frames, matrices, etc)
 	 * @return						A ``FlxRect`` with the timeline's bounds at an index, empty if no elements were found.
 	 */
-	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	public function getBounds(frameIndex:Int, ?includeHiddenLayers:Bool = false, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true,
+			?useCachedBounds:Bool = false):FlxRect
 	{
-		var first:Bool = true;
-		var tmpRect:FlxRect = FlxRect.get();
-
 		rect ??= FlxRect.get();
 		rect.set();
+
+		if (useCachedBounds)
+		{
+			if (_cachedBounds.exists(frameIndex))
+			{
+				rect.copyFrom(_cachedBounds.get(frameIndex));
+				return applyMatrixToRect(rect, matrix);
+			}
+		}
+
+		var first:Bool = true;
+		var tmpRect:FlxRect = FlxRect.get();
 
 		for (layer in layers)
 		{
@@ -197,7 +210,7 @@ class Timeline implements IFlxDestroyable
 				continue;
 
 			// Get the bounds of the frame at the index
-			var frameBounds = frame.getBounds((frameIndex - frame.index), tmpRect, matrix, includeFilters);
+			var frameBounds = frame.getBounds((frameIndex - frame.index), tmpRect, null, includeFilters, useCachedBounds);
 			if (frameBounds.isEmpty)
 				continue;
 
@@ -210,12 +223,26 @@ class Timeline implements IFlxDestroyable
 				expandBounds(rect, frameBounds);
 		}
 
-		// Apply matrix in case the rect is empty
-		if (rect.isEmpty && matrix != null)
-			rect.set(matrix.tx, matrix.ty, 0, 0);
+		applyMatrixToRect(rect, matrix);
+
+		if (useCachedBounds)
+			_cachedBounds.set(frameIndex, rect.copyTo(FlxRect.get()));
 
 		tmpRect.put();
 		return rect;
+	}
+
+	/**
+	 * Use this function to clear the currently cached timeline bounds.
+	 *
+	 * Some functions like ``getWholeBounds`` require the use of cached bounds to greatly save on performance.
+	 * However, if the user changed something about the Texture Atlas, a recache of those bounds may be neccesary.
+	 */
+	public function clearBoundsCache():Void
+	{
+		for (i in _cachedBounds.iterator())
+			i.put();
+		_cachedBounds.clear();
 	}
 
 	public inline function iterator()
@@ -289,6 +316,12 @@ class Timeline implements IFlxDestroyable
 		layers = FlxDestroyUtil.destroyArray(layers);
 		_bounds = FlxDestroyUtil.put(_bounds);
 		_layerMap = null;
+
+		if (_cachedBounds != null)
+		{
+			clearBoundsCache();
+			_cachedBounds = null;
+		}
 	}
 
 	public function toString():String
@@ -334,6 +367,9 @@ class Timeline implements IFlxDestroyable
 	{
 		if (m == null)
 			return rect;
+
+		if (rect.isEmpty)
+			return rect.set(m.tx, m.ty, 0, 0);
 
 		var tx0 = m.a * rect.left + m.c * rect.top;
 		var tx1 = tx0;

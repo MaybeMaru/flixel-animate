@@ -35,7 +35,7 @@ class AnimateElement<T> implements IFlxDestroyable
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
 	 * @return						A ``FlxRect`` with the complete frames's bounds at an index, empty if no elements were found.
 	 */
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		return rect ?? FlxRect.get();
 	}

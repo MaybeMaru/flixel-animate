@@ -107,13 +107,13 @@ class Layer implements IFlxDestroyable
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
 	 * @return						A ``FlxRect`` with the layer's bounds at an index, empty if no elements were found.
 	 */
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		rect ??= FlxRect.get();
 
 		var frame = getFrameAtIndex(frameIndex);
 		if (frame != null)
-			return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters);
+			return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters, useCachedBounds);
 
 		Timeline.applyMatrixToRect(rect, matrix);
 

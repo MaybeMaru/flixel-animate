@@ -94,9 +94,9 @@ class MovieClipInstance extends SymbolInstance
 			_bakedFrames.dispose();
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
-		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
+		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters, useCachedBounds);
 
 		if (!includeFilters || _filters == null || _filters.length <= 0)
 			return bounds;

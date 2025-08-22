@@ -117,7 +117,7 @@ class Frame implements IFlxDestroyable
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
 	 * @return						A ``FlxRect`` with the complete frames's bounds at an index, empty if no elements were found.
 	 */
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		rect ??= FlxRect.get();
 		rect.set();
@@ -130,23 +130,23 @@ class Frame implements IFlxDestroyable
 		}
 
 		// Get the filtered/masked bounds, if they exist
-		if (_bakedFrames != null)
-		{
-			var bakedFrame = _bakedFrames[frameIndex];
-			if (bakedFrame != null)
+		/*if (_bakedFrames != null)
 			{
-				bakedFrame.getBounds(frameIndex, rect, matrix, includeFilters);
-				return rect;
-			}
-		}
+				var bakedFrame = _bakedFrames[frameIndex];
+				if (bakedFrame != null)
+				{
+					bakedFrame.getBounds(frameIndex, rect, matrix, includeFilters);
+					return rect;
+				}
+		}*/
 
 		var tmpRect = FlxRect.get();
 
 		// Loop through the bounds of each element
-		rect = elements[0].getBounds(frameIndex, rect, matrix);
+		rect = elements[0].getBounds(frameIndex, rect, matrix, includeFilters, useCachedBounds);
 		for (i in 1...elements.length)
 		{
-			tmpRect = elements[i].getBounds(frameIndex, tmpRect, matrix);
+			tmpRect = elements[i].getBounds(frameIndex, tmpRect, matrix, includeFilters, useCachedBounds);
 			rect = Timeline.expandBounds(rect, tmpRect);
 		}
 
@@ -154,7 +154,7 @@ class Frame implements IFlxDestroyable
 		if (_dirty && this.layer.parentLayer != null)
 		{
 			tmpRect.set();
-			var maskerBounds = this.layer.parentLayer.getBounds(frameIndex + this.index, tmpRect, matrix);
+			var maskerBounds = this.layer.parentLayer.getBounds(frameIndex + this.index, tmpRect, matrix, includeFilters, useCachedBounds);
 			Timeline.maskBounds(rect, maskerBounds);
 		}
 

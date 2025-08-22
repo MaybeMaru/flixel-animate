@@ -152,7 +152,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			&& (bounds.y < camera.viewMarginBottom);
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		rect = super.getBounds(0, rect);
 
