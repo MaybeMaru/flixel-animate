@@ -1,11 +1,23 @@
 package animate.internal.filters;
 
-import haxe.ds.Vector;
 import openfl.display.BitmapData;
+import openfl.filters.BlurFilter;
+import openfl.geom.Point;
 
 #if lime
 class StackBlur
 {
+	public static function applyFilter(bitmap:BitmapData, filter:BlurFilter, point:Point)
+	{
+		#if web
+		@:privateAccess
+		lime._internal.graphics.ImageDataUtil.gaussianBlur(bitmap.image, bitmap.image, bitmap.rect.__toLimeRectangle(), point.__toLimeVector2(), filter.blurX,
+			filter.blurY, filter.quality);
+		#else
+		blur(bitmap, filter.blurX, filter.blurY, filter.quality);
+		#end
+	}
+
 	// TODO: do this with cpp bindings instead of haxe code
 	public static function blur(bitmap:BitmapData, blurX:Float, blurY:Float, quality:Int)
 	{

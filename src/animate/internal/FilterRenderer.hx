@@ -18,6 +18,7 @@ import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
+import openfl.filters.ColorMatrixFilter;
 import openfl.filters.DropShadowFilter;
 import openfl.filters.GlowFilter;
 import openfl.geom.ColorTransform;
@@ -298,31 +299,38 @@ class FilterRenderer
 		var _filterBmp2:BitmapData = null;
 
 		#if desktop
-		_filterBmp1 = new BitmapData(target.width, target.height, true, 0);
-
+		var needsSecondBitmap:Bool = false;
 		var needsPreserveObject:Bool = false;
+
 		for (filter in filters)
 		{
-			if (filter != null && filter.__preserveObject)
+			if (filter != null)
 			{
-				needsPreserveObject = true;
-				break;
+				if (filter.__needSecondBitmapData)
+					needsSecondBitmap = true;
+				if (filter.__preserveObject)
+					needsPreserveObject = true;
 			}
 		}
+
+		if (needsSecondBitmap)
+			_filterBmp1 = new BitmapData(target.width, target.height, true, 0);
 
 		if (needsPreserveObject)
 			_filterBmp2 = new BitmapData(_filterBmp1.width, _filterBmp1.height, true, 0);
 		#end
 
-		__applyFilter(target, _filterBmp1, _filterBmp2, bitmap, filters, point);
-
-		return target;
+		return __applyFilter(target, _filterBmp1, _filterBmp2, bitmap, filters, point);
 	}
 
-	static function __applyFilter(target:BitmapData, target1:BitmapData, ?target2:BitmapData, bmp:BitmapData, filters:Array<BitmapFilter>, ?point:Point)
+	static function __applyFilter(target:BitmapData, ?target1:BitmapData, ?target2:BitmapData, bmp:BitmapData, filters:Array<BitmapFilter>, ?point:Point)
 	{
 		if (filters == null || filters.length == 0)
 			return bmp;
+
+		var bitmap:BitmapData = target;
+		var bitmap2:BitmapData = target1 ?? bmp;
+		var bitmap3:BitmapData = target2;
 
 		renderer.__setBlendMode(NORMAL);
 		renderer.__worldAlpha = 1;
@@ -336,47 +344,23 @@ class FilterRenderer
 		renderer.__worldTransform.identity();
 		renderer.__worldColorTransform.__identity();
 
-		var bitmap:BitmapData = target;
-		var bitmap2:BitmapData = target1;
-		var bitmap3:BitmapData = target2;
-
 		bmp.__renderTransform.identity();
 		if (point != null)
+		{
 			bmp.__renderTransform.translate(point.x, point.y);
+		}
 
 		renderer.__setRenderTarget(bitmap);
 		renderer.__scissorRect(null);
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
-		bmp.__renderTransform.identity();
+
+		var point = Point.__pool.get();
 
 		#if desktop
-		var shader:Shader = null;
 		for (filter in filters)
 		{
-			if (filter == null)
-				continue;
-
-			var preserveObject = filter.__preserveObject;
-
-			if (preserveObject)
-			{
-				renderer.__setRenderTarget(bitmap3);
-				renderer.__renderFilterPass(bitmap, renderer.__defaultDisplayShader, filter.__smooth);
-			}
-
-			for (i in 0...filter.__numShaderPasses)
-			{
-				shader = filter.__initShader(renderer, i, preserveObject ? bitmap3 : null);
-				renderer.__setBlendMode(filter.__shaderBlendMode);
-				renderer.__setRenderTarget(bitmap2);
-				renderer.__renderFilterPass(bitmap, shader, filter.__smooth);
-				shader = null;
-
-				renderer.__setRenderTarget(bitmap);
-				renderer.__renderFilterPass(bitmap2, renderer.__defaultDisplayShader, filter.__smooth);
-			}
-
-			filter.__renderDirty = false;
+			if (filter != null)
+				bitmap = __renderGpuFilter(filter, bitmap, bitmap2, bitmap3);
 		}
 		#end
 
@@ -388,30 +372,70 @@ class FilterRenderer
 		bitmap.image.version = 0;
 		bitmap.__textureVersion = -1;
 
-		if (target1 != bitmap)
-			FlxDestroyUtil.dispose(target1);
-
-		FlxDestroyUtil.dispose(target2);
-
-		// Non-desktop targets perform better with hardware filters
-		// TODO: make gpu/hardware rendering dynamic
 		#if !desktop
 		for (filter in filters)
 		{
 			if (filter != null)
-			{
-				if (filter is BlurFilter)
-				{
-					var blur:BlurFilter = cast filter;
-					StackBlur.blur(bitmap, blur.blurX, blur.blurY, blur.quality);
-				}
-				else
-				{
-					bitmap.applyFilter(bitmap, bitmap.rect, new Point(), filter);
-				}
-			}
+				bitmap = __renderCpuFilter(filter, bitmap, point);
 		}
 		#end
+
+		if (bitmap2 != bmp) // in case the filter reuses the bitmap due to not needing a second one
+			FlxDestroyUtil.dispose(bitmap2);
+
+		FlxDestroyUtil.dispose(bitmap3);
+
+		Point.__pool.release(point);
+
+		return bitmap;
+	}
+
+	static function __renderGpuFilter(filter:BitmapFilter, bitmap:BitmapData, bitmap2:BitmapData, bitmap3:BitmapData)
+	{
+		final preserveObject:Bool = filter.__preserveObject;
+		final sourceBitmap:Null<BitmapData> = preserveObject ? bitmap3 : null;
+
+		if (preserveObject)
+		{
+			renderer.__setRenderTarget(bitmap3);
+			renderer.__renderFilterPass(bitmap, renderer.__defaultDisplayShader, filter.__smooth);
+		}
+
+		var shader:Shader = null;
+		for (i in 0...filter.__numShaderPasses)
+		{
+			shader = filter.__initShader(renderer, i, sourceBitmap);
+			renderer.__setBlendMode(filter.__shaderBlendMode);
+			renderer.__setRenderTarget(bitmap2);
+			renderer.__renderFilterPass(bitmap, shader, filter.__smooth);
+
+			renderer.__setRenderTarget(bitmap);
+			renderer.__renderFilterPass(bitmap2, renderer.__defaultDisplayShader, filter.__smooth);
+		}
+
+		filter.__renderDirty = false;
+
+		return bitmap;
+	}
+
+	static function __renderCpuFilter(filter:BitmapFilter, bitmap:BitmapData, point:Point)
+	{
+		if (filter is BlurFilter)
+		{
+			StackBlur.applyFilter(bitmap, cast filter, point);
+		}
+		else if (filter is ColorMatrixFilter)
+		{
+			bitmap.applyFilter(bitmap, bitmap.rect, point, filter);
+		}
+		else
+		{
+			// TODO: this shit really confuses me, i gotta look into it
+			// I think the bitmapdata is still in the gpu so it isnt accesible in the cpu?
+			// But it doesnt happen for the color matrix filter, so... idk
+			bitmap = bitmap.clone();
+			bitmap.applyFilter(bitmap, bitmap.rect, point, filter);
+		}
 
 		return bitmap;
 	}

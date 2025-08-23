@@ -74,7 +74,8 @@ class MovieClipInstance extends SymbolInstance
 		// Cache all frames on start, if set by the settings
 		if (cacheOnLoad && _dirty)
 		{
-			for (i in 0...this.libraryItem.timeline.frameCount)
+			final length:Int = swfMode ? 1 : libraryItem.timeline.frameCount;
+			for (i in 0...length)
 				_bakeFilters(_filters, getFrameIndex(i, 0));
 		}
 	}
