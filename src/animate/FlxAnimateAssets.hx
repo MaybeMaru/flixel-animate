@@ -155,7 +155,10 @@ class FlxAnimateAssets
 		}
 		#end
 
-		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length))).map((str) -> str.split('$path/').pop());
+		// Get only the files actually contained inside the Texture Atlas folder
+		// Plus some formatting to be easier to use afterwards
+		return result.filter((str) -> str.startsWith(path.substring(path.indexOf(':') + 1, path.length)))
+			.map((str) -> str.split('${path.split(":").pop()}/').pop());
 	}
 }
 

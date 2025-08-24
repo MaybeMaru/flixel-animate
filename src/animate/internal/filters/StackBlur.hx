@@ -9,7 +9,7 @@ class StackBlur
 {
 	public static function applyFilter(bitmap:BitmapData, filter:BlurFilter, point:Point)
 	{
-		#if web
+		#if (web && html5)
 		@:privateAccess
 		lime._internal.graphics.ImageDataUtil.gaussianBlur(bitmap.image, bitmap.image, bitmap.rect.__toLimeRectangle(), point.__toLimeVector2(), filter.blurX,
 			filter.blurY, filter.quality);
