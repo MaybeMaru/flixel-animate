@@ -19,6 +19,11 @@ class SymbolItem implements IFlxDestroyable
 		this.timeline = timeline;
 		this.timeline.libraryItem = this;
 		this.name = timeline.name;
+
+		@:privateAccess {
+			if (timeline?.parent?._settings?.onSymbolCreate != null)
+				timeline.parent._settings.onSymbolCreate(this);
+		}
 	}
 
 	public function destroy():Void

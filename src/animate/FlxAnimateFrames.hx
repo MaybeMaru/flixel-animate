@@ -33,12 +33,17 @@ using StringTools;
  *							``MEDIUM`` 	-> Will apply some lossless compression to the filter, most recommended option.
  *							``LOW`` 	-> Will use heavy and easily noticeable compression, use with precausion.
  *							``RUDY``	-> Having your eyes closed probably has better graphics than this.
+ *
+ * @param onSymbolCreate	An optional callback that gets called when a ``SymbolItem`` is created and added to the library.
+ * 							This setting can be used as a intermeddiate point in the Texture Atlas loading process to add
+ * 							any custom changes that may want to be applied before any baking is applied to the Texture Atlas.
  */
 typedef FlxAnimateSettings =
 {
 	?swfMode:Bool,
 	?cacheOnLoad:Bool,
-	?filterQuality:FilterQuality
+	?filterQuality:FilterQuality,
+	?onSymbolCreate:SymbolItem->Void
 }
 
 /**

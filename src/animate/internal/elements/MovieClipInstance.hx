@@ -225,22 +225,26 @@ extern abstract BakedFramesVector(Array<AtlasInstance>)
 		return this.indexOf(null) == -1;
 	}
 
+	public inline function setNull(index:Int):Void
+	{
+		var frame = get(index);
+		if (frame == null)
+			return;
+
+		// Manually clear the baked bitmaps
+		if (frame.frame != null)
+		{
+			frame.frame.parent = FlxDestroyUtil.destroy(frame.frame.parent);
+			frame.frame = FlxDestroyUtil.destroy(frame.frame);
+		}
+
+		set(index, FlxDestroyUtil.destroy(frame));
+	}
+
 	public inline function dispose():Void
 	{
-		for (i => frame in this)
-		{
-			if (frame == null)
-				continue;
-
-			// Manually clear the baked bitmaps
-			if (frame.frame != null)
-			{
-				frame.frame.parent = FlxDestroyUtil.destroy(frame.frame.parent);
-				frame.frame = FlxDestroyUtil.destroy(frame.frame);
-			}
-
-			set(i, FlxDestroyUtil.destroy(frame));
-		}
+		for (i in 0...this.length)
+			setNull(i);
 	}
 
 	public inline function findFrame(index:Int):Null<AtlasInstance>
