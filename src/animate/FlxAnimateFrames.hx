@@ -183,7 +183,32 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		var key:String = key ?? animate;
 
 		if (!unique && _cachedAtlases.exists(key))
-			return _cachedAtlases.get(key);
+		{
+			var cachedAtlas = _cachedAtlases.get(key);
+			var isAtlasDestroyed = false;
+
+			// Check if the atlas is complete
+			for (spritemap in cast(cachedAtlas.parent, FlxAnimateSpritemapCollection).spritemaps)
+			{
+				if (spritemap.isDestroyed)
+				{
+					isAtlasDestroyed = true;
+					break;
+				}
+			}
+
+			// Destroy previously cached atlas if incomplete, and create a new instance
+			if (isAtlasDestroyed)
+			{
+				FlxG.log.warn('Texture Atlas with the key "$key" was previously cached but incomplete. Was it incorrectly destroyed?');
+				cachedAtlas.destroy();
+				_cachedAtlases.remove(key);
+			}
+			else
+			{
+				return cachedAtlas;
+			}
+		}
 
 		if (FlxAnimateAssets.exists(animate + "/Animation.json", TEXT))
 			return _fromAnimatePath(animate, key, settings);
@@ -398,6 +423,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
  * Mainly used to work with flixel's method of destroying FlxFramesCollection
  * while keeping the ability to reused cached atlases where possible.
  */
+@:allow(animate.FlxAnimateFrames)
 class FlxAnimateSpritemapCollection extends FlxGraphic
 {
 	public function new(parentFrames:FlxAnimateFrames)
@@ -424,7 +450,7 @@ class FlxAnimateSpritemapCollection extends FlxGraphic
 		if (useCount <= 0 && destroyOnNoUse && !persist)
 		{
 			for (spritemap in spritemaps)
-				spritemap.decrementUseCount();
+				FlxG.bitmap.remove(spritemap);
 
 			spritemaps.resize(0);
 			parentFrames = FlxDestroyUtil.destroy(parentFrames);
@@ -436,6 +462,13 @@ class FlxAnimateSpritemapCollection extends FlxGraphic
 		bitmap = null; // Turning null early to let the og spritemap graphic remove the bitmap
 		super.destroy();
 		parentFrames = null;
+
+		if (spritemaps != null)
+		{
+			for (spritemap in spritemaps)
+				FlxG.bitmap.remove(spritemap);
+		}
+
 		spritemaps = null;
 	}
 }
