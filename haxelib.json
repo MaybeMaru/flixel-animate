@@ -5,8 +5,8 @@
     "tags": ["flixel", "adobe"],
     "description": "Personal HaxeFlixel Adobe Animate texture atlas implementation.",
     "classPath": "src/",
-    "version": "1.2.0",
-    "releasenote": "Bug fixes, new util, new element types and filter settings.",
+    "version": "1.2.1",
+    "releasenote": "Fix assets library crashes and small optimizations.",
     "contributors": ["MaybeMaru"],
 	"dependencies": {
 		"flixel": ""
