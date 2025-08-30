@@ -101,23 +101,26 @@ class FlxAnimateAssets
 
 		// Check openfl/flixel assets first
 		#if (flixel >= "5.9.0")
-		if (library != null && library.length > 0)
-		{
-			var lib = openfl.utils.Assets.getLibrary(library);
-			if (lib != null)
-				result = lib.list(cast type.toOpenFlType());
-		}
-		else
-			result = FlxG.assets.list(type);
+		// getLibrary is causing issues with polymod, and isnt really necessary here
+		// Will keep these commented out until polymod gets fixed
+
+		/*if (library != null && library.length > 0)
+			{
+				var lib = openfl.utils.Assets.getLibrary(library);
+				if (lib != null)
+					result = lib.list(cast type.toOpenFlType());
+			}
+			else */
+		result = FlxG.assets.list(type);
 		#else
-		if (library != null && library.length > 0)
-		{
-			var lib = openfl.utils.Assets.getLibrary(library);
-			if (lib != null)
-				result = lib.list(cast type);
-		}
-		if (result == null)
-			result = openfl.utils.Assets.list(type);
+		/*if (library != null && library.length > 0)
+			{
+				var lib = openfl.utils.Assets.getLibrary(library);
+				if (lib != null)
+					result = lib.list(cast type);
+			}
+			if (result == null) */
+		result = openfl.utils.Assets.list(type);
 		#end
 
 		if (result == null)
