@@ -118,7 +118,7 @@ extern abstract FrameJson(Dynamic)
 		return this.DU ?? this.duration;
 
 	inline function get_E()
-		return this.E ?? this.elements;
+		return this.E ?? this.elements ?? [];
 
 	inline function get_N()
 		return this.N ?? this.name;

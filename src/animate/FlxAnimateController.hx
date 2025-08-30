@@ -207,6 +207,10 @@ class FlxAnimateController extends FlxAnimationController
 		var bounds = _animate.timeline._bounds;
 		animateFrame.parent = _animate.graphic;
 		animateFrame.sourceSize.set(bounds.width, bounds.height);
+
+		if (_animate.applyStageMatrix)
+			animateFrame.sourceSize.scale(_animate.library.matrix.a, _animate.library.matrix.d);
+
 		animateFrame.frame.copyFrom(bounds);
 		_animate.frame = animateFrame;
 	}

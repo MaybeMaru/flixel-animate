@@ -165,23 +165,25 @@ class FlxAnimate extends FlxSprite
 		var bounds = timeline._bounds;
 		mat.translate(-bounds.x, -bounds.y);
 
-		var doFlipX = this.checkFlipX();
-		var doFlipY = this.checkFlipY();
-
-		if (doFlipX)
+		if (checkFlipX())
 		{
 			mat.scale(-1, 1);
-			mat.translate(frame.sourceSize.x, 0);
+			mat.translate(bounds.width, 0);
 		}
 
-		if (doFlipY)
+		if (checkFlipY())
 		{
 			mat.scale(1, -1);
-			mat.translate(0, frame.sourceSize.y);
+			mat.translate(0, bounds.height);
 		}
 
+		// Apply stage transform if the texture atlas was exported from an instance
+		// NOTE: This translation is already applied in getScreenPosition, for hitbox reasons
 		if (applyStageMatrix)
+		{
 			mat.concat(library.matrix);
+			mat.translate(-library.matrix.tx, -library.matrix.ty);
+		}
 
 		mat.translate(-origin.x, -origin.y);
 		mat.scale(scale.x, scale.y);
@@ -208,6 +210,16 @@ class FlxAnimate extends FlxSprite
 
 		timeline.currentFrame = animation.frameIndex;
 		timeline.draw(camera, mat, colorTransform, blend, antialiasing, shader);
+	}
+
+	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
+	{
+		final point = super.getScreenPosition(result, camera);
+
+		if (isAnimate && applyStageMatrix)
+			point.add(library.matrix.tx, library.matrix.ty);
+
+		return point;
 	}
 
 	// I dont think theres a way to override the matrix without needing to do this lol
