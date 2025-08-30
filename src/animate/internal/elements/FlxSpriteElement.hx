@@ -1,6 +1,7 @@
 package animate.internal.elements;
 
 import animate.internal.filters.Blend;
+import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -14,20 +15,18 @@ import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
-@:access(flixel.FlxSprite)
-class FlxSpriteElement extends Element
+class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 {
-	public var sprite:FlxSprite;
-
+	var _hasTransform:Bool;
 	var _transform:ColorTransform;
 	var _point:FlxPoint;
 	var _screenPoint:FlxPoint;
 	var _angle:Float;
+	var _blend:BlendMode;
 
 	public function new(?sprite:FlxSprite)
 	{
-		super(null, null, null);
-		this.sprite = sprite;
+		super(sprite);
 
 		this._transform = new ColorTransform();
 		this._point = FlxPoint.get();
@@ -38,78 +37,148 @@ class FlxSpriteElement extends Element
 	override function destroy():Void
 	{
 		super.destroy();
-		sprite = null;
 		_transform = null;
 		_point = FlxDestroyUtil.put(_point);
 		_point = FlxDestroyUtil.put(_screenPoint);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
+	override function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, transform:ColorTransform, blend:BlendMode, antialiasing:Bool,
+			shader:FlxShader)
 	{
-		if (sprite == null || !sprite.visible || sprite.alpha <= 0.0)
-			return;
-
 		var hasTransform = transform != null;
 		if (hasTransform)
 		{
 			if (transform.alphaMultiplier <= 0.0)
 				return;
 
-			_transform.setMultipliers(1, 1, 1, 1);
-			_transform.setOffsets(0, 0, 0, 0);
-			_transform.concat(transform);
+			var color = basic.colorTransform;
+			if (color == null)
+			{
+				_transform.setMultipliers(1, 1, 1, 1);
+				_transform.setOffsets(0, 0, 0, 0);
+			}
+			else
+			{
+				_transform.setMultipliers(color.redMultiplier, color.greenMultiplier, color.blueMultiplier, color.alphaMultiplier);
+				_transform.setOffsets(color.redOffset, color.greenOffset, color.blueOffset, color.alphaOffset);
+			}
 		}
 
-		// if (sprite.animation.curAnim != null)
-		//	sprite.animation.curAnim.curFrame = index;
-		sprite.update(FlxG.elapsed);
+		_blend = basic.blend;
+		_point.set(basic.x, basic.y);
+		_angle = basic.angle;
 
-		// Prepare all necessary render values
-		var _blend = sprite.blend;
-		var _camera = sprite.camera;
-		_point.set(sprite.x, sprite.y);
-		_angle = sprite.angle;
+		super.applyObjectTransform(camera, parentMatrix, transform, blend, antialiasing, shader);
 
-		var x = parentMatrix.transformX(sprite.x, sprite.y);
-		var y = parentMatrix.transformY(sprite.x, sprite.y);
-		var b = Blend.resolve(sprite.blend, blend);
+		var x = parentMatrix.transformX(basic.x, basic.y);
+		var y = parentMatrix.transformY(basic.x, basic.y);
+		var b = Blend.resolve(basic.blend, blend);
 
-		sprite.setPosition(0, 0);
-		var screenPoint = sprite.getScreenPosition(_screenPoint, camera);
-		sprite.setPosition(x - screenPoint.x, y - screenPoint.y);
+		basic.setPosition(0, 0);
+		var screenPoint = basic.getScreenPosition(_screenPoint, camera);
+		basic.setPosition(x - screenPoint.x, y - screenPoint.y);
 
-		// Apply sprite render values
-		sprite.angle += Math.atan2(parentMatrix.b, parentMatrix.a) * 180 / Math.PI;
-		if (hasTransform)
-			sprite.colorTransform.concat(transform);
-		sprite.blend = b;
-		sprite.antialiasing = antialiasing;
-		sprite.camera = camera;
+		basic.angle += Math.atan2(parentMatrix.b, parentMatrix.a) * 180 / Math.PI;
+		if (_hasTransform)
+			basic.colorTransform.concat(transform);
+		basic.blend = b;
+		// basic.antialiasing = antialiasing;
+		basic.camera = camera;
+	}
 
-		// Finally render the sprite
-		sprite.draw();
+	override function resetObjectTransform()
+	{
+		super.resetObjectTransform();
 
-		// Apply back the og sprite's values
-		sprite.setPosition(_point.x, _point.y);
-		sprite.angle = _angle;
-		sprite.blend = _blend;
-		sprite.camera = _camera;
+		basic.setPosition(_point.x, _point.y);
+		basic.angle = _angle;
+		basic.blend = _blend;
+		basic.camera = _camera;
 
-		if (hasTransform)
+		if (_hasTransform)
 		{
-			sprite.colorTransform.setMultipliers(1, 1, 1, 1);
-			sprite.colorTransform.setOffsets(0, 0, 0, 0);
-			sprite.colorTransform.concat(_transform);
+			basic.setColorTransform(_transform.redMultiplier, _transform.greenMultiplier, _transform.blueMultiplier, _transform.alphaMultiplier,
+				_transform.redOffset, _transform.greenOffset, _transform.blueOffset, _transform.alphaOffset);
 		}
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true):FlxRect
+	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+			?antialiasing:Bool, ?shader:FlxShader)
+	{
+		if (basic == null || basic.alpha <= 0)
+			return;
+
+		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
+	}
+
+	override function getObjectBounds(?result:FlxRect):FlxRect
+	{
+		return basic.getScreenBounds(result);
+	}
+}
+
+typedef FlxBasicElement = FlxTypedElement<FlxBasic>;
+
+class FlxTypedElement<T:FlxBasic> extends Element
+{
+	public var basic:T;
+	public var active:Bool;
+
+	var _camera:FlxCamera;
+
+	public function new(?basic:T)
+	{
+		super(null, null, null);
+		this.basic = basic;
+		this.active = true;
+	}
+
+	override function destroy():Void
+	{
+		super.destroy();
+		basic = null;
+		_camera = null;
+	}
+
+	function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, transform:ColorTransform, blend:BlendMode, antialiasing:Bool, shader:FlxShader)
+	{
+		basic.camera = camera;
+	}
+
+	function resetObjectTransform()
+	{
+		basic.camera = _camera;
+	}
+
+	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+			?antialiasing:Bool, ?shader:FlxShader)
+	{
+		if (basic == null || !basic.visible)
+			return;
+
+		_camera = basic.camera;
+
+		if (active)
+			basic.update(FlxG.elapsed);
+
+		applyObjectTransform(camera, parentMatrix, transform, blend, antialiasing, shader);
+
+		basic.draw();
+
+		resetObjectTransform();
+	}
+
+	function getObjectBounds(?result:FlxRect):FlxRect
+	{
+		return result;
+	}
+
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
 
-		if (sprite != null)
-			bounds = sprite.getScreenBounds(bounds);
+		if (basic != null)
+			bounds = getObjectBounds(bounds);
 
 		Timeline.applyMatrixToRect(bounds, matrix);
 
