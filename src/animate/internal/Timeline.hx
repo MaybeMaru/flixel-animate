@@ -120,13 +120,20 @@ class Timeline implements IFlxDestroyable
 	 * Returns the top-left position of the timeline, based on it's bounds.
 	 * Useful as an offset value when migrating from a legacy bounds based project.
 	 *
-	 * @param result 	Optional, point where to store the origin data.
-	 * @return 			A ``FlxPoint`` containing the origin point of the bounds top-left position.
+	 * @param result 			Optional, point where to store the origin data.
+	 * @param applyStageMatrix	Optional, if to apply the stage matrix scaling to the result bounds (needed to replicate legacy bounds).
+	 * @return 					A ``FlxPoint`` containing the origin point of the bounds top-left position.
 	 */
-	public function getBoundsOrigin(?result:FlxPoint):FlxPoint
+	public function getBoundsOrigin(?result:FlxPoint, ?applyStageMatrix:Bool = false):FlxPoint
 	{
 		result ??= FlxPoint.get();
 		result.set(_bounds.x, _bounds.y);
+
+		if (applyStageMatrix && parent?.matrix != null)
+		{
+			result.scale(parent.matrix.a, parent.matrix.d);
+		}
+
 		return result;
 	}
 
