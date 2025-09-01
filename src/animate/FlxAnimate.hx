@@ -345,7 +345,10 @@ class FlxAnimate extends FlxSprite
 		if (isAnimate)
 		{
 			if (applyStageMatrix)
-				Timeline.applyMatrixToRect(bounds, library.matrix);
+			{
+				bounds.x += library.matrix.tx;
+				bounds.y += library.matrix.ty;
+			}
 		}
 
 		// TODO: add skewed bounds expansion
