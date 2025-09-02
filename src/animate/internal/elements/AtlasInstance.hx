@@ -96,7 +96,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
-		if (frame == null) // should add a warn here
+		if (frame == null || frame.frame == null) // should add a warn here
 			return;
 
 		_mat.copyFrom(tileMatrix);
@@ -205,7 +205,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 
 	public function toString():String
 	{
-		return '{frame: ${frame.name}, matrix: $matrix}';
+		return '{frame: ${frame?.name}, matrix: $matrix}';
 	}
 }
 

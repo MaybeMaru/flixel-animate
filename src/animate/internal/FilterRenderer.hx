@@ -111,6 +111,8 @@ class FilterRenderer
 		}
 
 		var frame = FlxGraphic.fromBitmapData(masked).imageFrame.frame;
+		frame.parent.persist = true;
+		frame.parent.destroyOnNoUse = false;
 		MaskShader.maskAlpha(masked, masker, rect);
 
 		Rectangle.__pool.release(rect);
@@ -247,6 +249,8 @@ class FilterRenderer
 		});
 
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
+		frame.parent.persist = true;
+		frame.parent.destroyOnNoUse = false;
 		filterFrame(frame, filters);
 
 		// Small offset to account for pixel-innacuracies
@@ -482,7 +486,10 @@ class FilterRenderer
 		{
 			movieclip._drawTimeline(cam, frameIndex, 0, mat, null, NORMAL, false, null);
 		}, filteredBounds);
+
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
+		frame.parent.persist = true;
+		frame.parent.destroyOnNoUse = false;
 
 		var rect = new Rectangle(0, 0, bitmap.width, bitmap.height);
 		var point = new Point(0, 0);
@@ -526,6 +533,8 @@ class FilterRenderer
 
 		var maskedBitmap = maskBitmap(masked, masker);
 		var frame = FlxGraphic.fromBitmapData(maskedBitmap).imageFrame.frame;
+		frame.parent.persist = true;
+		frame.parent.destroyOnNoUse = false;
 
 		var element = new AtlasInstance();
 		element.frame = frame;
