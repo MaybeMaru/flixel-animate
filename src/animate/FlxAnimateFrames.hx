@@ -402,6 +402,58 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return super.addAtlas(collection, overwriteHash);
 	}
 
+	var checkedDirtySymbols:Array<String> = [];
+
+	function setSymbolDirty(targetSymbol:String)
+	{
+		// Doing this so in a batch of setSymbolDirty, symbols dont get double checked
+		if (checkedDirtySymbols.contains(targetSymbol))
+			return;
+
+		var checkForSymbol:Timeline->Void;
+		checkForSymbol = (timeline:Timeline) ->
+		{
+			if (timeline == null || timeline.name.length <= 0)
+				return;
+
+			checkedDirtySymbols.push(timeline.name);
+
+			for (layer in timeline)
+			{
+				for (frame in layer)
+				{
+					@:privateAccess
+					if (!frame._requireBake)
+						continue;
+
+					var wasFrameSetDirty:Bool = false;
+					for (element in frame)
+					{
+						switch (element.elementType)
+						{
+							case GRAPHIC | MOVIECLIP | BUTTON:
+								var foundSymbol = element.toSymbolInstance().libraryItem;
+								if (foundSymbol.name == targetSymbol)
+								{
+									if (!wasFrameSetDirty)
+										frame.setDirty();
+									wasFrameSetDirty = true;
+								}
+								else
+								{
+									checkForSymbol(foundSymbol.timeline);
+								}
+							default:
+						}
+					}
+				}
+			}
+		}
+
+		checkForSymbol(timeline);
+		checkedDirtySymbols.resize(0);
+	}
+
 	override function destroy():Void
 	{
 		if (_cachedAtlases.exists(path))
@@ -417,6 +469,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		stageRect = FlxDestroyUtil.put(stageRect);
 		timeline = FlxDestroyUtil.destroy(timeline);
+		checkedDirtySymbols = null;
 		dictionary = null;
 		matrix = null;
 	}

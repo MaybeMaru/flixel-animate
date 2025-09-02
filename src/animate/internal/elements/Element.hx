@@ -17,12 +17,14 @@ class AnimateElement<T> implements IFlxDestroyable
 	public var matrix:FlxMatrix;
 	public var visible:Bool;
 	public var elementType(default, null):ElementType;
+	public var parentFrame:Frame;
 
 	var _mat:FlxMatrix;
 
 	public function new(?data:T, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		_mat = new FlxMatrix();
+		parentFrame = frame;
 		visible = true;
 	}
 
@@ -62,6 +64,7 @@ class AnimateElement<T> implements IFlxDestroyable
 	{
 		_mat = null;
 		matrix = null;
+		parentFrame = null;
 	}
 }
 

@@ -28,7 +28,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
-		super(data, parent);
+		super(data, parent, frame);
 		this.elementType = GRAPHIC;
 
 		if (data == null)

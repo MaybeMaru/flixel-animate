@@ -30,7 +30,7 @@ class TextFieldInstance extends AtlasInstance
 
 	public function new(data:TextFieldInstanceJson, parent:FlxAnimateFrames, ?frame:Frame)
 	{
-		super();
+		super(null, null, frame);
 
 		this.elementType = TEXT;
 		this.matrix = data.MX.toMatrix();

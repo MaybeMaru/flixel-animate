@@ -15,7 +15,6 @@ import flixel.sound.FlxSound;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
-import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 import openfl.media.Sound;
 
@@ -52,15 +51,48 @@ class Frame implements IFlxDestroyable
 		if (elements.indexOf(element) != -1)
 			return;
 
+		element.parentFrame = this;
 		elements.push(element);
+		setDirty();
+	}
 
-		// Requires rebake
-		if (_bakedFrames != null)
+	/**
+	 * Insert an ``Element`` object to an index of the elements list of the frame.
+	 * If the frame is masked it will require a redraw.
+	 *
+	 * @param index		Index where to add the element to.
+	 * @param element 	Element object to add to the frame. It won't be added if its already part of the list.
+	 */
+	public function insert(index:Int, element:Element)
+	{
+		if (elements.indexOf(element) != -1)
+			return;
+
+		element.parentFrame = this;
+		elements.insert(index, element);
+		setDirty();
+	}
+
+	/**
+	 * Clears up the memory from the previously baked frames and
+	 * sets the frame ready for a new rebake of masks/filters.
+	 */
+	public function setDirty()
+	{
+		if (_requireBake)
 		{
-			_bakedFrames = null;
-			_bakedIndices = null;
 			_dirty = true;
 		}
+
+		if (_bakedFrames != null)
+		{
+			_bakedFrames.dispose();
+			_bakedFrames = null;
+			_bakedIndices = null;
+		}
+
+		if (layer != null && layer.timeline != null)
+			layer.timeline.parent.setSymbolDirty(layer.timeline.name);
 	}
 
 	/**
@@ -92,7 +124,7 @@ class Frame implements IFlxDestroyable
 
 		var item = new SymbolItem(timeline);
 		var instance = item.createInstance(type);
-		this.elements.insert(fromIndex, instance);
+		insert(fromIndex, instance);
 
 		return instance;
 	}
@@ -186,11 +218,11 @@ class Frame implements IFlxDestroyable
 				this.elements.push(switch (si.ST)
 				{
 					case "B" | "button":
-						new ButtonInstance(element.SI, parent);
+						new ButtonInstance(element.SI, parent, this);
 					case "MC" | "movieclip":
-						new MovieClipInstance(element.SI, parent);
+						new MovieClipInstance(element.SI, parent, this);
 					default:
-						new SymbolInstance(element.SI, parent);
+						new SymbolInstance(element.SI, parent, this);
 				});
 			}
 			else
@@ -198,14 +230,14 @@ class Frame implements IFlxDestroyable
 				var asi = element.ASI;
 				if (asi != null)
 				{
-					this.elements.push(new AtlasInstance(asi, parent));
+					this.elements.push(new AtlasInstance(asi, parent, this));
 				}
 				else
 				{
 					var tfi = element.TFI;
 					if (tfi != null)
 					{
-						this.elements.push(new TextFieldInstance(tfi, parent));
+						this.elements.push(new TextFieldInstance(tfi, parent, this));
 					}
 				}
 			}
@@ -232,6 +264,10 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
+
+	@:allow(animate.internal.Layer)
+	var _requireBake:Bool = false;
+
 	var _bakedFrames:BakedFramesVector;
 	var _bakedIndices:Array<Int>;
 
@@ -275,7 +311,9 @@ class Frame implements IFlxDestroyable
 		if (bakedFrame == null)
 			return;
 
+		bakedFrame.parentFrame = this;
 		_bakedFrames[frameIndex] = bakedFrame;
+
 		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 

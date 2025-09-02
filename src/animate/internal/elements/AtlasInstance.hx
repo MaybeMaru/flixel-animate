@@ -6,6 +6,7 @@ import animate.internal.filters.Blend;
 import flixel.FlxCamera;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import openfl.display.BlendMode;
@@ -31,10 +32,11 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	public var frame:FlxFrame;
 
 	var tileMatrix:FlxMatrix;
+	var sourceFrame:FlxFrame;
 
 	public function new(?data:AtlasInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
-		super(data, parent);
+		super(data, parent, frame);
 
 		this.tileMatrix = new FlxMatrix();
 		this.elementType = ATLAS;
@@ -42,6 +44,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		if (data != null)
 		{
 			this.frame = parent.getByName(data.N);
+			this.sourceFrame = this.frame;
 			this.matrix = data.MX.toMatrix();
 
 			#if flash
@@ -62,28 +65,32 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	 * Replaces the frame used to render the atlas instance.
 	 *
 	 * @param frame 		New ``FlxFrame`` to replace the existing one.
+	 * 						Set to ``null`` to go back to the original frame.
 	 * @param adjustScale 	If to rescale the new frame to fit the dimensions of the old one.
 	 */
-	public function replaceFrame(frame:FlxFrame, adjustScale:Bool = true):Void
+	public function replaceFrame(?frame:Null<FlxFrame>, adjustScale:Bool = true):Void
 	{
-		var copyFrame = frame.copyTo();
+		var copyFrame:FlxFrame = (frame ?? this.sourceFrame).copyTo();
 
 		// TODO: account for frame rotations
 		// Scale adjustment
 		if (adjustScale)
 		{
-			var lastFrame = this.frame;
-			tileMatrix.a = lastFrame.frame.width / frame.frame.width;
-			tileMatrix.d = lastFrame.frame.height / frame.frame.height;
+			tileMatrix.a = sourceFrame.frame.width / copyFrame.frame.width;
+			tileMatrix.d = sourceFrame.frame.height / copyFrame.frame.height;
 		}
 
 		this.frame = copyFrame;
+
+		if (this.parentFrame != null)
+			this.parentFrame.setDirty();
 	}
 
 	override function destroy():Void
 	{
 		super.destroy();
 		frame = null;
+		sourceFrame = null;
 	}
 
 	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,

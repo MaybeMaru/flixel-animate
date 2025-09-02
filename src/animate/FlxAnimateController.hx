@@ -7,12 +7,21 @@ import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
+import flixel.util.FlxSignal.FlxTypedSignal;
 
 using StringTools;
 
 @:access(animate.FlxAnimate)
 class FlxAnimateController extends FlxAnimationController
 {
+	/**
+	 * Dispatches each time the current animation's frame label changes.
+	 * Exclusive to Texture Atlas animations.
+	 * 
+	 * @param frameLabel The label of the current frame
+	 */
+	public final onFrameLabel = new FlxTypedSignal<(frameLabel:String) -> Void>();
+
 	public function addByFrameLabel(name:String, label:String, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool, ?timeline:Timeline):Void
 	{
 		if (!isAnimate)
@@ -183,7 +192,7 @@ class FlxAnimateController extends FlxAnimationController
 			frame = frame % numFrames;
 			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
 			_animate.timeline.currentFrame = frame;
-			_animate.timeline.signalFrameChange(frame);
+			_animate.timeline.signalFrameChange(frame, this);
 			frameIndex = frame;
 			fireCallback();
 
@@ -247,6 +256,7 @@ class FlxAnimateController extends FlxAnimationController
 	{
 		super.destroy();
 		animateFrame = FlxDestroyUtil.destroy(animateFrame);
+		FlxDestroyUtil.destroy(onFrameLabel);
 	}
 }
 

@@ -33,9 +33,9 @@ class ButtonInstance extends SymbolInstance
 	 */
 	public var onClick:FlxSignal;
 
-	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames)
+	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
-		super(data, parent);
+		super(data, parent, frame);
 
 		this.elementType = BUTTON;
 		this.curButtonState = ButtonState.UP;

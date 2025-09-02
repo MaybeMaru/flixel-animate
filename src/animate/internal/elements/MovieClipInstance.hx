@@ -26,6 +26,7 @@ class MovieClipInstance extends SymbolInstance
 
 	@:allow(animate.internal.FilterRenderer)
 	var _dirty:Bool = false;
+	var _requireBake:Bool = false;
 	var _filters:Array<BitmapFilter> = null;
 	var _filterQuality:FilterQuality = FilterQuality.MEDIUM;
 	var _bakedFrames:BakedFramesVector;
@@ -64,7 +65,8 @@ class MovieClipInstance extends SymbolInstance
 					filters.push(bmpFilter);
 			}
 
-			setFilters(filters);
+			this._filters = filters;
+			this._dirty = true;
 		}
 
 		// Set whole frame for blending
@@ -86,13 +88,30 @@ class MovieClipInstance extends SymbolInstance
 	 *
 	 * @param filters An array with ``BitmapFilter`` objects to apply to the movieclip.
 	 */
-	public function setFilters(filters:Array<BitmapFilter>):Void
+	public function setFilters(?filters:Array<BitmapFilter>):Void
 	{
 		this._filters = filters;
-		this._dirty = true;
+		this._requireBake = (filters != null && filters.length > 0);
+		setDirty();
+	}
+
+	/**
+	 * Clears up the memory from the previously baked frames and
+	 * sets the movieclip ready for a new rebake of masks/filters.
+	 */
+	public function setDirty():Void
+	{
+		if (_requireBake)
+			_dirty = true;
 
 		if (_bakedFrames != null)
+		{
 			_bakedFrames.dispose();
+			_bakedFrames = null;
+		}
+
+		if (parentFrame != null)
+			parentFrame.setDirty();
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
@@ -147,7 +166,9 @@ class MovieClipInstance extends SymbolInstance
 		if (bakedFrame == null)
 			return;
 
+		bakedFrame.parentFrame = parentFrame;
 		_bakedFrames[frameIndex] = bakedFrame;
+
 		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
 			bakedFrame.visible = false;
 

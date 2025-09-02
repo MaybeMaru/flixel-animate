@@ -29,15 +29,13 @@ class Timeline implements IFlxDestroyable
 
 	public function new(?timeline:TimelineJson, parent:FlxAnimateFrames, ?name:String)
 	{
+		this.name = name ?? "";
 		this.layers = [];
 		this.currentFrame = 0;
 		this.parent = parent;
 
 		_layerMap = [];
 		_bounds = FlxRect.get();
-
-		if (name != null)
-			this.name = name;
 
 		if (timeline != null)
 			_loadJson(timeline);
@@ -263,19 +261,48 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:allow(animate.FlxAnimateController)
-	private function signalFrameChange(frameIndex:Int):Void
+	private function signalFrameChange(frameIndex:Int, animation:FlxAnimateController):Void
 	{
 		for (layer in layers)
 		{
 			var frame = layer.getFrameAtIndex(frameIndex);
 			if (frame != null)
 			{
-				if (frame.sound != null && frame.index == frameIndex)
-					frame.sound.play(true);
+				var isKeyFrame:Bool = (frame.index == frameIndex);
+				if (isKeyFrame)
+				{
+					if (frame.sound != null)
+						frame.sound.play(true);
+
+					if (frame.name.length > 0)
+						animation.onFrameLabel.dispatch(frame.name);
+				}
 			}
 		}
 	}
 
+	/*public function setDirty(symbol:String)
+		{
+			for (layer in layers)
+			{
+				for (frame in layer)
+				{
+					for (element in frame)
+					{
+						switch (element.elementType)
+						{
+							case GRAPHIC | MOVIECLIP | BUTTON:
+								var libraryItem = element.toSymbolInstance().libraryItem.name;
+								if (libraryItem != symbol)
+								{
+									element.parentFrame.setDirty();
+								}
+							default:
+						}
+					}
+				}
+			}
+	}*/
 	public function draw(camera:FlxCamera, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader)
 	{
 		for (layer in layers)
