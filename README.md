@@ -5,11 +5,11 @@
 Flixel-animate is a [HaxeFlixel](https://haxeflixel.com/) library meant to load texture atlases generated both from Adobe Animate and the [BetterTextureAtlas plugin](https://github.com/Dot-Stuff/BetterTextureAtlas).
 The library is heavily inspired by [FlxAnimate](https://github.com/Dot-Stuff/flxanimate), though with some differences to work similarly to the Flash/Animate JSFL implementation.
 
-> [!WARNING]
-> ``flixel-animate`` uses a bounds method that acts similarly to how a normal Sparrow flixel sprite would load. <br/>
-> This "flixel accurate" bounds come with support for functions that require accurate ``width`` and ``height`` values like ``updateHitbox`` and ``centerOrigin``, which give closer parity with FlxSprite.
+> [!IMPORTANT]
+> ``flixel-animate``, by default, uses a bounds method that acts similarly to how a normal Sparrow flixel sprite would load. <br/>
+> This "flixel accurate" bounds come with more accurate support for functions that require ``width`` and ``height`` values like ``updateHitbox`` and ``centerOrigin``, which give closer parity with FlxSprite.
 > If you are migrating from ``FlxAnimate`` these bounds may be different to FlxAnimate's ones. <br/>
-> This offset value can be accessible through the function ``getBoundsOrigin`` inside each ``Timeline`` object. <br/>
+> This offset can be activated through enabling the ``applyStageMatrix``. Which will also apply the stage matrix of the Texture Atlas, if it was exported from an symbol instance. <br/>
 
 ## Usage
 

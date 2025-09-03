@@ -15,6 +15,7 @@ import openfl.geom.ColorTransform;
 @:access(openfl.geom.Point)
 @:access(openfl.geom.Matrix)
 @:access(flixel.graphics.frames.FlxFrame)
+@:allow(animate.FlxAnimate)
 class Timeline implements IFlxDestroyable
 {
 	public var libraryItem:SymbolItem;

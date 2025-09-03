@@ -60,10 +60,11 @@ class FlxAnimate extends FlxSprite
 	public var timeline(default, null):Timeline;
 
 	/**
-	 * Whether to apply the stage matrix of the Texture Atlas, if it
-	 * was exported from a symbol instance.
+	 * Whether to apply the stage matrix of the Texture Atlas.
+	 * It also makes the sprite render with the bounds from Animate.
+	 * Take note that these bounds may not be accurate to flixel positions.
 	 */
-	public var applyStageMatrix:Bool = false;
+	public var applyStageMatrix(default, set):Bool = false;
 
 	/**
 	 * Whether to render the colored background rectangle found in Adobe Animate.
@@ -115,7 +116,7 @@ class FlxAnimate extends FlxSprite
 		{
 			library = cast frames;
 			timeline = library.timeline;
-			anim.updateTimelineBounds();
+			applyStageMatrix = this.applyStageMatrix;
 			resetHelpers();
 		}
 		else
@@ -158,68 +159,59 @@ class FlxAnimate extends FlxSprite
 
 	function drawAnimate(camera:FlxCamera):Void
 	{
-		var mat = _matrix;
-		mat.identity();
+		var matrix = _matrix;
+		matrix.identity();
 
 		@:privateAccess
 		var bounds = timeline._bounds;
-		mat.translate(-bounds.x, -bounds.y);
+		matrix.translate(-bounds.x, -bounds.y);
 
 		if (checkFlipX())
 		{
-			mat.scale(-1, 1);
-			mat.translate(bounds.width, 0);
+			matrix.scale(-1, 1);
+			matrix.translate(bounds.width, 0);
 		}
 
 		if (checkFlipY())
 		{
-			mat.scale(1, -1);
-			mat.translate(0, bounds.height);
+			matrix.scale(1, -1);
+			matrix.translate(0, bounds.height);
 		}
 
-		// Apply stage transform if the texture atlas was exported from an instance
-		// NOTE: This translation is already applied in getScreenPosition, for hitbox reasons
 		if (applyStageMatrix)
 		{
-			mat.concat(library.matrix);
-			mat.translate(-library.matrix.tx, -library.matrix.ty);
+			matrix.concat(library.matrix);
+			matrix.translate(-library.matrix.tx, -library.matrix.ty);
 		}
 
-		mat.translate(-origin.x, -origin.y);
-		mat.scale(scale.x, scale.y);
+		matrix.translate(-origin.x, -origin.y);
+		matrix.scale(scale.x, scale.y);
 
 		if (angle != 0)
 		{
 			updateTrig();
-			mat.rotateWithTrig(_cosAngle, _sinAngle);
+			matrix.rotateWithTrig(_cosAngle, _sinAngle);
 		}
 
 		if (skew.x != 0 || skew.y != 0)
 		{
 			updateSkew();
-			mat.concat(_skewMatrix);
+			matrix.concat(_skewMatrix);
 		}
 
 		getScreenPosition(_point, camera);
 		_point.x += origin.x - offset.x;
 		_point.y += origin.y - offset.y;
-		mat.translate(_point.x, _point.y);
+		matrix.translate(_point.x, _point.y);
+
+		if (isPixelPerfectRender(camera))
+			preparePixelPerfectMatrix(matrix);
 
 		if (renderStage)
 			drawStage(camera);
 
 		timeline.currentFrame = animation.frameIndex;
-		timeline.draw(camera, mat, colorTransform, blend, antialiasing, shader);
-	}
-
-	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
-	{
-		final point = super.getScreenPosition(result, camera);
-
-		if (isAnimate && applyStageMatrix)
-			point.add(library.matrix.tx, library.matrix.ty);
-
-		return point;
+		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
 	// I dont think theres a way to override the matrix without needing to do this lol
@@ -251,11 +243,14 @@ class FlxAnimate extends FlxSprite
 		_point.y += origin.y - offset.y;
 		matrix.translate(_point.x, _point.y);
 		if (isPixelPerfectRender(camera))
-		{
-			matrix.tx = Math.floor(matrix.tx);
-			matrix.ty = Math.floor(matrix.ty);
-		}
+			preparePixelPerfectMatrix(matrix);
 		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+	}
+
+	function preparePixelPerfectMatrix(matrix:FlxMatrix):Void
+	{
+		matrix.tx = Math.floor(matrix.tx);
+		matrix.ty = Math.floor(matrix.ty);
 	}
 
 	var stageBg:StageBG;
@@ -274,6 +269,17 @@ class FlxAnimate extends FlxSprite
 	private inline function updateSkew():Void
 	{
 		_skewMatrix.setTo(1, Math.tan(skew.y * FlxAngle.TO_RAD), Math.tan(skew.x * FlxAngle.TO_RAD), 1, 0, 0);
+	}
+
+	private inline function set_applyStageMatrix(v:Bool):Bool
+	{
+		this.applyStageMatrix = v;
+
+		// Like resetFrame() but for animate
+		if (this.isAnimate)
+			anim.updateTimelineBounds();
+
+		return v;
 	}
 
 	override function get_numFrames():Int
@@ -344,16 +350,44 @@ class FlxAnimate extends FlxSprite
 
 		if (isAnimate)
 		{
-			if (applyStageMatrix)
-			{
-				bounds.x += library.matrix.tx;
-				bounds.y += library.matrix.ty;
-			}
+			final origin = getAnimateOrigin();
+			bounds.x += origin.x;
+			bounds.y += origin.y;
+			origin.put();
 		}
 
 		// TODO: add skewed bounds expansion
 
 		return bounds;
+	}
+
+	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
+	{
+		final point = super.getScreenPosition(result, camera);
+
+		if (isAnimate)
+		{
+			final origin = getAnimateOrigin();
+			point.add(origin.x, origin.y);
+			origin.put();
+		}
+
+		return point;
+	}
+
+	function getAnimateOrigin(?result:FlxPoint):FlxPoint
+	{
+		result ??= FlxPoint.get();
+		result.set();
+
+		if (isAnimate && applyStageMatrix)
+		{
+			var matrix = library.matrix;
+			result.add(matrix.tx, matrix.ty);
+			result.add(timeline._bounds.x * matrix.a, timeline._bounds.y * matrix.d);
+		}
+
+		return result;
 	}
 
 	override function destroy():Void
