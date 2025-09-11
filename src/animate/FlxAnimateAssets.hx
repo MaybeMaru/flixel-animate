@@ -74,9 +74,6 @@ class FlxAnimateAssets
 
 	public static dynamic function getBitmapData(path:String):BitmapData
 	{
-		if (FlxG.bitmap.checkCache(path))
-			return FlxG.bitmap.get(path).bitmap;
-
 		// Check openfl/flixel assets first
 		#if (flixel >= "5.9.0")
 		if (FlxG.assets.exists(path, AssetType.IMAGE))
