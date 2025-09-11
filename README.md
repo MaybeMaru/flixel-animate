@@ -61,9 +61,10 @@ Here's a small sample of how to use the currently available settings:
 
 ```haxe
 var frames = FlxAnimateFrames.fromAnimate('path/to/atlas', {
-   swfMode: false,         // If to render like in a SWF file, rather than the Animate editor.
-   cacheOnLoad: false,     // If to precache all animation filters and masks at once, rather than at runtime.
-   filterQuality: MEDIUM   // Level of quality used to render filters. (HIGH, MEDIUM, LOW, RUDY)
+   swfMode: false,                  // If to render like in a SWF file, rather than the Animate editor.
+   cacheOnLoad: false,              // If to precache all animation filters and masks at once, rather than at runtime.
+   filterQuality: MEDIUM            // Level of quality used to render filters. (HIGH, MEDIUM, LOW, RUDY)
+   onSymbolCreate: SymbolItem->Void // Function called when a symbol item is created, useful for hardcoded modifications.
 });
 ```
 
