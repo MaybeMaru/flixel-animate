@@ -229,10 +229,6 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	static function getGraphic(path:String):FlxGraphic
 	{
-		// Patch for funkin mobile lol
-		if (path.endsWith('.astc'))
-			path = Path.withoutExtension(path) + ".png";
-
 		if (FlxG.bitmap.checkCache(path))
 			return FlxG.bitmap.get(path);
 
