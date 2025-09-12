@@ -17,7 +17,7 @@ class FlxAnimateController extends FlxAnimationController
 	/**
 	 * Dispatches each time the current animation's frame label changes.
 	 * Exclusive to Texture Atlas animations.
-	 * 
+	 *
 	 * @param frameLabel The label of the current frame
 	 */
 	public final onFrameLabel = new FlxTypedSignal<(frameLabel:String) -> Void>();
@@ -35,8 +35,26 @@ class FlxAnimateController extends FlxAnimationController
 
 		if (foundFrames.length <= 0)
 		{
-			FlxG.log.warn('No frames found with label "$label" in timeline "${usedTimeline.name}".');
-			return;
+			var collectionTimelines = getCollectionTimelines();
+			if (collectionTimelines.length > 0)
+			{
+				for (timeline in collectionTimelines)
+				{
+					var newFrames = findFrameLabelIndices(label, timeline);
+					if (newFrames.length > 0)
+					{
+						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						foundFrames = newFrames;
+						usedTimeline = timeline;
+						break;
+					}
+				}
+			}
+			else
+			{
+				FlxG.log.warn('No frames found with label "$label" in timeline "${usedTimeline.name}".');
+				return;
+			}
 		}
 
 		frameRate ??= getDefaultFramerate();
@@ -58,6 +76,25 @@ class FlxAnimateController extends FlxAnimationController
 		var usedTimeline = timeline ?? getDefaultTimeline();
 		var foundFrames:Array<Int> = findFrameLabelIndices(label, usedTimeline);
 		var useableFrames:Array<Int> = [];
+
+		if (foundFrames.length <= 0)
+		{
+			var collectionTimelines = getCollectionTimelines();
+			if (collectionTimelines.length > 0)
+			{
+				for (timeline in collectionTimelines)
+				{
+					var newFrames = findFrameLabelIndices(label, timeline);
+					if (newFrames.length > 0)
+					{
+						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						foundFrames = newFrames;
+						usedTimeline = timeline;
+						break;
+					}
+				}
+			}
+		}
 
 		for (index in indices)
 		{
@@ -251,6 +288,18 @@ class FlxAnimateController extends FlxAnimationController
 
 	public inline function getDefaultTimeline():Timeline
 		return _animate.library.timeline;
+
+	public inline function getCollectionTimelines():Array<Timeline> {
+		var timelines:Array<Timeline> = [];
+
+		@:privateAccess
+		for (collection in _animate.library.addedCollections)
+		{
+			timelines.push(collection.timeline);
+		}
+
+		return timelines;
+	}
 
 	override function destroy()
 	{
