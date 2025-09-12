@@ -375,7 +375,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		// clear the temp data crap
 		frames._loadedData = null;
-		frames._libraryList = null;
+		frames._libraryList = [];
 		frames._settings = null;
 
 		_cachedAtlases.set(path, frames);
