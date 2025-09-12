@@ -43,7 +43,7 @@ class FlxAnimateController extends FlxAnimationController
 					var newFrames = findFrameLabelIndices(label, timeline);
 					if (newFrames.length > 0)
 					{
-						trace('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
 						foundFrames = newFrames;
 						usedTimeline = timeline;
 						break;
@@ -87,7 +87,7 @@ class FlxAnimateController extends FlxAnimationController
 					var newFrames = findFrameLabelIndices(label, timeline);
 					if (newFrames.length > 0)
 					{
-						trace('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
 						foundFrames = newFrames;
 						usedTimeline = timeline;
 						break;
