@@ -6,6 +6,7 @@ import animate.internal.elements.MovieClipInstance;
 import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.util.FlxDestroyUtil;
 import openfl.geom.ColorTransform;
 
@@ -61,6 +62,7 @@ class SymbolItem implements IFlxDestroyable
 
 		instance.libraryItem = this;
 		instance.matrix = new FlxMatrix();
+		instance.transformationPoint = FlxPoint.get();
 		instance.loopType = "LP";
 		instance.firstFrame = 0;
 		instance.transform = new ColorTransform();
