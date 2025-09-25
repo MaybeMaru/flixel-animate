@@ -6,9 +6,11 @@ import animate.internal.filters.Blend;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
+import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
 
@@ -21,6 +23,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public var firstFrame:Int;
 	public var loopType:String;
 	public var symbolName(get, never):String;
+	public var transformationPoint:FlxPoint;
 
 	var isColored:Bool;
 	var transform:ColorTransform;
@@ -39,6 +42,9 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		this.loopType = data.LP;
 		this.firstFrame = data.FF;
 		this.isColored = false;
+
+		var trp:Null<TransformationPointJson> = data.TRP;
+		this.transformationPoint = FlxPoint.get(trp?.x ?? 0.0, trp?.y ?? 0.0);
 
 		if (libraryItem == null)
 			visible = false;
@@ -200,6 +206,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	override function destroy()
 	{
 		super.destroy();
+		transformationPoint = FlxDestroyUtil.put(transformationPoint);
 		libraryItem = null;
 		transform = null;
 		_transform = null;
