@@ -190,7 +190,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			// Check if the atlas is complete
 			for (spritemap in cast(cachedAtlas.parent, FlxAnimateSpritemapCollection).spritemaps)
 			{
-				if (spritemap.isDestroyed)
+				if (#if (flixel >= "5.6.0") spritemap.isDestroyed #else spritemap.shader == null #end)
 				{
 					isAtlasDestroyed = true;
 					break;
