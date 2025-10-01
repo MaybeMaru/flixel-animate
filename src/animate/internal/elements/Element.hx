@@ -42,7 +42,7 @@ class AnimateElement<T> implements IFlxDestroyable
 		return rect ?? FlxRect.get();
 	}
 
-	public function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+	public function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
 		?shader:FlxShader):Void {}
 
 	public inline function toSymbolInstance():SymbolInstance

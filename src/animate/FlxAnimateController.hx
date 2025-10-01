@@ -289,7 +289,8 @@ class FlxAnimateController extends FlxAnimationController
 	public inline function getDefaultTimeline():Timeline
 		return _animate.library.timeline;
 
-	public inline function getCollectionTimelines():Array<Timeline> {
+	public inline function getCollectionTimelines():Array<Timeline>
+	{
 		var timelines:Array<Timeline> = [];
 
 		@:privateAccess

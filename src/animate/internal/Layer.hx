@@ -251,12 +251,12 @@ enum abstract LayerType(Int) to Int
 
 	public function toString():String
 	{
-		return switch (this)
+		return switch (cast this : LayerType)
 		{
 			case CLIPPER: "clipper";
 			case CLIPPED: "clipped";
 			case FOLDER: "folder";
-			case _: "normal";
+			case NORMAL: "normal";
 		}
 	}
 }

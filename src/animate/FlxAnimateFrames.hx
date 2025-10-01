@@ -14,6 +14,7 @@ import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.Json;
+import haxe.ds.Vector;
 import haxe.io.Path;
 
 using StringTools;
@@ -109,11 +110,12 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		if (_isInlined)
 		{
-			// Didnt load at first for some reason?
-			if (_loadedData != null)
+			var sd = _symbolDictionary;
+			if (sd != null)
 			{
-				for (data in _loadedData.SD)
+				for (i in 0...sd.length)
 				{
+					var data = sd[i];
 					if (data.SN == name)
 					{
 						var timeline = new Timeline(data.TL, this, name);
@@ -235,7 +237,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return FlxG.bitmap.add(FlxAnimateAssets.getBitmapData(path), false, path);
 	}
 
-	var _loadedData:AnimationJson;
+	var _symbolDictionary:Null< #if flash Array<SymbolJson> #else Vector<SymbolJson> #end>;
 	var _isInlined:Bool;
 	var _libraryList:Array<String>;
 	var _settings:Null<FlxAnimateSettings>;
@@ -315,7 +317,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		var frames = new FlxAnimateFrames(null);
 		frames.path = path;
-		frames._loadedData = animData;
+		frames._symbolDictionary = animData.SD;
 		frames._isInlined = isInlined;
 		frames._libraryList = libraryList;
 		frames._settings = settings;
@@ -345,18 +347,6 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			spritemapCollection.addSpritemap(graphic);
 		}
 
-		var symbols = animData.SD;
-		if (symbols != null && symbols.length > 0)
-		{
-			var i = symbols.length - 1;
-			while (i > -1)
-			{
-				var data = symbols[i--];
-				var timeline = new Timeline(data.TL, frames, data.SN);
-				frames.dictionary.set(timeline.name, new SymbolItem(timeline));
-			}
-		}
-
 		var metadata:MetadataJson = (metadata == null) ? animData.MD : Json.parse(metadata);
 
 		frames.frameRate = metadata.FRT;
@@ -374,7 +364,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames.matrix = (stageInstance != null) ? stageInstance.MX.toMatrix() : new FlxMatrix();
 
 		// clear the temp data crap
-		frames._loadedData = null;
+		frames._symbolDictionary = null;
 		frames._libraryList = [];
 		frames._settings = null;
 

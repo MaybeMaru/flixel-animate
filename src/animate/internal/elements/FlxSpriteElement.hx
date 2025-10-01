@@ -102,13 +102,13 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 		}
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
 		if (basic == null || basic.alpha <= 0)
 			return;
 
-		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
 	override function getObjectBounds(?result:FlxRect):FlxRect
@@ -150,7 +150,7 @@ class FlxTypedElement<T:FlxBasic> extends Element
 		basic.camera = _camera;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
 		if (basic == null || !basic.visible)

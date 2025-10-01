@@ -41,7 +41,7 @@ class SymbolItem implements IFlxDestroyable
 	 * Creates an instance of the symbol item object.
 	 *
 	 * @param type 	Optional, type of symbol instance to create (``GRAPHIC``, ``MOVIECLIP``, ``BUTTON``).
-	 * @return		An new symbol instance of the library symbol item.
+	 * @return		A new symbol instance of the library symbol item.
 	 */
 	@:access(animate.internal.elements.SymbolInstance)
 	public function createInstance(?type:ElementType = GRAPHIC):Null<SymbolInstance>
@@ -63,7 +63,7 @@ class SymbolItem implements IFlxDestroyable
 		instance.libraryItem = this;
 		instance.matrix = new FlxMatrix();
 		instance.transformationPoint = FlxPoint.get();
-		instance.loopType = "LP";
+		instance.loopType = LOOP;
 		instance.firstFrame = 0;
 		instance.transform = new ColorTransform();
 		instance._transform = new ColorTransform();

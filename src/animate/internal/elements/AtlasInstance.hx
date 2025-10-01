@@ -93,7 +93,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		sourceFrame = null;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
 		if (frame == null || frame.frame == null) // should add a warn here
@@ -214,10 +214,10 @@ class BakedInstance extends AtlasInstance
 {
 	public var blend:BlendMode = null;
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
 		var b = Blend.resolve(this.blend, blend);
-		super.draw(camera, index, tlFrame, parentMatrix, transform, b, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, transform, b, antialiasing, shader);
 	}
 }

@@ -56,12 +56,12 @@ class ButtonInstance extends SymbolInstance
 		return FlxMath.minInt(curButtonState, this.libraryItem.timeline.frameCount - 1);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader)
 	{
 		updateButtonState(camera, parentMatrix);
 
-		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
 
 		#if FLX_DEBUG
 		if (FlxG.debugger.drawDebug && FlxAnimate.drawDebugLimbs)

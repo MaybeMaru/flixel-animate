@@ -4,6 +4,7 @@ import animate.internal.filters.AdjustColorFilter;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
+import haxe.ds.Vector;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BitmapFilterType;
@@ -38,7 +39,7 @@ extern typedef SpriteJson =
 extern abstract AnimationJson(Dynamic)
 {
 	public var AN(get, never):AnimationDataJson;
-	public var SD(get, never):Null<Array<SymbolJson>>;
+	public var SD(get, never):Null< #if flash Array<SymbolJson> #else Vector<SymbolJson> #end>;
 	public var MD(get, never):MetadataJson;
 
 	inline function get_AN()

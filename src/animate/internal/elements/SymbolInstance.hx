@@ -21,7 +21,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public var libraryItem:SymbolItem;
 	public var blend:BlendMode;
 	public var firstFrame:Int;
-	public var loopType:String;
+	public var loopType:LoopType;
 	public var symbolName(get, never):String;
 	public var transformationPoint:FlxPoint;
 
@@ -39,9 +39,15 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
-		this.loopType = data.LP;
 		this.firstFrame = data.FF;
 		this.isColored = false;
+
+		this.loopType = switch (data.LP)
+		{
+			case "PO" | "playonce": LoopType.PLAY_ONCE;
+			case "SF" | "singleframe": LoopType.SINGLE_FRAME;
+			default: LoopType.LOOP;
+		}
 
 		var trp:Null<TransformationPointJson> = data.TRP;
 		this.transformationPoint = FlxPoint.get(trp?.x ?? 0.0, trp?.y ?? 0.0);
@@ -52,25 +58,20 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		var color = data.C;
 		if (color != null)
 		{
-			isColored = true;
-			transform = new ColorTransform();
-			_transform = new ColorTransform();
 			switch (color.M)
 			{
 				case "AD" | "Advanced":
-					transform.setMultipliers(color.RM, color.GM, color.BM, color.AM);
-					transform.setOffsets(color.RO, color.GO, color.BO, color.AO);
+					setColorTransform(color.RM, color.GM, color.BM, color.AM, color.RO, color.GO, color.BO, color.AO);
 				case "CA" | "Alpha":
-					transform.alphaMultiplier = color.AM;
+					setColorTransform(1.0, 1.0, 1.0, color.AM, 0.0, 0.0, 0.0, 0.0);
 				case "CBRT" | "Brightness":
-					var brt = color.BRT * 255.0;
-					transform.setOffsets(brt, brt, brt, 0.0);
+					var brightness = color.BRT * 255.0;
+					setColorTransform(1.0, 1.0, 1.0, 1.0, brightness, brightness, brightness, 0.0);
 				case "T" | "Tint":
-					var m = color.TM;
-					var c = FlxColor.fromString(color.TC);
-					var mult = 1.0 - m;
-					transform.setMultipliers(mult, mult, mult, 1.0);
-					transform.setOffsets(c.red * m, c.green * m, c.blue * m, 0.0);
+					var tint:FlxColor = FlxColor.fromString(color.TC);
+					var tintMult:Float = color.TM;
+					var mult:Float = 1.0 - tintMult;
+					setColorTransform(mult, mult, mult, 1.0, tint.red * tintMult, tint.green * tintMult, tint.blue * tintMult, 0.0);
 			}
 		}
 	}
@@ -99,11 +100,11 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		switch (loopType)
 		{
-			case "LP" | "loop":
+			case LoopType.LOOP:
 				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
-			case "PO" | "playonce":
+			case LoopType.PLAY_ONCE:
 				frameIndex = FlxMath.minInt(frameIndex, frameCount - 1);
-			case "SF" | "singleframe":
+			case LoopType.SINGLE_FRAME:
 				frameIndex = firstFrame;
 		}
 
@@ -121,7 +122,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (timeline.frameCount == 1)
 			return true;
 
-		if (loopType == "SF" || loopType == "singleframe")
+		if (loopType == SINGLE_FRAME)
 			return true;
 
 		// TODO: more indepth check through layers
@@ -155,7 +156,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix, includeFilters, useCachedBounds);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
 		if (isColored) // Concat symbol's color to the current color transform
@@ -174,8 +175,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		var b = Blend.resolve(this.blend, blend);
-		var frameIndex = tlFrame != null ? tlFrame.index : 0;
-
 		_drawTimeline(camera, index, frameIndex, parentMatrix, transform, b, antialiasing, shader);
 	}
 
@@ -190,12 +189,14 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	function _setColorTransform(rMult:Float, gMult:Float, bMult:Float, aMult:Float, rOffset:Float, gOffset:Float, bOffset:Float, aOffset:Float)
 	{
-		transform ??= new ColorTransform();
-		_transform ??= new ColorTransform();
-		isColored = true;
+		if (transform == null)
+			transform = new ColorTransform();
+		if (_transform == null)
+			_transform = new ColorTransform();
 
 		transform.setMultipliers(rMult, gMult, bMult, aMult);
 		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
+		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
 	}
 
 	inline function get_symbolName():String
@@ -216,5 +217,22 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public function toString():String
 	{
 		return '{name: ${libraryItem?.name}, matrix: $matrix}';
+	}
+}
+
+enum abstract LoopType(Int) to Int
+{
+	var LOOP;
+	var PLAY_ONCE;
+	var SINGLE_FRAME;
+
+	public function toString():String
+	{
+		return switch (cast this : LoopType)
+		{
+			case LOOP: "loop";
+			case PLAY_ONCE: "play_once";
+			case SINGLE_FRAME: "single_frame";
+		}
 	}
 }

@@ -177,13 +177,13 @@ class MovieClipInstance extends SymbolInstance
 			_dirty = false;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, tlFrame:Frame, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
 			?antialiasing:Bool, ?shader:FlxShader):Void
 	{
 		if (_dirty)
-			_bakeFilters(_filters, getFrameIndex(index, tlFrame.index));
+			_bakeFilters(_filters, getFrameIndex(index, frameIndex));
 
-		super.draw(camera, index, tlFrame, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
 	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, transform:Null<ColorTransform>,
@@ -197,7 +197,7 @@ class MovieClipInstance extends SymbolInstance
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)
-					bakedFrame.draw(camera, 0, null, parentMatrix, transform, blend, antialiasing, shader);
+					bakedFrame.draw(camera, 0, 0, parentMatrix, transform, blend, antialiasing, shader);
 				return;
 			}
 		}
