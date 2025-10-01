@@ -373,8 +373,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		return frames;
 	}
 
+	@:allow(animate.FlxAnimateController)
 	var dictionary:Map<String, SymbolItem>;
+
+	@:allow(animate.FlxAnimateController)
 	var path:String;
+
+	@:allow(animate.FlxAnimateController)
 	var addedCollections:Array<FlxAnimateFrames>;
 
 	override function addAtlas(collection:FlxAtlasFrames, overwriteHash:Bool = false):FlxAtlasFrames

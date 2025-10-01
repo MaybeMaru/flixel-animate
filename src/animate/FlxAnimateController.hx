@@ -43,7 +43,8 @@ class FlxAnimateController extends FlxAnimationController
 					var newFrames = findFrameLabelIndices(label, timeline);
 					if (newFrames.length > 0)
 					{
-						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						FlxG.log.notice('Found frame label "${label}" in timeline "${timeline.name}" from texture atlas "${timeline.parent.path}".');
+						trace(newFrames, newFrames.length, label, timeline.parent.path);
 						foundFrames = newFrames;
 						usedTimeline = timeline;
 						break;
@@ -87,7 +88,7 @@ class FlxAnimateController extends FlxAnimationController
 					var newFrames = findFrameLabelIndices(label, timeline);
 					if (newFrames.length > 0)
 					{
-						FlxG.log.notice('Found frame label ${label} in timeline ${timeline.name} from another texture atlas');
+						FlxG.log.notice('Found frame label "${label}" in timeline "${timeline.name}" from texture atlas "${timeline.parent.path}".');
 						foundFrames = newFrames;
 						usedTimeline = timeline;
 						break;
@@ -290,17 +291,7 @@ class FlxAnimateController extends FlxAnimationController
 		return _animate.library.timeline;
 
 	public inline function getCollectionTimelines():Array<Timeline>
-	{
-		var timelines:Array<Timeline> = [];
-
-		@:privateAccess
-		for (collection in _animate.library.addedCollections)
-		{
-			timelines.push(collection.timeline);
-		}
-
-		return timelines;
-	}
+		return [for (collection in _animate.library.addedCollections) collection.timeline];
 
 	override function destroy()
 	{

@@ -210,7 +210,8 @@ class FlxAnimate extends FlxSprite
 		if (renderStage)
 			drawStage(camera);
 
-		timeline.currentFrame = animation.frameIndex;
+		// patch-on fix for multiatlas frame label animations bug
+		timeline.currentFrame = (animation.curAnim != null) ? animation.curAnim.curIndex : animation.frameIndex;
 		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
