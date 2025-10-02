@@ -5,8 +5,8 @@
     "tags": ["flixel", "adobe"],
     "description": "Personal HaxeFlixel Adobe Animate texture atlas implementation.",
     "classPath": "src/",
-    "version": "1.3.0",
-    "releasenote": "FlxBasicElement, onFrameLabel and new stage matrix functionality.",
+    "version": "1.3.1",
+    "releasenote": "Bugfixes, optimizations and better multi-atlas support.",
     "contributors": ["MaybeMaru"],
 	"dependencies": {
 		"flixel": ""
