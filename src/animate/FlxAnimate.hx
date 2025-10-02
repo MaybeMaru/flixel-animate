@@ -1,5 +1,6 @@
 package animate;
 
+import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
 import animate.internal.Frame;
 import animate.internal.StageBG;
@@ -210,8 +211,7 @@ class FlxAnimate extends FlxSprite
 		if (renderStage)
 			drawStage(camera);
 
-		// patch-on fix for multiatlas frame label animations bug
-		timeline.currentFrame = (animation.curAnim != null) ? animation.curAnim.curIndex : animation.frameIndex;
+		timeline.currentFrame = animation.frameIndex;
 		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
@@ -288,7 +288,13 @@ class FlxAnimate extends FlxSprite
 		if (!isAnimate)
 			return super.get_numFrames();
 
-		return animation.curAnim != null ? timeline.frameCount : 0;
+		@:privateAccess
+		{
+			if (animation._curAnim != null)
+				return cast(animation._curAnim, FlxAnimateAnimation).timeline.frameCount;
+		}
+
+		return 0;
 	}
 
 	private function set_anim(newController:FlxAnimateController):FlxAnimateController

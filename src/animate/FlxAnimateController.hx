@@ -44,7 +44,6 @@ class FlxAnimateController extends FlxAnimationController
 					if (newFrames.length > 0)
 					{
 						FlxG.log.notice('Found frame label "${label}" in timeline "${timeline.name}" from texture atlas "${timeline.parent.path}".');
-						trace(newFrames, newFrames.length, label, timeline.parent.path);
 						foundFrames = newFrames;
 						usedTimeline = timeline;
 						break;
