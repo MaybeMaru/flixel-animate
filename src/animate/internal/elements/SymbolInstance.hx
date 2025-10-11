@@ -77,7 +77,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	}
 
 	public extern overload inline function setColorTransform(rMult:Float = 1, gMult:Float = 1, bMult:Float = 1, aMult:Float = 1, rOffset:Float = 0,
-			gOffset:Float, bOffset:Float = 0, aOffset:Float = 0):Void
+			gOffset:Float = 0, bOffset:Float = 0, aOffset:Float = 0):Void
 	{
 		_setColorTransform(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
 	}

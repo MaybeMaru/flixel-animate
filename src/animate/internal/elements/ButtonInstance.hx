@@ -11,7 +11,6 @@ import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxSignal;
 import openfl.display.BlendMode;
-import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;

@@ -7,6 +7,7 @@ import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFramesCollection.FlxFrameCollectionType;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -51,10 +52,10 @@ typedef FlxAnimateSettings =
  * Class used to store all the data needed for texture atlases, such as spritemaps, symbols...
  *
  * Note that this engine does **NOT** convert texture atlases into spritesheets, therefore trying to get
- * frames from here will result in getting the limbs from the spritemap.
+ * frames from a ``FlxAnimateFrames`` will result in getting the limb frames of the spritemap.
  *
- * If you need the a frame of the texture atlas animation I recommend using ``framePixels`` on
- * a ``FlxAnimate`` sprite as it is supported.
+ * If you need an actual frame of the texture atlas animation I recommend manually creating it using
+ * ``framePixels`` on a ``FlxAnimate``. Though it may cause performance issues, so use with precaution.
  */
 class FlxAnimateFrames extends FlxAtlasFrames
 {
@@ -386,11 +387,73 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	{
 		if (collection is FlxAnimateFrames)
 		{
-			addedCollections.push(cast collection);
+			// Add the texture atlas collection
+			var animateCollection:FlxAnimateFrames = cast collection;
+			addedCollections.push(animateCollection);
+
+			// Add other non-texture atlas frames that could've been added to the animate frames, such as Sparrow
+			var spritemap:FlxAnimateSpritemapCollection = cast animateCollection.parent;
+			for (graphic in animateCollection.usedGraphics)
+			{
+				if (!spritemap.spritemaps.contains(graphic)) // Graphic isnt part of the texture atlas spritemap, check for atlas frames
+				{
+					var atlasFrames = FlxAtlasFrames.findFrame(graphic);
+					if (atlasFrames != null)
+						super.addAtlas(atlasFrames, overwriteHash);
+				}
+			}
+
 			return this;
 		}
 
 		return super.addAtlas(collection, overwriteHash);
+	}
+
+	/**
+	 * Combines two ``FlxAtlasFrames`` into one.
+	 * Recommended to use over manually calling ``frames.addAtlas`` when working with
+	 * ``FlxAnimateFrames`` and other mixed frame types, due to some special merge order conditions it requires.
+	 * 
+	 * @param atlasA First atlas to combine.
+	 * @param atlasB Second atlas to combine.
+	 * @return Newly merged ``FlxAtlasFrames`` object.
+	 */
+	public static extern overload inline function combineAtlas(atlasA:FlxAtlasFrames, atlasB:FlxAtlasFrames):Null<FlxAtlasFrames>
+	{
+		return _combineAtlas(atlasA, atlasB);
+	}
+
+	/**
+	 * Combines a list of ``FlxAtlasFrames`` into one.
+	 * Recommended to use over manually calling ``frames.addAtlas`` when working with
+	 * ``FlxAnimateFrames`` and other mixed frame types, due to some special merge order conditions it requires.
+	 * 
+	 * @param atlasList List of atlas frames to combine.
+	 * @return Newly merged ``FlxAtlasFrames`` object.
+	 */
+	public static extern overload inline function combineAtlas(atlasList:Array<FlxAtlasFrames>):Null<FlxAtlasFrames>
+	{
+		if (atlasList.length <= 0)
+		{
+			FlxG.log.warn('No frames were found to be combined together.');
+			return null;
+		}
+
+		var i = 1;
+		var frames:FlxAtlasFrames = atlasList[0];
+		while (i < atlasList.length)
+			frames = _combineAtlas(frames, atlasList[i++]);
+
+		return frames;
+	}
+
+	@:noCompletion
+	static inline function _combineAtlas(atlasA:FlxAtlasFrames, atlasB:FlxAtlasFrames):FlxAtlasFrames
+	{
+		if (atlasA is FlxAnimateFrames)
+			return atlasA.addAtlas(atlasB);
+
+		return atlasB.addAtlas(atlasA);
 	}
 
 	var checkedDirtySymbols:Array<String> = [];

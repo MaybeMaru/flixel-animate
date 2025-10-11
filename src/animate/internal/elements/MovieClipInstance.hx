@@ -37,12 +37,12 @@ class MovieClipInstance extends SymbolInstance
 		this.elementType = MOVIECLIP;
 
 		// Add settings from parent frames
-		var cacheOnLoad:Bool = false;
+		var _cacheOnLoad:Bool = false;
 		@:privateAccess {
 			if (parent != null && parent._settings != null)
 			{
 				swfMode = parent._settings.swfMode ?? false;
-				cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+				_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
 				_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
 			}
 		}
@@ -74,7 +74,7 @@ class MovieClipInstance extends SymbolInstance
 		//	frame._dirty = true;
 
 		// Cache all frames on start, if set by the settings
-		if (cacheOnLoad && _dirty)
+		if (_cacheOnLoad && _dirty)
 		{
 			final length:Int = swfMode ? 1 : libraryItem.timeline.frameCount;
 			for (i in 0...length)

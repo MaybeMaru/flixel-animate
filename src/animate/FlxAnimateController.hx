@@ -22,9 +22,25 @@ class FlxAnimateController extends FlxAnimationController
 	 */
 	public final onFrameLabel = new FlxTypedSignal<(frameLabel:String) -> Void>();
 
+	public function new(sprite:FlxAnimate)
+	{
+		super(sprite);
+	}
+
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name			What this animation should be called (e.g. `"run"`).
+	 * @param label			Frame label tag to load the animation from.
+	 * @param frameRate		The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped		Whether or not the animation is looped or just plays once.
+	 * @param flipX			Whether the frames should be flipped horizontally.
+	 * @param flipY			Whether the frames should be flipped vertically.
+	 * @param timeline		Optional, ``Timeline`` object used to add the frame labels from.
+	 */
 	public function addByFrameLabel(name:String, label:String, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool, ?timeline:Timeline):Void
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -64,10 +80,22 @@ class FlxAnimateController extends FlxAnimationController
 		_animations.set(name, anim);
 	}
 
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name 			What this animation should be called (e.g. `"run"`).
+	 * @param label 		Frame label tag to load the animation from.
+	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
+	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped 		Whether or not the animation is looped or just plays once.
+	 * @param flipX 		Whether the frames should be flipped horizontally.
+	 * @param flipY 		Whether the frames should be flipped vertically.
+	 * @param timeline 		Optional, ``Timeline`` object used to add the frame labels from.
+	 */
 	public function addByFrameLabelIndices(name:String, label:String, indices:Array<Int>, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool,
 			?timeline:Timeline)
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -116,9 +144,19 @@ class FlxAnimateController extends FlxAnimationController
 		_animations.set(name, anim);
 	}
 
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name 			What this animation should be called (e.g. `"run"`).
+	 * @param timeline 		``Timeline`` object used to add the animation from.
+	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped 		Whether or not the animation is looped or just plays once.
+	 * @param flipX 		Whether the frames should be flipped horizontally.
+	 * @param flipY 		Whether the frames should be flipped vertically.
+	 */
 	public function addByTimeline(name:String, timeline:Timeline, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool):Void
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -127,10 +165,21 @@ class FlxAnimateController extends FlxAnimationController
 		addByTimelineIndices(name, timeline, [for (i in 0...timeline.frameCount) i], frameRate, looped, flipX, flipY);
 	}
 
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name 			What this animation should be called (e.g. `"run"`).
+	 * @param timeline 		``Timeline`` object used to add the animation from.
+	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
+	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped 		Whether or not the animation is looped or just plays once.
+	 * @param flipX 		Whether the frames should be flipped horizontally.
+	 * @param flipY 		Whether the frames should be flipped vertically.
+	 */
 	public function addByTimelineIndices(name:String, timeline:Timeline, indices:Array<Int>, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool,
 			?flipY:Bool):Void
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -142,9 +191,19 @@ class FlxAnimateController extends FlxAnimationController
 		_animations.set(name, anim);
 	}
 
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name 			What this animation should be called (e.g. `"run"`).
+	 * @param symbolName 	Name of the symbol used to add the animation from.
+	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped 		Whether or not the animation is looped or just plays once.
+	 * @param flipX 		Whether the frames should be flipped horizontally.
+	 * @param flipY 		Whether the frames should be flipped vertically.
+	 */
 	public function addBySymbol(name:String, symbolName:String, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool):Void
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -164,9 +223,20 @@ class FlxAnimateController extends FlxAnimationController
 		_animations.set(name, anim);
 	}
 
+	/**
+	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
+	 * 
+	 * @param name 			What this animation should be called (e.g. `"run"`).
+	 * @param symbolName 	Name of the symbol used to add the animation from.
+	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
+	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
+	 * @param looped 		Whether or not the animation is looped or just plays once.
+	 * @param flipX 		Whether the frames should be flipped horizontally.
+	 * @param flipY 		Whether the frames should be flipped vertically.
+	 */
 	public function addBySymbolIndices(name:String, symbolName:String, indices:Array<Int>, ?frameRate:Float, ?looped:Bool = true, ?flipX:Bool, ?flipY:Bool):Void
 	{
-		if (!isAnimate)
+		if (!hasAnimateAtlas)
 		{
 			FlxG.log.warn('Sprite is not loaded with a texture atlas.');
 			return;
@@ -186,6 +256,13 @@ class FlxAnimateController extends FlxAnimationController
 		_animations.set(name, anim);
 	}
 
+	/**
+	 * Gets the list of indices of a frame label to be found from a timeline.
+	 * 
+	 * @param label Frame label tag to find the indices of.
+	 * @param timeline Optional, ``Timeline`` object used to check the labels from, defaults to the main Texture Atlas document timeline.
+	 * @return Array of integer indices of the frame label, empty if none were found.
+	 */
 	public function findFrameLabelIndices(label:String, ?timeline:Timeline):Array<Int>
 	{
 		var foundFrames:Array<Int> = [];
@@ -212,13 +289,6 @@ class FlxAnimateController extends FlxAnimationController
 		return foundFrames;
 	}
 
-	var animateFrame:FlxFrame;
-
-	public function new(sprite:FlxAnimate)
-	{
-		super(sprite);
-	}
-
 	override function set_frameIndex(frame:Int):Int
 	{
 		if (!isAnimate)
@@ -238,6 +308,12 @@ class FlxAnimateController extends FlxAnimationController
 
 		return frameIndex;
 	}
+
+	/**
+	 * Internal FlxFrame used to fake out current frame data for FlxSprite
+	 * functions that are unavailable to override for FlxAnimate.
+	 */
+	var animateFrame:FlxFrame;
 
 	@:allow(animate.FlxAnimate)
 	function updateTimelineBounds():Void
@@ -273,24 +349,49 @@ class FlxAnimateController extends FlxAnimationController
 		super.play(animName, force, reversed, frame);
 	}
 
+	/**
+	 * Wether the sprite is currently displaying a Texture Atlas animation or not.
+	 */
+	var isAnimate(get, never):Bool;
+
+	/**
+	 * Wether the sprite is loaded with a Texture Atlas.
+	 * It's important to use this variable internally as to avoid errors, if the Texture Atlas is
+	 * combined with other Flixel atlases, such as Sparrow.
+	 */
+	var hasAnimateAtlas(get, never):Bool;
+
+	/**
+	 * The default framerate of the Texture Atlas document.
+	 * @return Float value of the framerate, ``0.0`` if the sprite isn't loaded with a Texture Atlas.
+	 */
+	public inline function getDefaultFramerate():Float
+		return hasAnimateAtlas ? _animate.library.frameRate : 0.0;
+
+	/**
+	 * The default timeline of the Texture Atlas document.
+	 * @return Default ``Timeline`` object, ``null`` if the sprite isn't loaded with a Texture Atlas.
+	 */
+	public inline function getDefaultTimeline():Timeline
+		return hasAnimateAtlas ? _animate.library.timeline : null;
+
+	/**
+	 * The collection of extra main timelines merged to the Texture Atlas.
+	 * @return An array of ``Timeline`` object, empty if the sprite isn't loaded with a Texture Atlas.
+	 */
+	public inline function getCollectionTimelines():Array<Timeline>
+		return hasAnimateAtlas ? [for (collection in _animate.library.addedCollections) collection.timeline] : [];
+
 	var _animate(get, never):FlxAnimate;
 
 	inline function get__animate():FlxAnimate
 		return cast _sprite;
 
-	var isAnimate(get, never):Bool;
-
-	inline function get_isAnimate()
+	inline function get_isAnimate():Bool
 		return _animate.isAnimate;
 
-	public inline function getDefaultFramerate():Float
-		return _animate.library.frameRate;
-
-	public inline function getDefaultTimeline():Timeline
-		return _animate.library.timeline;
-
-	public inline function getCollectionTimelines():Array<Timeline>
-		return [for (collection in _animate.library.addedCollections) collection.timeline];
+	inline function get_hasAnimateAtlas():Bool
+		return _animate.library != null;
 
 	override function destroy()
 	{

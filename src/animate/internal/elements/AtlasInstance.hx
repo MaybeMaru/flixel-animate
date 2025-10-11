@@ -10,7 +10,6 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import openfl.display.BlendMode;
-import openfl.display.Timeline;
 import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
@@ -196,9 +195,23 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			cBounds.put();
 		});
 		#else
-		var gfx = camera.debugLayer.graphics;
-		gfx.lineStyle(1, color, 0.75);
-		gfx.drawRect(bounds.x + 0.5, bounds.y + 0.5, bounds.width - 1.0, bounds.height - 1.0);
+		final view = camera.getViewMarginRect();
+		final rect = bounds.copyTo(FlxRect.get());
+		view.left -= 2;
+		view.top -= 2;
+		view.right += 2;
+		view.bottom += 2;
+		rect.clipTo(view);
+
+		if (rect.width > 0 && rect.height > 0)
+		{
+			final gfx = camera.debugLayer.graphics;
+			gfx.lineStyle(1, color, 0.75, false, null, null, MITER, 255);
+			gfx.drawRect(rect.x + 0.5, rect.y + 0.5, rect.width - 1.0, rect.height - 1.0);
+		}
+
+		view.put();
+		rect.put();
 		#end
 	}
 	#end

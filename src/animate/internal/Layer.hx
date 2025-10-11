@@ -194,10 +194,10 @@ class Layer implements IFlxDestroyable
 			return;
 
 		// Add settings from parent frames
-		var cacheOnLoad:Bool = false;
+		var _cacheOnLoad:Bool = false;
 		@:privateAccess {
 			if (parent != null && parent._settings != null)
-				cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+				_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
 		}
 
 		for (frame in frames)
@@ -209,7 +209,7 @@ class Layer implements IFlxDestroyable
 			frame._requireBake = true;
 
 			// Cache all frames on start, if set by the settings
-			if (cacheOnLoad) // TODO: fix some size issues when using cacheOnLoad with masks
+			if (_cacheOnLoad) // TODO: fix some size issues when using cacheOnLoad with masks
 			{
 				for (i in 0...frame.duration)
 					frame._bakeFrame(i);

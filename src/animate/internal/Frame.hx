@@ -218,11 +218,11 @@ class Frame implements IFlxDestroyable
 				this.elements.push(switch (si.ST)
 				{
 					case "B" | "button":
-						new ButtonInstance(element.SI, parent, this);
+						new ButtonInstance(si, parent, this);
 					case "MC" | "movieclip":
-						new MovieClipInstance(element.SI, parent, this);
+						new MovieClipInstance(si, parent, this);
 					default:
-						new SymbolInstance(element.SI, parent, this);
+						new SymbolInstance(si, parent, this);
 				});
 			}
 			else

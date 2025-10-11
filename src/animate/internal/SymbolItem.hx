@@ -8,7 +8,6 @@ import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.util.FlxDestroyUtil;
-import openfl.geom.ColorTransform;
 
 class SymbolItem implements IFlxDestroyable
 {
@@ -56,7 +55,7 @@ class SymbolItem implements IFlxDestroyable
 			case ElementType.BUTTON:
 				instance = new ButtonInstance();
 			default:
-				FlxG.log.warn('Invalid Symbol Instance type.');
+				FlxG.log.warn('Invalid Symbol Instance type "$type".');
 				return null;
 		}
 
@@ -65,8 +64,7 @@ class SymbolItem implements IFlxDestroyable
 		instance.transformationPoint = FlxPoint.get();
 		instance.loopType = LOOP;
 		instance.firstFrame = 0;
-		instance.transform = new ColorTransform();
-		instance._transform = new ColorTransform();
+		instance.setColorTransform(1, 1, 1, 1, 0, 0, 0, 0);
 		return instance;
 	}
 }
