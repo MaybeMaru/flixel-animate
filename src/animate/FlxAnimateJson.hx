@@ -106,7 +106,7 @@ extern abstract FrameJson(Dynamic)
 {
 	public var I(get, never):Int;
 	public var DU(get, never):Int;
-	public var E(get, never):Array<ElementJson>;
+	public var E(get, never):Null<Array<ElementJson>>;
 
 	public var N(get, never):Null<String>;
 
@@ -119,7 +119,7 @@ extern abstract FrameJson(Dynamic)
 		return this.DU ?? this.duration;
 
 	inline function get_E()
-		return this.E ?? this.elements ?? [];
+		return this.E ?? this.elements;
 
 	inline function get_N()
 		return this.N ?? this.name;

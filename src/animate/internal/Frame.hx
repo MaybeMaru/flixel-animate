@@ -210,34 +210,39 @@ class Frame implements IFlxDestroyable
 		this.index = frame.I;
 		this.duration = frame.DU;
 		this.name = frame.N ?? "";
-		for (element in frame.E)
+
+		var e = frame.E;
+		if (e != null)
 		{
-			var si = element.SI;
-			if (si != null)
+			for (element in e)
 			{
-				this.elements.push(switch (si.ST)
+				var si = element.SI;
+				if (si != null)
 				{
-					case "B" | "button":
-						new ButtonInstance(si, parent, this);
-					case "MC" | "movieclip":
-						new MovieClipInstance(si, parent, this);
-					default:
-						new SymbolInstance(si, parent, this);
-				});
-			}
-			else
-			{
-				var asi = element.ASI;
-				if (asi != null)
-				{
-					this.elements.push(new AtlasInstance(asi, parent, this));
+					this.elements.push(switch (si.ST)
+					{
+						case "B" | "button":
+							new ButtonInstance(si, parent, this);
+						case "MC" | "movieclip":
+							new MovieClipInstance(si, parent, this);
+						default:
+							new SymbolInstance(si, parent, this);
+					});
 				}
 				else
 				{
-					var tfi = element.TFI;
-					if (tfi != null)
+					var asi = element.ASI;
+					if (asi != null)
 					{
-						this.elements.push(new TextFieldInstance(tfi, parent, this));
+						this.elements.push(new AtlasInstance(asi, parent, this));
+					}
+					else
+					{
+						var tfi = element.TFI;
+						if (tfi != null)
+						{
+							this.elements.push(new TextFieldInstance(tfi, parent, this));
+						}
 					}
 				}
 			}
