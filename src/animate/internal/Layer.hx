@@ -140,13 +140,13 @@ class Layer implements IFlxDestroyable
 
 		if (isMasked && layerIndex != null && layers != null) // Set clipped by
 		{
-			var i = layerIndex;
+			var i = layerIndex - 1;
 			var foundLayer:Bool = false;
 			this.layerType = CLIPPED;
 
-			while (i < layers.length)
+			while (i >= 0)
 			{
-				var aboveLayer = layers[i++];
+				var aboveLayer = layers[i--];
 				if (aboveLayer != null && aboveLayer.name == clippedBy && aboveLayer.layerType == CLIPPER)
 				{
 					parentLayer = aboveLayer;

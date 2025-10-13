@@ -306,8 +306,10 @@ class Timeline implements IFlxDestroyable
 	}*/
 	public function draw(camera:FlxCamera, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader)
 	{
-		for (layer in layers)
+		var i = layers.length - 1;
+		while (i >= 0)
 		{
+			var layer = layers[i--];
 			if (!layer.visible)
 				continue;
 
@@ -327,15 +329,14 @@ class Timeline implements IFlxDestroyable
 		{
 			var layer = new Layer(this);
 			layer.name = layerJson.LN;
-			layers.unshift(layer);
+			layers.push(layer);
 			_layerMap.set(layer.name, layer);
 		}
 
 		for (i in 0...layersJson.length)
 		{
-			var layerIndex = layers.length - i - 1;
-			var layer = layers[layerIndex];
-			layer._loadJson(layersJson[i], parent, layerIndex, layers);
+			var layer = layers[i];
+			layer._loadJson(layersJson[i], parent, i, layers);
 
 			if (layer.frameCount > frameCount)
 				frameCount = layer.frameCount;
