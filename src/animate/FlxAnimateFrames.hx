@@ -191,9 +191,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			var isAtlasDestroyed = false;
 
 			// Check if the atlas is complete
-			for (spritemap in cast(cachedAtlas.parent, FlxAnimateSpritemapCollection).spritemaps)
+			// For most cases this shouldnt be an issue but theres a ton of people who make their
+			// own flixel caching systems that dont work nice with this.
+			// For anyone out there listening, if theres a better option, PLEASE help, this is crap
+			// - maru
+			for (frame in cachedAtlas.frames)
 			{
-				if (#if (flixel >= "5.6.0") spritemap.isDestroyed #else spritemap.shader == null #end)
+				if (frame == null || frame.parent == null || frame.frame == null)
 				{
 					isAtlasDestroyed = true;
 					break;
@@ -203,7 +207,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			// Destroy previously cached atlas if incomplete, and create a new instance
 			if (isAtlasDestroyed)
 			{
-				FlxG.log.warn('Texture Atlas with the key "$key" was previously cached but incomplete. Was it incorrectly destroyed?');
+				FlxG.log.warn('Texture Atlas with the key "$key" was previously cached, but incomplete. Was it incorrectly destroyed?');
 				cachedAtlas.destroy();
 				_cachedAtlases.remove(key);
 			}
