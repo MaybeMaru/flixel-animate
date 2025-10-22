@@ -195,12 +195,25 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			// own flixel caching systems that dont work nice with this.
 			// For anyone out there listening, if theres a better option, PLEASE help, this is crap
 			// - maru
-			for (frame in cachedAtlas.frames)
+			for (spritemap in cast(cachedAtlas.parent, FlxAnimateSpritemapCollection).spritemaps)
 			{
-				if (frame == null || frame.parent == null || frame.frame == null)
+				if (#if (flixel >= "5.6.0") spritemap.isDestroyed #else spritemap.shader == null #end)
 				{
 					isAtlasDestroyed = true;
 					break;
+				}
+			}
+
+			// Another check for individual frames (may have combined frames from a Sparrow)
+			if (!isAtlasDestroyed)
+			{
+				for (frame in cachedAtlas.frames)
+				{
+					if (frame == null || frame.parent == null || frame.frame == null)
+					{
+						isAtlasDestroyed = true;
+						break;
+					}
 				}
 			}
 
