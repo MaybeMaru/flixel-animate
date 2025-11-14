@@ -1,6 +1,7 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
@@ -92,8 +93,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		sourceFrame = null;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader):Void
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
 		if (frame == null || frame.frame == null) // should add a warn here
 			return;
@@ -111,10 +111,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			_mat.ty = Math.floor(_mat.ty);
 		}
 
+		drawCommand.prepareCommand(command, transform, _transform, blend);
+
 		#if flash
-		drawPixelsFlash(camera, _mat, transform, blend, antialiasing);
+		drawPixelsFlash(camera, _mat, drawCommand.transform, drawCommand.blend, drawCommand.antialiasing);
 		#else
-		camera.drawPixels(frame, null, _mat, transform, blend, antialiasing, shader);
+		camera.drawPixels(frame, null, _mat, drawCommand.transform, drawCommand.blend, drawCommand.antialiasing, drawCommand.shader);
 		#end
 
 		#if FLX_DEBUG
@@ -222,15 +224,6 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	}
 }
 
+@:deprecated
 @:noCompletion
-class BakedInstance extends AtlasInstance
-{
-	public var blend:BlendMode = null;
-
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
-	{
-		var b = Blend.resolve(this.blend, blend);
-		super.draw(camera, index, frameIndex, parentMatrix, transform, b, antialiasing, shader);
-	}
-}
+typedef BakedInstance = AtlasInstance;

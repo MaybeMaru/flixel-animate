@@ -1,6 +1,7 @@
 package animate.internal;
 
 import animate.FlxAnimateJson.FrameJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.AtlasInstance;
 import animate.internal.elements.ButtonInstance;
 import animate.internal.elements.Element;
@@ -329,12 +330,12 @@ class Frame implements IFlxDestroyable
 
 	@:allow(animate.internal.elements.SymbolInstance)
 	@:allow(animate.internal.FilterRenderer)
+	@:allow(animate.internal.Timeline)
 	@:allow(animate.internal.filters.Blend)
 	@:allow(animate.internal.elements.AtlasInstance)
 	private static var __isDirtyCall:Bool = false;
 
-	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
-			?shader:FlxShader):Void
+	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (_dirty)
 		{
@@ -348,22 +349,21 @@ class Frame implements IFlxDestroyable
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)
-					bakedFrame.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
+					bakedFrame.draw(camera, currentFrame, this.index, parentMatrix, command);
 				return;
 			}
 		}
 
-		_drawElements(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
+		_drawElements(camera, currentFrame, parentMatrix, command);
 	}
 
 	@:allow(animate.internal.FilterRenderer)
-	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
-			?shader:FlxShader)
+	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		for (element in elements)
 		{
 			if (element.visible)
-				element.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
+				element.draw(camera, currentFrame, this.index, parentMatrix, command);
 		}
 	}
 

@@ -86,6 +86,8 @@ class FlxAnimate extends FlxSprite
 	 */
 	public function new(?x:Float = 0, ?y:Float = 0, ?simpleGraphic:FlxGraphicAsset, ?settings:FlxAnimateSettings)
 	{
+		_drawCommand = new AnimateDrawCommand();
+
 		var loadedAnimateAtlas:Bool = false;
 		if (simpleGraphic != null && simpleGraphic is String)
 		{
@@ -94,6 +96,11 @@ class FlxAnimate extends FlxSprite
 		}
 
 		super(x, y, loadedAnimateAtlas ? null : simpleGraphic);
+
+		#if flash
+		// texture atlases are so complex that you should just render them normally on blit
+		useFramePixels = false;
+		#end
 
 		if (loadedAnimateAtlas)
 			frames = FlxAnimateFrames.fromAnimate(simpleGraphic, null, null, null, false, settings);
@@ -128,6 +135,8 @@ class FlxAnimate extends FlxSprite
 
 		return resultFrames;
 	}
+
+	var _drawCommand:AnimateDrawCommand;
 
 	override function draw():Void
 	{
@@ -211,8 +220,14 @@ class FlxAnimate extends FlxSprite
 		if (renderStage)
 			drawStage(camera);
 
+		var command = _drawCommand;
+		command.transform = colorTransform;
+		command.blend = blend;
+		command.antialiasing = antialiasing;
+		command.shader = shader;
+
 		timeline.currentFrame = animation.frameIndex;
-		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
+		timeline.draw(camera, matrix, command);
 	}
 
 	// I dont think theres a way to override the matrix without needing to do this lol
@@ -329,7 +344,7 @@ class FlxAnimate extends FlxSprite
 			framePixels = animate.internal.FilterRenderer.getBitmap((cam, m) ->
 			{
 				m.concat(mat);
-				timeline.draw(cam, m, null, NORMAL, true, null);
+				timeline.draw(cam, m);
 			}, bounds, false);
 			#else
 			// TODO: optimize this to use FilterRenderer stuff
@@ -338,7 +353,7 @@ class FlxAnimate extends FlxSprite
 			mat.identity();
 
 			var cam = new FlxCamera(0, 0, Math.ceil(bounds.width), Math.ceil(bounds.height));
-			timeline.draw(cam, resultMat, null, NORMAL, true, null);
+			timeline.draw(cam, resultMat);
 			cam.render();
 
 			framePixels = new BitmapData(Std.int(bounds.width), Std.int(bounds.height), true, 0);

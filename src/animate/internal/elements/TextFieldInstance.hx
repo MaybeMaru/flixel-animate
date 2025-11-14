@@ -1,6 +1,7 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson.TextFieldInstanceJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
@@ -66,8 +67,11 @@ class TextFieldInstance extends AtlasInstance
 		redraw();
 	}
 
-	inline function redraw()
+	function redraw()
 	{
+		if (!_dirty)
+			return;
+
 		if (frame != null)
 		{
 			FlxG.bitmap.remove(frame.parent);
@@ -103,8 +107,7 @@ class TextFieldInstance extends AtlasInstance
 		return text;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (_dirty)
 		{
@@ -112,7 +115,7 @@ class TextFieldInstance extends AtlasInstance
 			_dirty = false;
 		}
 
-		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, command);
 	}
 
 	override function destroy()

@@ -2,6 +2,7 @@ package animate.internal.elements;
 
 import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.AtlasInstance;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
@@ -177,17 +178,15 @@ class MovieClipInstance extends SymbolInstance
 			_dirty = false;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader):Void
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
 		if (_dirty)
 			_bakeFilters(_filters, getFrameIndex(index, frameIndex));
 
-		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, command);
 	}
 
-	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, transform:Null<ColorTransform>,
-			blend:Null<BlendMode>, antialiasing:Null<Bool>, shader:Null<FlxShader>)
+	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (_bakedFrames != null)
 		{
@@ -197,12 +196,12 @@ class MovieClipInstance extends SymbolInstance
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)
-					bakedFrame.draw(camera, 0, 0, parentMatrix, transform, blend, antialiasing, shader);
+					bakedFrame.draw(camera, 0, 0, parentMatrix, command);
 				return;
 			}
 		}
 
-		super._drawTimeline(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
+		super._drawTimeline(camera, index, frameIndex, parentMatrix, command);
 	}
 
 	override function destroy():Void

@@ -1,6 +1,6 @@
 package animate.internal.elements;
 
-import animate.internal.filters.Blend;
+import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -8,7 +8,6 @@ import flixel.FlxSprite;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
@@ -17,72 +16,59 @@ using flixel.util.FlxColorTransformUtil;
 
 class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 {
-	var _hasTransform:Bool;
-	var _transform:ColorTransform;
-	var _point:FlxPoint;
-	var _screenPoint:FlxPoint;
-	var _angle:Float;
-	var _blend:BlendMode;
+	var _colorTransform:ColorTransform = null;
+	var _antialiasing:Bool = false;
+	var _blend:BlendMode = null;
+	var _point:FlxPoint = null;
+	var _screenPoint:FlxPoint = null;
+	var _angle:Float = 0.0;
 
 	public function new(?sprite:FlxSprite)
 	{
 		super(sprite);
 
-		this._transform = new ColorTransform();
+		this._colorTransform = new ColorTransform();
 		this._point = FlxPoint.get();
 		this._screenPoint = FlxPoint.get();
-		this._angle = 0.0;
 	}
 
 	override function destroy():Void
 	{
 		super.destroy();
-		_transform = null;
+		_colorTransform = null;
 		_point = FlxDestroyUtil.put(_point);
 		_point = FlxDestroyUtil.put(_screenPoint);
 	}
 
-	override function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, transform:ColorTransform, blend:BlendMode, antialiasing:Bool,
-			shader:FlxShader)
+	override function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
-		var hasTransform = transform != null;
-		if (hasTransform)
-		{
-			if (transform.alphaMultiplier <= 0.0)
-				return;
-
-			var color = basic.colorTransform;
-			if (color == null)
-			{
-				_transform.setMultipliers(1, 1, 1, 1);
-				_transform.setOffsets(0, 0, 0, 0);
-			}
-			else
-			{
-				_transform.setMultipliers(color.redMultiplier, color.greenMultiplier, color.blueMultiplier, color.alphaMultiplier);
-				_transform.setOffsets(color.redOffset, color.greenOffset, color.blueOffset, color.alphaOffset);
-			}
-		}
-
-		_blend = basic.blend;
+		// prepare original values
 		_point.set(basic.x, basic.y);
 		_angle = basic.angle;
+		_blend = basic.blend;
+		_antialiasing = basic.antialiasing;
 
-		super.applyObjectTransform(camera, parentMatrix, transform, blend, antialiasing, shader);
+		var color = basic.colorTransform;
+		_colorTransform.setMultipliers(color.redMultiplier, color.greenMultiplier, color.blueMultiplier, color.alphaMultiplier);
+		_colorTransform.setOffsets(color.redOffset, color.greenOffset, color.blueOffset, color.alphaOffset);
+
+		// apply transformations
+		super.applyObjectTransform(camera, parentMatrix, command);
+
+		drawCommand.prepareCommand(command, _transform, transform, basic.blend);
 
 		var x = parentMatrix.transformX(basic.x, basic.y);
 		var y = parentMatrix.transformY(basic.x, basic.y);
-		var b = Blend.resolve(basic.blend, blend);
 
 		basic.setPosition(0, 0);
 		var screenPoint = basic.getScreenPosition(_screenPoint, camera);
 		basic.setPosition(x - screenPoint.x, y - screenPoint.y);
 
 		basic.angle += Math.atan2(parentMatrix.b, parentMatrix.a) * 180 / Math.PI;
-		if (_hasTransform)
-			basic.colorTransform.concat(transform);
-		basic.blend = b;
-		// basic.antialiasing = antialiasing;
+		basic.colorTransform.concat(_transform);
+
+		basic.blend = command.blend;
+		basic.antialiasing = basic.antialiasing || command.antialiasing;
 		basic.camera = camera;
 	}
 
@@ -94,21 +80,17 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 		basic.angle = _angle;
 		basic.blend = _blend;
 		basic.camera = _camera;
-
-		if (_hasTransform)
-		{
-			basic.setColorTransform(_transform.redMultiplier, _transform.greenMultiplier, _transform.blueMultiplier, _transform.alphaMultiplier,
-				_transform.redOffset, _transform.greenOffset, _transform.blueOffset, _transform.alphaOffset);
-		}
+		basic.antialiasing = _antialiasing;
+		basic.setColorTransform(_colorTransform.redMultiplier, _colorTransform.greenMultiplier, _colorTransform.blueMultiplier,
+			_colorTransform.alphaMultiplier, _colorTransform.redOffset, _colorTransform.greenOffset, _colorTransform.blueOffset, _colorTransform.alphaOffset);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (basic == null || basic.alpha <= 0)
 			return;
 
-		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, command);
 	}
 
 	override function getObjectBounds(?result:FlxRect):FlxRect
@@ -140,7 +122,7 @@ class FlxTypedElement<T:FlxBasic> extends Element
 		_camera = null;
 	}
 
-	function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, transform:ColorTransform, blend:BlendMode, antialiasing:Bool, shader:FlxShader)
+	function applyObjectTransform(camera:FlxCamera, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		basic.camera = camera;
 	}
@@ -150,8 +132,7 @@ class FlxTypedElement<T:FlxBasic> extends Element
 		basic.camera = _camera;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (basic == null || !basic.visible)
 			return;
@@ -161,7 +142,7 @@ class FlxTypedElement<T:FlxBasic> extends Element
 		if (active)
 			basic.update(FlxG.elapsed);
 
-		applyObjectTransform(camera, parentMatrix, transform, blend, antialiasing, shader);
+		applyObjectTransform(camera, parentMatrix, command);
 
 		basic.draw();
 

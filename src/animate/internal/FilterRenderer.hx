@@ -32,7 +32,6 @@ import openfl.display.OpenGLRenderer;
 import openfl.display.Shader;
 import openfl.display._internal.Context3DGraphics;
 #else
-import animate.internal.elements.AtlasInstance.BakedInstance;
 import flixel.util.FlxColor;
 #end
 
@@ -76,7 +75,7 @@ class FilterRenderer
 
 		var masked:Null<BitmapData> = renderToBitmap((cam, mat) ->
 		{
-			frame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
+			frame._drawElements(cam, currentFrame, mat);
 			cam.render();
 			if (cam.canvas.graphics.__bounds != null)
 				cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
@@ -88,7 +87,7 @@ class FilterRenderer
 
 		var masker:Null<BitmapData> = renderToBitmap((cam, mat) ->
 		{
-			maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, true, null);
+			maskerFrame._drawElements(cam, currentFrame, mat);
 			cam.render();
 			cam.canvas.graphics.__bounds = maskerBounds.copyToFlash(new Rectangle());
 		});
@@ -118,7 +117,7 @@ class FilterRenderer
 		Rectangle.__pool.release(rect);
 
 		// create result masked atlas instance
-		var element = new BakedInstance();
+		var element = new AtlasInstance();
 		element.frame = frame;
 		element.blend = blend;
 		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
@@ -202,7 +201,7 @@ class FilterRenderer
 			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), movieclip._filters);
 
 			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
-			movieclip._drawTimeline(cam, frameIndex, 0, mat, null, NORMAL, false, null);
+			movieclip._drawTimeline(cam, frameIndex, 0, mat);
 			cam.render();
 
 			if (filters != null && filters.length > 0)
@@ -484,7 +483,7 @@ class FilterRenderer
 		@:privateAccess
 		var bitmap:BitmapData = getBitmap((cam, mat) ->
 		{
-			movieclip._drawTimeline(cam, frameIndex, 0, mat, null, NORMAL, false, null);
+			movieclip._drawTimeline(cam, frameIndex, 0, mat);
 		}, filteredBounds);
 
 		var frame = FlxGraphic.fromBitmapData(bitmap).imageFrame.frame;
@@ -525,8 +524,8 @@ class FilterRenderer
 		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
 			return new AtlasInstance();
 
-		var masker = getBitmap((cam, mat) -> maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, false, null), maskerBounds);
-		var masked = getBitmap((cam, mat) -> frame._drawElements(cam, currentFrame, mat, null, NORMAL, false, null), maskedBounds);
+		var masker = getBitmap((cam, mat) -> maskerFrame._drawElements(cam, currentFrame, mat), maskerBounds);
+		var masked = getBitmap((cam, mat) -> frame._drawElements(cam, currentFrame, mat), maskedBounds);
 
 		var intersectX = Math.max(maskerBounds.x, maskedBounds.x);
 		var intersectY = Math.max(maskerBounds.y, maskedBounds.y);

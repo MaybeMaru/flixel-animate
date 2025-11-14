@@ -13,17 +13,6 @@ import openfl.geom.Matrix;
 
 class Blend
 {
-	public static function resolve(?blend:BlendMode, ?drawBlend:BlendMode):Null<BlendMode>
-	{
-		if (Frame.__isDirtyCall)
-			return NORMAL;
-
-		if (blend == null || blend == NORMAL)
-			return drawBlend;
-
-		return blend;
-	}
-
 	public static function fromInt(blend:Null<Int>):BlendMode
 	{
 		if (blend == null)

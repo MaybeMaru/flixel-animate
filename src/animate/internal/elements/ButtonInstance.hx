@@ -1,6 +1,7 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMath;
@@ -55,12 +56,11 @@ class ButtonInstance extends SymbolInstance
 		return FlxMath.minInt(curButtonState, this.libraryItem.timeline.frameCount - 1);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader)
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		updateButtonState(camera, parentMatrix);
 
-		super.draw(camera, index, frameIndex, parentMatrix, transform, blend, antialiasing, shader);
+		super.draw(camera, index, frameIndex, parentMatrix, command);
 
 		#if FLX_DEBUG
 		if (FlxG.debugger.drawDebug && FlxAnimate.drawDebugLimbs)

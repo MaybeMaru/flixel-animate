@@ -1,9 +1,11 @@
 package animate.internal.elements;
 
+import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
@@ -14,6 +16,7 @@ typedef Element = AnimateElement<Dynamic>;
 
 class AnimateElement<T> implements IFlxDestroyable
 {
+	public var blend:BlendMode;
 	public var matrix:FlxMatrix;
 	public var visible:Bool;
 	public var elementType(default, null):ElementType;
@@ -21,11 +24,20 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	var _mat:FlxMatrix;
 
+	var isColored:Bool;
+	var transform:ColorTransform;
+	var _transform:ColorTransform;
+
+	var drawCommand:AnimateDrawCommand;
+
 	public function new(?data:T, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		_mat = new FlxMatrix();
+		blend = null;
 		parentFrame = frame;
 		visible = true;
+
+		drawCommand = new AnimateDrawCommand();
 	}
 
 	/**
@@ -42,8 +54,30 @@ class AnimateElement<T> implements IFlxDestroyable
 		return rect ?? FlxRect.get();
 	}
 
-	public function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
-		?shader:FlxShader):Void {}
+	public function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void {}
+
+	public extern overload inline function setColorTransform(rMult:Float = 1, gMult:Float = 1, bMult:Float = 1, aMult:Float = 1, rOffset:Float = 0,
+			gOffset:Float = 0, bOffset:Float = 0, aOffset:Float = 0):Void
+	{
+		_setColorTransform(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
+	}
+
+	public extern overload inline function setColorTransform(color:FlxColor):Void
+	{
+		_setColorTransform(color.redFloat, color.greenFloat, color.blueFloat, 1, 0, 0, 0, 0);
+	}
+
+	function _setColorTransform(rMult:Float, gMult:Float, bMult:Float, aMult:Float, rOffset:Float, gOffset:Float, bOffset:Float, aOffset:Float)
+	{
+		if (transform == null)
+			transform = new ColorTransform();
+		if (_transform == null)
+			_transform = new ColorTransform();
+
+		transform.setMultipliers(rMult, gMult, bMult, aMult);
+		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
+		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
+	}
 
 	public inline function toSymbolInstance():SymbolInstance
 		return cast this;
@@ -65,6 +99,7 @@ class AnimateElement<T> implements IFlxDestroyable
 		_mat = null;
 		matrix = null;
 		parentFrame = null;
+		drawCommand = FlxDestroyUtil.destroy(drawCommand);
 	}
 }
 
@@ -76,3 +111,12 @@ enum abstract ElementType(String) to String
 	var BUTTON = "button";
 	var TEXT = "text";
 }
+/*
+	camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+	?shader:FlxShader
+ */ /*
+	class ElementDrawCommand extends BaseDrawCommand
+	{
+	public var frameIndex:Int = 0;
+	}
+ */

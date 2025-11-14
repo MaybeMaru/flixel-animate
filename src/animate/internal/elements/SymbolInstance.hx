@@ -1,6 +1,7 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
+import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
@@ -19,15 +20,10 @@ using flixel.util.FlxColorTransformUtil;
 class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 {
 	public var libraryItem:SymbolItem;
-	public var blend:BlendMode;
 	public var firstFrame:Int;
 	public var loopType:LoopType;
 	public var symbolName(get, never):String;
 	public var transformationPoint:FlxPoint;
-
-	var isColored:Bool;
-	var transform:ColorTransform;
-	var _transform:ColorTransform;
 
 	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
@@ -74,17 +70,6 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 					setColorTransform(mult, mult, mult, 1.0, tint.red * tintMult, tint.green * tintMult, tint.blue * tintMult, 0.0);
 			}
 		}
-	}
-
-	public extern overload inline function setColorTransform(rMult:Float = 1, gMult:Float = 1, bMult:Float = 1, aMult:Float = 1, rOffset:Float = 0,
-			gOffset:Float = 0, bOffset:Float = 0, aOffset:Float = 0):Void
-	{
-		_setColorTransform(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
-	}
-
-	public extern overload inline function setColorTransform(color:FlxColor):Void
-	{
-		_setColorTransform(color.redFloat, color.greenFloat, color.blueFloat, 1, 0, 0, 0, 0);
 	}
 
 	/**
@@ -156,47 +141,22 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix, includeFilters, useCachedBounds);
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode,
-			?antialiasing:Bool, ?shader:FlxShader):Void
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
-		if (isColored) // Concat symbol's color to the current color transform
-		{
-			var t = this.transform;
-			_transform.setMultipliers(t.redMultiplier, t.greenMultiplier, t.blueMultiplier, t.alphaMultiplier);
-			_transform.setOffsets(t.redOffset, t.greenOffset, t.blueOffset, t.alphaOffset);
+		drawCommand.prepareCommand(command, transform, _transform, blend);
 
-			if (transform != null)
-				_transform.concat(transform);
+		if (!drawCommand.isVisible())
+			return;
 
-			transform = _transform;
-
-			if (transform.alphaMultiplier <= 0)
-				return;
-		}
-
-		var b = Blend.resolve(this.blend, blend);
-		_drawTimeline(camera, index, frameIndex, parentMatrix, transform, b, antialiasing, shader);
+		_drawTimeline(camera, index, frameIndex, parentMatrix, drawCommand);
 	}
 
-	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, transform:Null<ColorTransform>, blend:Null<BlendMode>,
-			antialiasing:Null<Bool>, shader:Null<FlxShader>)
+	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		_mat.copyFrom(matrix);
 		_mat.concat(parentMatrix);
 		libraryItem.timeline.currentFrame = getFrameIndex(index, frameIndex);
-		libraryItem.timeline.draw(camera, _mat, transform, blend, antialiasing, shader);
-	}
-
-	function _setColorTransform(rMult:Float, gMult:Float, bMult:Float, aMult:Float, rOffset:Float, gOffset:Float, bOffset:Float, aOffset:Float)
-	{
-		if (transform == null)
-			transform = new ColorTransform();
-		if (_transform == null)
-			_transform = new ColorTransform();
-
-		transform.setMultipliers(rMult, gMult, bMult, aMult);
-		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
-		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
+		libraryItem.timeline.draw(camera, _mat, command);
 	}
 
 	inline function get_symbolName():String
