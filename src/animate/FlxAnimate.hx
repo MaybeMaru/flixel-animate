@@ -2,9 +2,11 @@ package animate;
 
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
+import animate.internal.AnimateDrawCommand;
 import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
+import animate.internal.elements.SymbolInstance;
 import flixel.FlxCamera;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
@@ -14,6 +16,7 @@ import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
@@ -226,9 +229,13 @@ class FlxAnimate extends FlxSprite
 		command.antialiasing = antialiasing;
 		command.shader = shader;
 
+		command.onSymbolDraw = onSymbolDraw;
+
 		timeline.currentFrame = animation.frameIndex;
 		timeline.draw(camera, matrix, command);
 	}
+
+	public var onSymbolDraw:Null<SymbolInstance->Void>;
 
 	// I dont think theres a way to override the matrix without needing to do this lol
 	#if (flixel >= "6.1.0")

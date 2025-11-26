@@ -1,7 +1,6 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
-import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
@@ -117,7 +116,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	var _tmpMatrix:FlxMatrix = new FlxMatrix();
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		// TODO: look into this
 		// Patch-on fix for a really weird fucking bug
@@ -143,7 +142,10 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
-		drawCommand.prepareCommand(command, transform, _transform, blend);
+		if (command != null && command.onSymbolDraw != null)
+			command.onSymbolDraw(this);
+
+		drawCommand.prepareCommand(command, _transform, transform, blend);
 
 		if (!drawCommand.isVisible())
 			return;

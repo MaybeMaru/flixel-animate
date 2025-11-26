@@ -6,13 +6,8 @@ import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.typeLimit.OneOfTwo;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
-
-using flixel.util.FlxColorTransformUtil;
 
 @:access(openfl.geom.Point)
 @:access(openfl.geom.Matrix)
@@ -433,58 +428,4 @@ class Timeline implements IFlxDestroyable
 	}
 
 	var drawCommand:AnimateDrawCommand = new AnimateDrawCommand();
-}
-
-class AnimateDrawCommand implements IFlxDestroyable
-{
-	public var transform:Null<ColorTransform> = null;
-	public var blend:Null<BlendMode> = null;
-	public var antialiasing:Null<Bool> = false;
-	public var shader:Null<FlxShader> = null;
-
-	public function new() {}
-
-	public function prepareCommand(?command:AnimateDrawCommand, ?colorOut:ColorTransform, ?colorData:ColorTransform, blend:BlendMode):Void
-	{
-		// set some default data if parent command is null
-		if (command == null)
-		{
-			this.transform = colorData;
-			this.blend = Frame.__isDirtyCall ? NORMAL : blend;
-			this.antialiasing = false;
-			this.shader = null;
-			return;
-		}
-
-		// concat with parent command
-		if (((colorData != null) && (colorOut != null)))
-		{
-			colorOut.setMultipliers(colorData.redMultiplier, colorData.greenMultiplier, colorData.blueMultiplier, colorData.alphaMultiplier);
-			colorOut.setOffsets(colorData.redOffset, colorData.greenOffset, colorData.blueOffset, colorData.alphaOffset);
-
-			colorOut.concat(command.transform);
-			this.transform = colorOut;
-		}
-		else
-		{
-			this.transform = command.transform;
-		}
-
-		this.blend = Frame.__isDirtyCall ? NORMAL : blend;
-		this.antialiasing = command.antialiasing;
-		this.shader = command.shader;
-	}
-
-	public inline function isVisible():Bool
-	{
-		return transform == null ? true : transform.alphaMultiplier > 0;
-	}
-
-	public function destroy():Void
-	{
-		transform = null;
-		blend = null;
-		antialiasing = false;
-		shader = null;
-	}
 }

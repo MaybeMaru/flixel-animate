@@ -1,6 +1,5 @@
 package animate.internal.elements;
 
-import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -154,7 +153,7 @@ class FlxTypedElement<T:FlxBasic> extends Element
 		return result;
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters);
 

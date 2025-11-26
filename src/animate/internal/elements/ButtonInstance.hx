@@ -1,18 +1,14 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
-import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxSignal;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -43,7 +39,7 @@ class ButtonInstance extends SymbolInstance
 		this._hitbox = FlxRect.get();
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		var boundsIndex = FlxMath.minInt(ButtonState.HIT, this.libraryItem.timeline.frameCount - 1);
 		var bounds = this.libraryItem.timeline.getBounds(boundsIndex, false, rect, this.matrix, false, useCachedBounds);

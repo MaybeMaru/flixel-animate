@@ -1,7 +1,7 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson;
-import animate.internal.Timeline.AnimateDrawCommand;
+import animate.internal.AnimateDrawCommand;
 import animate.internal.elements.Element;
 import animate.internal.filters.Blend;
 import flixel.FlxCamera;
@@ -102,16 +102,16 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		_mat.concat(matrix);
 		_mat.concat(parentMatrix);
 
-		if (!isOnScreen(camera, _mat))
-			return;
-
 		if (camera.pixelPerfectRender)
 		{
 			_mat.tx = Math.floor(_mat.tx);
 			_mat.ty = Math.floor(_mat.ty);
 		}
 
-		drawCommand.prepareCommand(command, transform, _transform, blend);
+		if (!isOnScreen(camera, _mat))
+			return;
+
+		drawCommand.prepareCommand(command, _transform, transform, blend);
 
 		#if flash
 		drawPixelsFlash(camera, _mat, drawCommand.transform, drawCommand.blend, drawCommand.antialiasing);
@@ -160,7 +160,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			&& (bounds.y < camera.viewMarginBottom);
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		rect = super.getBounds(0, rect);
 

@@ -1,16 +1,11 @@
 package animate.internal.elements;
 
 import animate.FlxAnimateJson.TextFieldInstanceJson;
-import animate.internal.Timeline.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
-import flixel.system.FlxAssets.FlxShader;
-import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
 import openfl.text.TextFormatAlign;

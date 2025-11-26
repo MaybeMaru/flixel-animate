@@ -1,10 +1,10 @@
 package animate.internal.elements;
 
-import animate.internal.Timeline.AnimateDrawCommand;
+import animate.internal.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
@@ -49,7 +49,7 @@ class AnimateElement<T> implements IFlxDestroyable
 	 * @param includeFilters		Optional, if to include filtered bounds in the calculation or use the unfilitered ones (true to Flash's bounds).
 	 * @return						A ``FlxRect`` with the complete frames's bounds at an index, empty if no elements were found.
 	 */
-	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		return rect ?? FlxRect.get();
 	}

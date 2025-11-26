@@ -2,19 +2,15 @@ package animate.internal.elements;
 
 import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson;
-import animate.internal.Timeline.AnimateDrawCommand;
 import animate.internal.elements.AtlasInstance;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
-import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
-import openfl.geom.ColorTransform;
 
 class MovieClipInstance extends SymbolInstance
 {
@@ -115,7 +111,7 @@ class MovieClipInstance extends SymbolInstance
 			parentFrame.setDirty();
 	}
 
-	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
+	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
 	{
 		var bounds = super.getBounds(frameIndex, rect, matrix, includeFilters, useCachedBounds);
 

@@ -1,22 +1,16 @@
 package animate.internal;
 
 import animate.FlxAnimateJson.FrameJson;
-import animate.internal.Timeline.AnimateDrawCommand;
-import animate.internal.elements.AtlasInstance;
-import animate.internal.elements.ButtonInstance;
-import animate.internal.elements.Element;
-import animate.internal.elements.MovieClipInstance;
-import animate.internal.elements.SymbolInstance;
-import animate.internal.elements.TextFieldInstance;
+import animate.internal.AnimateDrawCommand;
+import animate.internal.elements.*;
+import animate.internal.elements.Element.ElementType;
+import animate.internal.elements.MovieClipInstance.BakedFramesVector;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
 import openfl.media.Sound;
 
 using StringTools;
@@ -333,6 +327,7 @@ class Frame implements IFlxDestroyable
 	@:allow(animate.internal.Timeline)
 	@:allow(animate.internal.filters.Blend)
 	@:allow(animate.internal.elements.AtlasInstance)
+	@:allow(animate.internal.AnimateDrawCommand)
 	private static var __isDirtyCall:Bool = false;
 
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
