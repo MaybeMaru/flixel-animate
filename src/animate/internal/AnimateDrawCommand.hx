@@ -1,7 +1,7 @@
 package animate.internal;
 
+import animate.internal.elements.Element;
 import animate.internal.elements.SymbolInstance;
-import flixel.math.FlxPoint;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
@@ -9,6 +9,10 @@ import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
+/**
+ * Used internally to store temporal data used between different texture atlas elements to render.
+ * Created as a way to abstract and simplify the way draw data gets merged in one place.
+ */
 class AnimateDrawCommand implements IFlxDestroyable
 {
 	public var transform:Null<ColorTransform> = null;
@@ -19,17 +23,17 @@ class AnimateDrawCommand implements IFlxDestroyable
 
 	public function new() {}
 
-	public function prepareCommand(?command:AnimateDrawCommand, ?colorOut:ColorTransform, ?colorData:ColorTransform, blend:BlendMode):Void
+	public function prepareCommand(?command:AnimateDrawCommand, element:Element)
 	{
 		// set some default data if parent command is null
 		if (command == null)
 		{
-			this.transform = colorData;
+			this.transform = element.transform;
 
 			if (Frame.__isDirtyCall)
 				this.blend = NORMAL
 			else
-				this.blend = blend;
+				this.blend = element.blend;
 
 			this.antialiasing = true;
 			this.shader = null;
@@ -38,13 +42,15 @@ class AnimateDrawCommand implements IFlxDestroyable
 		}
 
 		// prepare color transform
-		if (((colorData != null) && (colorOut != null)))
+		if (element.isColored)
 		{
+			var colorData = element.transform;
+			var colorOut = element._transform;
 			colorOut.setMultipliers(colorData.redMultiplier, colorData.greenMultiplier, colorData.blueMultiplier, colorData.alphaMultiplier);
 			colorOut.setOffsets(colorData.redOffset, colorData.greenOffset, colorData.blueOffset, colorData.alphaOffset);
 
 			if (command.transform != null)
-				colorOut.concat(command.transform);
+				concatTransform(colorOut, command.transform);
 
 			this.transform = colorOut;
 		}
@@ -57,7 +63,7 @@ class AnimateDrawCommand implements IFlxDestroyable
 		if (Frame.__isDirtyCall)
 			this.blend = NORMAL;
 		else if (command.blend == null || command.blend == NORMAL)
-			this.blend = blend;
+			this.blend = element.blend;
 		else
 			this.blend = command.blend;
 
@@ -67,9 +73,24 @@ class AnimateDrawCommand implements IFlxDestroyable
 		this.onSymbolDraw = command.onSymbolDraw;
 	}
 
-	public inline function isVisible():Bool
+	public function isVisible():Bool
 	{
 		return transform == null ? true : transform.alphaMultiplier > 0;
+	}
+
+	// adding my own color transform concat because the operators used by openfl's function assigns more variables
+	// i know its stupid but trust me on this one
+	function concatTransform(first:ColorTransform, second:ColorTransform):Void
+	{
+		first.redOffset = second.redOffset * first.redMultiplier + first.redOffset;
+		first.greenOffset = second.greenOffset * first.greenMultiplier + first.greenOffset;
+		first.blueOffset = second.blueOffset * first.blueMultiplier + first.blueOffset;
+		first.alphaOffset = second.alphaOffset * first.alphaMultiplier + first.alphaOffset;
+
+		first.redMultiplier = first.redMultiplier * second.redMultiplier;
+		first.greenMultiplier = first.greenMultiplier * second.greenMultiplier;
+		first.blueMultiplier = first.blueMultiplier * second.blueMultiplier;
+		first.alphaMultiplier = first.alphaMultiplier * second.alphaMultiplier;
 	}
 
 	public function destroy():Void

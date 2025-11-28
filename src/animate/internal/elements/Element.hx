@@ -22,11 +22,15 @@ class AnimateElement<T> implements IFlxDestroyable
 	public var elementType(default, null):ElementType;
 	public var parentFrame:Frame;
 
-	var _mat:FlxMatrix;
+	public var isColored(default, null):Bool;
 
-	var isColored:Bool;
-	var transform:ColorTransform;
-	var _transform:ColorTransform;
+	@:noCompletion
+	public var transform:ColorTransform;
+
+	@:noCompletion
+	public var _transform:ColorTransform;
+
+	var _mat:FlxMatrix;
 
 	var drawCommand:AnimateDrawCommand;
 

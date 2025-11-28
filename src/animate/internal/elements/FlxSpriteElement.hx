@@ -54,7 +54,7 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 		// apply transformations
 		super.applyObjectTransform(camera, parentMatrix, command);
 
-		drawCommand.prepareCommand(command, _transform, transform, basic.blend);
+		drawCommand.prepareCommand(command, this);
 
 		var x = parentMatrix.transformX(basic.x, basic.y);
 		var y = parentMatrix.transformY(basic.x, basic.y);

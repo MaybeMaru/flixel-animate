@@ -120,8 +120,9 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	{
 		// TODO: look into this
 		// Patch-on fix for a really weird fucking bug
-		if (libraryItem != null && libraryItem.timeline.parent.existsSymbol(symbolName))
-			libraryItem = libraryItem.timeline.parent.getSymbol(symbolName);
+		final name = symbolName;
+		if (libraryItem != null && libraryItem.timeline.parent.existsSymbol(name))
+			libraryItem = libraryItem.timeline.parent.getSymbol(name);
 
 		// Prepare the bounds matrix
 		var targetMatrix:FlxMatrix;
@@ -145,7 +146,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (command != null && command.onSymbolDraw != null)
 			command.onSymbolDraw(this);
 
-		drawCommand.prepareCommand(command, _transform, transform, blend);
+		drawCommand.prepareCommand(command, this);
 
 		if (!drawCommand.isVisible())
 			return;
@@ -163,7 +164,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	inline function get_symbolName():String
 	{
-		return libraryItem?.name;
+		return libraryItem != null ? libraryItem.name : "";
 	}
 
 	override function destroy()

@@ -111,7 +111,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		if (!isOnScreen(camera, _mat))
 			return;
 
-		drawCommand.prepareCommand(command, _transform, transform, blend);
+		drawCommand.prepareCommand(command, this);
 
 		#if flash
 		drawPixelsFlash(camera, _mat, drawCommand.transform, drawCommand.blend, drawCommand.antialiasing);
@@ -154,10 +154,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		Timeline.applyMatrixToRect(bounds, matrix);
 
 		// manually inlining this because we dont need the bounds.putWeak part
-		return (bounds.right > camera.viewMarginLeft)
-			&& (bounds.x < camera.viewMarginRight)
-			&& (bounds.bottom > camera.viewMarginTop)
-			&& (bounds.y < camera.viewMarginBottom);
+		if (bounds.right > camera.viewMarginLeft)
+			if (bounds.x < camera.viewMarginRight)
+				if (bounds.bottom > camera.viewMarginTop)
+					if (bounds.y < camera.viewMarginBottom)
+						return true;
+		return false;
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
