@@ -1,5 +1,12 @@
 package animate;
 
+import openfl.geom.Rectangle;
+import flixel.graphics.FlxGraphic;
+import openfl.Vector;
+import openfl.display3D.textures.RectangleTexture;
+import openfl.display.OpenGLRenderer;
+import openfl.display3D.Context3D;
+import flixel.FlxG;
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
 import animate.internal.Frame;
@@ -73,6 +80,20 @@ class FlxAnimate extends FlxSprite
 	 * @see https://github.com/Dot-Stuff/BetterTextureAtlas
 	 */
 	public var renderStage:Bool = false;
+
+	/**
+	 * Whether to internally use a render texture when drawing the Texture Atlas.
+	 * This flattens all of the limbs into a single graphic, making effects such as alpha or shaders apply to
+	 * the entire sprite instead of individual limbs.
+	 * Only supported on targets that use `renderTile`.
+	 */
+	public var useRenderTexture:Bool = true;
+
+	var _renderTextureCamera:FlxCamera;
+	var _renderTextureMatrix:FlxMatrix;
+	var _renderTexture:RectangleTexture;
+	var _renderTextureBitmap:BitmapData;
+	var _renderTextureGraphic:FlxGraphic;
 
 	/**
 	 * Creates a `FlxAnimate` at a specified position with a specified one-frame graphic or Texture Atlas path.
@@ -165,7 +186,8 @@ class FlxAnimate extends FlxSprite
 
 		@:privateAccess
 		var bounds = timeline._bounds;
-		matrix.translate(-bounds.x, -bounds.y);
+		if (!useRenderTexture)
+			matrix.translate(-bounds.x, -bounds.y);
 
 		if (checkFlipX())
 		{
@@ -212,7 +234,18 @@ class FlxAnimate extends FlxSprite
 			drawStage(camera);
 
 		timeline.currentFrame = animation.frameIndex;
-		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
+
+		if (useRenderTexture && FlxG.renderTile)
+		{
+			if (true) // check if needs redraw?
+				updateRenderTexture();
+
+			camera.drawPixels(_renderTextureGraphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+		}
+		else
+		{
+			timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
+		}
 	}
 
 	// I dont think theres a way to override the matrix without needing to do this lol
@@ -397,6 +430,61 @@ class FlxAnimate extends FlxSprite
 		return result;
 	}
 
+	@:access(flixel.FlxCamera)
+	function updateRenderTexture():Void
+	{
+		var bounds = timeline._bounds;
+
+		if (_renderTextureCamera == null)
+			_renderTextureCamera = new FlxCamera();
+		if (_renderTextureMatrix == null)
+			_renderTextureMatrix = new FlxMatrix();
+
+		_renderTextureMatrix.identity();
+		_renderTextureMatrix.translate(-bounds.x, -bounds.y);
+
+		_renderTextureCamera.clearDrawStack();
+		_renderTextureCamera.canvas.graphics.clear();
+		#if FLX_DEBUG
+		_renderTextureCamera.debugLayer.graphics.clear();
+		#end
+
+		timeline.draw(_renderTextureCamera, _renderTextureMatrix, null, null, antialiasing, null);
+
+		_renderTextureCamera.render();
+
+		resizeTexture(Std.int(bounds.width), Std.int(bounds.height));
+		_renderTextureBitmap.fillRect(new Rectangle(0, 0, _renderTextureBitmap.width, _renderTextureBitmap.height), 0);
+		_renderTextureBitmap.draw(_renderTextureCamera.canvas);
+	}
+
+	@:access(openfl.display3D.textures.TextureBase)
+	@:access(openfl.display3D.Context3D)
+	function resizeTexture(width:Int, height:Int):Void
+	{
+		var context = FlxG.stage.context3D;
+		if (context != null)
+		{
+			if (_renderTexture == null)
+			{
+				_renderTexture = context.createRectangleTexture(width, height, BGRA, true);
+				_renderTextureBitmap = BitmapData.fromTexture(_renderTexture);
+				_renderTextureGraphic = FlxGraphic.fromBitmapData(_renderTextureBitmap, false, "flx_animate_stagebg_renderTextureGraphic_", false);
+			}
+
+			if (_renderTexture.__width == width && _renderTexture.__height == height)
+				return;
+
+			_renderTexture.__width = width;
+			_renderTexture.__height = height;
+
+			var gl = _renderTexture.__context.gl;
+			gl.bindTexture(gl.TEXTURE_2D, _renderTexture.__textureID);
+			gl.texImage2D(gl.TEXTURE_2D, 0, _renderTexture.__internalFormat, width, height, 0, _renderTexture.__format, gl.UNSIGNED_BYTE, null);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+		}
+	}
+
 	override function destroy():Void
 	{
 		super.destroy();
@@ -405,5 +493,13 @@ class FlxAnimate extends FlxSprite
 		timeline = null;
 		stageBg = FlxDestroyUtil.destroy(stageBg);
 		skew = FlxDestroyUtil.put(skew);
+		if (_renderTexture != null)
+		{
+			_renderTexture.dispose();
+			_renderTexture = null;
+		}
+		_renderTextureBitmap = FlxDestroyUtil.dispose(_renderTextureBitmap);
+		_renderTextureGraphic = FlxDestroyUtil.destroy(_renderTextureGraphic);
+		_renderTextureMatrix = null;
 	}
 }
