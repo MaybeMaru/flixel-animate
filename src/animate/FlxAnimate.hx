@@ -475,7 +475,7 @@ class FlxAnimate extends FlxSprite
 			{
 				_renderTexture = context.createRectangleTexture(width, height, BGRA, true);
 				_renderTextureBitmap = BitmapData.fromTexture(_renderTexture);
-				_renderTextureGraphic = FlxGraphic.fromBitmapData(_renderTextureBitmap, false, "flx_animate_stagebg_renderTextureGraphic_", false);
+				_renderTextureGraphic = FlxGraphic.fromBitmapData(_renderTextureBitmap, true);
 			}
 
 			if (_renderTexture.__width == width && _renderTexture.__height == height)
