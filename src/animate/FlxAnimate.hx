@@ -444,6 +444,11 @@ class FlxAnimate extends FlxSprite
 		_renderTextureMatrix.identity();
 		_renderTextureMatrix.translate(-bounds.x, -bounds.y);
 
+		final textureWidth:Int = Math.round(bounds.width);
+		final textureHeight:Int = Math.round(bounds.height);
+		_renderTextureCamera.width = textureWidth;
+		_renderTextureCamera.height = textureHeight;
+
 		_renderTextureCamera.clearDrawStack();
 		_renderTextureCamera.canvas.graphics.clear();
 		#if FLX_DEBUG
@@ -454,7 +459,7 @@ class FlxAnimate extends FlxSprite
 
 		_renderTextureCamera.render();
 
-		resizeTexture(Std.int(bounds.width), Std.int(bounds.height));
+		resizeRenderTexture(textureWidth, textureHeight);
 
 		var rect = Rectangle.__pool.get();
 		rect.setTo(0, 0, _renderTextureBitmap.width, _renderTextureBitmap.height);
@@ -466,7 +471,7 @@ class FlxAnimate extends FlxSprite
 
 	@:access(openfl.display3D.textures.TextureBase)
 	@:access(openfl.display3D.Context3D)
-	function resizeTexture(width:Int, height:Int):Void
+	function resizeRenderTexture(width:Int, height:Int):Void
 	{
 		var context = FlxG.stage.context3D;
 		if (context != null)
