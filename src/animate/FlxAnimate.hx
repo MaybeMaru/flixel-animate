@@ -90,6 +90,7 @@ class FlxAnimate extends FlxSprite
 	var _renderTexture:RectangleTexture;
 	var _renderTextureBitmap:BitmapData;
 	var _renderTextureGraphic:FlxGraphic;
+	var _renderTextureDirty:Bool = true;
 
 	/**
 	 * Creates a `FlxAnimate` at a specified position with a specified one-frame graphic or Texture Atlas path.
@@ -233,8 +234,11 @@ class FlxAnimate extends FlxSprite
 
 		if (useRenderTexture && FlxG.renderTile)
 		{
-			if (true) // check if needs redraw?
+			if (_renderTextureDirty)
+			{
 				updateRenderTexture();
+				_renderTextureDirty = false;
+			}
 
 			camera.drawPixels(_renderTextureGraphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 		}
