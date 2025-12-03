@@ -2,10 +2,7 @@ package animate;
 
 import openfl.geom.Rectangle;
 import flixel.graphics.FlxGraphic;
-import openfl.Vector;
 import openfl.display3D.textures.RectangleTexture;
-import openfl.display.OpenGLRenderer;
-import openfl.display3D.Context3D;
 import flixel.FlxG;
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
@@ -29,7 +26,6 @@ using flixel.util.FlxColorTransformUtil;
 
 #if FLX_DEBUG
 import flixel.FlxBasic;
-import flixel.FlxG;
 #end
 
 class FlxAnimate extends FlxSprite
@@ -431,6 +427,7 @@ class FlxAnimate extends FlxSprite
 	}
 
 	@:access(flixel.FlxCamera)
+	@:access(openfl.geom.Rectangle)
 	function updateRenderTexture():Void
 	{
 		var bounds = timeline._bounds;
@@ -454,7 +451,12 @@ class FlxAnimate extends FlxSprite
 		_renderTextureCamera.render();
 
 		resizeTexture(Std.int(bounds.width), Std.int(bounds.height));
-		_renderTextureBitmap.fillRect(new Rectangle(0, 0, _renderTextureBitmap.width, _renderTextureBitmap.height), 0);
+
+		var rect = Rectangle.__pool.get();
+		rect.setTo(0, 0, _renderTextureBitmap.width, _renderTextureBitmap.height);
+		_renderTextureBitmap.fillRect(rect, 0);
+		Rectangle.__pool.release(rect);
+
 		_renderTextureBitmap.draw(_renderTextureCamera.canvas);
 	}
 
