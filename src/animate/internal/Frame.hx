@@ -300,11 +300,24 @@ class Frame implements IFlxDestroyable
 				}
 			}
 
-			_bakedIndices = isSimpleRender ? [for (i in 0...duration) 0] : [for (i in 0...duration) i];
+			if (isSimpleRender)
+			{
+				_bakedIndices = [];
+				for (i in 0...duration)
+				{
+					// only render the neccesary frame indices
+					var parentFrame = layer.parentLayer.getFrameAtIndex(index + i);
+					_bakedIndices.push(parentFrame == null ? -1 : parentFrame.index);
+				}
+			}
+			else
+			{
+				_bakedIndices = [for (i in 0...duration) i];
+			}
 		}
 
 		frameIndex = _bakedIndices[frameIndex];
-		if (_bakedFrames[frameIndex] != null)
+		if (frameIndex == -1 || _bakedFrames[frameIndex] != null)
 			return;
 
 		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
@@ -340,7 +353,11 @@ class Frame implements IFlxDestroyable
 
 		if (_bakedFrames != null)
 		{
-			var bakedFrame = _bakedFrames[_bakedIndices[currentFrame - this.index]];
+			var bakedIndex = _bakedIndices[currentFrame - this.index];
+			if (bakedIndex == -1)
+				return;
+
+			var bakedFrame = _bakedFrames[bakedIndex];
 			if (bakedFrame != null)
 			{
 				if (bakedFrame.visible)
