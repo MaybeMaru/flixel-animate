@@ -504,6 +504,7 @@ class FlxAnimate extends FlxSprite
 		timeline = null;
 		stageBg = FlxDestroyUtil.destroy(stageBg);
 		skew = FlxDestroyUtil.put(skew);
+		_renderTextureCamera = FlxDestroyUtil.destroy(_renderTextureCamera);
 		if (_renderTexture != null)
 		{
 			_renderTexture.dispose();
