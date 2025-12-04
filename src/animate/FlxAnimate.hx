@@ -83,7 +83,7 @@ class FlxAnimate extends FlxSprite
 	 * the entire sprite instead of individual limbs.
 	 * Only supported on targets that use `renderTile`.
 	 */
-	public var useRenderTexture:Bool = true;
+	public var useRenderTexture:Bool = false;
 
 	var _renderTextureCamera:FlxCamera;
 	var _renderTextureMatrix:FlxMatrix;
@@ -232,7 +232,7 @@ class FlxAnimate extends FlxSprite
 
 		timeline.currentFrame = animation.frameIndex;
 
-		if (useRenderTexture && FlxG.renderTile)
+		if (useRenderTexture && FlxG.renderTile && (alpha != 1 || shader != null || (blend != null && blend != NORMAL)))
 		{
 			if (_renderTextureDirty)
 			{
