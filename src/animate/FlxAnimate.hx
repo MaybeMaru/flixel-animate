@@ -1,14 +1,12 @@
 package animate;
 
-import openfl.geom.Rectangle;
-import flixel.graphics.FlxGraphic;
-import openfl.display3D.textures.RectangleTexture;
-import flixel.FlxG;
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
 import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
+import animate.internal.RenderTexture;
+import flixel.FlxG;
 import flixel.FlxCamera;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
@@ -85,11 +83,7 @@ class FlxAnimate extends FlxSprite
 	 */
 	public var useRenderTexture:Bool = false;
 
-	var _renderTextureCamera:FlxCamera;
-	var _renderTextureMatrix:FlxMatrix;
-	var _renderTexture:RectangleTexture;
-	var _renderTextureBitmap:BitmapData;
-	var _renderTextureGraphic:FlxGraphic;
+	var _renderTexture:RenderTexture;
 	var _renderTextureDirty:Bool = true;
 
 	/**
@@ -178,12 +172,15 @@ class FlxAnimate extends FlxSprite
 
 	function drawAnimate(camera:FlxCamera):Void
 	{
+		var willUseRenderTexture:Bool = useRenderTexture && FlxG.renderTile
+			&& (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+
 		var matrix = _matrix;
 		matrix.identity();
 
 		@:privateAccess
 		var bounds = timeline._bounds;
-		if (!useRenderTexture)
+		if (!willUseRenderTexture)
 			matrix.translate(-bounds.x, -bounds.y);
 
 		if (checkFlipX())
@@ -232,15 +229,26 @@ class FlxAnimate extends FlxSprite
 
 		timeline.currentFrame = animation.frameIndex;
 
-		if (useRenderTexture && FlxG.renderTile && (alpha != 1 || shader != null || (blend != null && blend != NORMAL)))
+		if (willUseRenderTexture)
 		{
+			if (_renderTexture == null)
+				_renderTexture = new RenderTexture(Math.round(bounds.width), Math.round(bounds.height));
+
 			if (_renderTextureDirty)
 			{
-				updateRenderTexture();
+				_renderTexture.clear();
+				_renderTexture.resize(Math.round(bounds.width), Math.round(bounds.height));
+				_renderTexture.drawToCamera((camera, matrix) ->
+				{
+					matrix.translate(-bounds.x, -bounds.y);
+					timeline.draw(camera, matrix, null, null, antialiasing, null);
+				});
+				_renderTexture.render();
+
 				_renderTextureDirty = false;
 			}
-
-			camera.drawPixels(_renderTextureGraphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+			
+			camera.drawPixels(_renderTexture.graphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 		}
 		else
 		{
@@ -430,72 +438,6 @@ class FlxAnimate extends FlxSprite
 		return result;
 	}
 
-	@:access(flixel.FlxCamera)
-	@:access(openfl.geom.Rectangle)
-	function updateRenderTexture():Void
-	{
-		var bounds = timeline._bounds;
-
-		if (_renderTextureCamera == null)
-			_renderTextureCamera = new FlxCamera();
-		if (_renderTextureMatrix == null)
-			_renderTextureMatrix = new FlxMatrix();
-
-		_renderTextureMatrix.identity();
-		_renderTextureMatrix.translate(-bounds.x, -bounds.y);
-
-		final textureWidth:Int = Math.round(bounds.width);
-		final textureHeight:Int = Math.round(bounds.height);
-		_renderTextureCamera.width = textureWidth;
-		_renderTextureCamera.height = textureHeight;
-
-		_renderTextureCamera.clearDrawStack();
-		_renderTextureCamera.canvas.graphics.clear();
-		#if FLX_DEBUG
-		_renderTextureCamera.debugLayer.graphics.clear();
-		#end
-
-		timeline.draw(_renderTextureCamera, _renderTextureMatrix, null, null, antialiasing, null);
-
-		_renderTextureCamera.render();
-
-		resizeRenderTexture(textureWidth, textureHeight);
-
-		var rect = Rectangle.__pool.get();
-		rect.setTo(0, 0, _renderTextureBitmap.width, _renderTextureBitmap.height);
-		_renderTextureBitmap.fillRect(rect, 0);
-		Rectangle.__pool.release(rect);
-
-		_renderTextureBitmap.draw(_renderTextureCamera.canvas);
-	}
-
-	@:access(openfl.display3D.textures.TextureBase)
-	@:access(openfl.display3D.Context3D)
-	function resizeRenderTexture(width:Int, height:Int):Void
-	{
-		var context = FlxG.stage.context3D;
-		if (context != null)
-		{
-			if (_renderTexture == null)
-			{
-				_renderTexture = context.createRectangleTexture(width, height, BGRA, true);
-				_renderTextureBitmap = BitmapData.fromTexture(_renderTexture);
-				_renderTextureGraphic = FlxGraphic.fromBitmapData(_renderTextureBitmap, true);
-			}
-
-			if (_renderTexture.__width == width && _renderTexture.__height == height)
-				return;
-
-			_renderTexture.__width = width;
-			_renderTexture.__height = height;
-
-			var gl = _renderTexture.__context.gl;
-			gl.bindTexture(gl.TEXTURE_2D, _renderTexture.__textureID);
-			gl.texImage2D(gl.TEXTURE_2D, 0, _renderTexture.__internalFormat, width, height, 0, _renderTexture.__format, gl.UNSIGNED_BYTE, null);
-			gl.bindTexture(gl.TEXTURE_2D, null);
-		}
-	}
-
 	override function destroy():Void
 	{
 		super.destroy();
@@ -504,14 +446,5 @@ class FlxAnimate extends FlxSprite
 		timeline = null;
 		stageBg = FlxDestroyUtil.destroy(stageBg);
 		skew = FlxDestroyUtil.put(skew);
-		_renderTextureCamera = FlxDestroyUtil.destroy(_renderTextureCamera);
-		if (_renderTexture != null)
-		{
-			_renderTexture.dispose();
-			_renderTexture = null;
-		}
-		_renderTextureBitmap = FlxDestroyUtil.dispose(_renderTextureBitmap);
-		_renderTextureGraphic = FlxDestroyUtil.destroy(_renderTextureGraphic);
-		_renderTextureMatrix = null;
 	}
 }
