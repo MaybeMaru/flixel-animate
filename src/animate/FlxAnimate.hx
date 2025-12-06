@@ -6,6 +6,7 @@ import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
 import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
@@ -18,12 +19,15 @@ import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
 
-using flixel.util.FlxColorTransformUtil;
+#if !flash
+import animate.internal.RenderTexture;
+#end
 
 #if FLX_DEBUG
 import flixel.FlxBasic;
-import flixel.FlxG;
 #end
+
+using flixel.util.FlxColorTransformUtil;
 
 class FlxAnimate extends FlxSprite
 {
@@ -73,6 +77,19 @@ class FlxAnimate extends FlxSprite
 	 * @see https://github.com/Dot-Stuff/BetterTextureAtlas
 	 */
 	public var renderStage:Bool = false;
+
+	/**
+	 * Whether to internally use a render texture when drawing the Texture Atlas.
+	 * This flattens all of the limbs into a single graphic, making effects such as alpha or shaders apply to
+	 * the entire sprite instead of individual limbs.
+	 * Only supported on targets that use `renderTile`.
+	 */
+	public var useRenderTexture:Bool = false;
+
+	#if !flash
+	var _renderTexture:RenderTexture;
+	#end
+	var _renderTextureDirty:Bool = true;
 
 	/**
 	 * Creates a `FlxAnimate` at a specified position with a specified one-frame graphic or Texture Atlas path.
@@ -160,12 +177,19 @@ class FlxAnimate extends FlxSprite
 
 	function drawAnimate(camera:FlxCamera):Void
 	{
+		#if flash
+		var willUseRenderTexture:Bool = false;
+		#else
+		var willUseRenderTexture:Bool = useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+		#end
+
 		var matrix = _matrix;
 		matrix.identity();
 
 		@:privateAccess
 		var bounds = timeline._bounds;
-		matrix.translate(-bounds.x, -bounds.y);
+		if (!willUseRenderTexture)
+			matrix.translate(-bounds.x, -bounds.y);
 
 		if (checkFlipX())
 		{
@@ -212,7 +236,34 @@ class FlxAnimate extends FlxSprite
 			drawStage(camera);
 
 		timeline.currentFrame = animation.frameIndex;
-		timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
+
+		#if !flash
+		if (willUseRenderTexture)
+		{
+			if (_renderTexture == null)
+				_renderTexture = new RenderTexture(Math.round(bounds.width), Math.round(bounds.height));
+
+			if (_renderTextureDirty)
+			{
+				_renderTexture.clear();
+				_renderTexture.resize(Math.round(bounds.width), Math.round(bounds.height));
+				_renderTexture.drawToCamera((camera, matrix) ->
+				{
+					matrix.translate(-bounds.x, -bounds.y);
+					timeline.draw(camera, matrix, null, null, antialiasing, null);
+				});
+				_renderTexture.render();
+
+				_renderTextureDirty = false;
+			}
+			
+			camera.drawPixels(_renderTexture.graphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+		}
+		else
+		#end
+		{
+			timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
+		}
 	}
 
 	// I dont think theres a way to override the matrix without needing to do this lol

@@ -300,6 +300,8 @@ class FlxAnimateController extends FlxAnimationController
 			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
 			_animate.timeline.currentFrame = frame;
 			_animate.timeline.signalFrameChange(frame, this);
+			if (_animate.useRenderTexture)
+				_animate._renderTextureDirty = true;
 			frameIndex = frame;
 			fireCallback();
 
