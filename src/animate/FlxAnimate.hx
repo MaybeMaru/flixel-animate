@@ -5,9 +5,8 @@ import animate.FlxAnimateFrames.FlxAnimateSettings;
 import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
-import animate.internal.RenderTexture;
-import flixel.FlxG;
 import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.frames.FlxFramesCollection;
@@ -20,11 +19,15 @@ import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
 
-using flixel.util.FlxColorTransformUtil;
+#if !flash
+import animate.internal.RenderTexture;
+#end
 
 #if FLX_DEBUG
 import flixel.FlxBasic;
 #end
+
+using flixel.util.FlxColorTransformUtil;
 
 class FlxAnimate extends FlxSprite
 {
@@ -83,7 +86,9 @@ class FlxAnimate extends FlxSprite
 	 */
 	public var useRenderTexture:Bool = false;
 
+	#if !flash
 	var _renderTexture:RenderTexture;
+	#end
 	var _renderTextureDirty:Bool = true;
 
 	/**
@@ -172,8 +177,11 @@ class FlxAnimate extends FlxSprite
 
 	function drawAnimate(camera:FlxCamera):Void
 	{
-		var willUseRenderTexture:Bool = useRenderTexture && FlxG.renderTile
-			&& (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+		#if flash
+		var willUseRenderTexture:Bool = false;
+		#else
+		var willUseRenderTexture:Bool = useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+		#end
 
 		var matrix = _matrix;
 		matrix.identity();
@@ -229,6 +237,7 @@ class FlxAnimate extends FlxSprite
 
 		timeline.currentFrame = animation.frameIndex;
 
+		#if !flash
 		if (willUseRenderTexture)
 		{
 			if (_renderTexture == null)
@@ -251,6 +260,7 @@ class FlxAnimate extends FlxSprite
 			camera.drawPixels(_renderTexture.graphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 		}
 		else
+		#end
 		{
 			timeline.draw(camera, matrix, colorTransform, blend, antialiasing, shader);
 		}
