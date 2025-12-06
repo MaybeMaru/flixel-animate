@@ -1,21 +1,24 @@
 package animate.internal;
 
-import openfl.geom.ColorTransform;
+import openfl.Lib;
+import openfl.display3D.textures.RectangleTexture;
+import openfl.display3D.Context3D;
+import openfl.display.BitmapData;
+import openfl.display.OpenGLRenderer;
 import openfl.geom.Matrix;
+import flixel.FlxG;
+import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxDestroyUtil;
-import flixel.util.FlxDestroyUtil.IFlxDestroyable;
 import flixel.graphics.FlxGraphic;
-import openfl.display.BitmapData;
-import openfl.display3D.textures.RectangleTexture;
-import flixel.FlxCamera;
-import flixel.FlxG;
-import openfl.display3D.Context3D;
-import openfl.geom.Rectangle;
-import openfl.display.OpenGLRenderer;
-import openfl.Lib;
 
+@:access(openfl.display3D.Context3D)
+@:access(openfl.display3D.textures.TextureBase)
 @:access(openfl.display.OpenGLRenderer)
+@:access(openfl.display.BitmapData)
+@:access(openfl.display.DisplayObjectContainer)
+@:access(flixel.FlxCamera)
+@:access(flixel.graphics.FlxGraphic)
 class RenderTexture implements IFlxDestroyable
 {
    	public var graphic(default, null):FlxGraphic;
@@ -60,7 +63,6 @@ class RenderTexture implements IFlxDestroyable
 		_matrix = null;
 	}
 
-	@:access(flixel.FlxCamera)
 	public function clear():Void
 	{
 		_camera.clearDrawStack();
@@ -78,10 +80,6 @@ class RenderTexture implements IFlxDestroyable
 		draw(_camera, _matrix);
 	}
 
-	@:access(openfl.display.DisplayObjectContainer)
-	@:access(flixel.FlxCamera)
-	@:access(openfl.display3D.Context3D)
-	@:access(openfl.geom.Matrix)
 	public function render():Void
 	{
 		_camera.render();
@@ -118,9 +116,6 @@ class RenderTexture implements IFlxDestroyable
 		_resizeTexture(width, height);
 	}
 
-	@:access(openfl.display3D.textures.TextureBase)
-	@:access(openfl.display.BitmapData)
-	@:access(flixel.graphics.FlxGraphic)
 	function _resizeTexture(width:Int, height:Int)
 	{
 		if (_texture.__width == width && _texture.__height == height)
