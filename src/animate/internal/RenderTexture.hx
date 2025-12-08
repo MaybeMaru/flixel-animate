@@ -1,16 +1,16 @@
 package animate.internal;
 
-import openfl.Lib;
-import openfl.display3D.textures.RectangleTexture;
-import openfl.display3D.Context3D;
-import openfl.display.BitmapData;
-import openfl.display.OpenGLRenderer;
-import openfl.geom.Matrix;
-import flixel.FlxG;
 import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.graphics.FlxGraphic;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxDestroyUtil;
-import flixel.graphics.FlxGraphic;
+import openfl.Lib;
+import openfl.display.BitmapData;
+import openfl.display.OpenGLRenderer;
+import openfl.display3D.Context3D;
+import openfl.display3D.textures.RectangleTexture;
+import openfl.geom.Matrix;
 
 @:access(openfl.display3D.Context3D)
 @:access(openfl.display3D.textures.TextureBase)
@@ -21,30 +21,31 @@ import flixel.graphics.FlxGraphic;
 @:access(flixel.graphics.FlxGraphic)
 class RenderTexture implements IFlxDestroyable
 {
-   	public var graphic(default, null):FlxGraphic;
+	public var graphic(default, null):FlxGraphic;
 	public var antialiasing:Bool = false;
 
-	var _context:Context3D;
-	var _renderer:OpenGLRenderer;
+	static var _context:Context3D;
+	static var _renderer:OpenGLRenderer;
+
 	var _texture:RectangleTexture;
 	var _bitmap:BitmapData;
 	var _camera:FlxCamera;
 	var _matrix:FlxMatrix;
+	var _scaleFactor:Float = 1.0;
 
 	public function new(width:Int, height:Int)
 	{
-		this._context = FlxG.stage.context3D;
-		
+		if (_context == null)
+			_context = FlxG.stage.context3D;
+
+		if (_renderer == null)
+		{
+			_renderer = new OpenGLRenderer(_context);
+			_renderer.__worldTransform = new Matrix();
+		}
+
 		_camera = new FlxCamera();
-
-		_texture = _context.createRectangleTexture(width, height, BGRA, true);
-		_bitmap = BitmapData.fromTexture(_texture);
-		graphic = FlxGraphic.fromBitmapData(_bitmap, true, null, false);
-
 		_matrix = new FlxMatrix();
-
-		_renderer = new OpenGLRenderer(_context);
-		_renderer.__worldTransform = new Matrix();
 
 		resize(width, height);
 	}
@@ -83,13 +84,14 @@ class RenderTexture implements IFlxDestroyable
 	public function render():Void
 	{
 		_camera.render();
-
 		_camera.canvas.__update(false, true);
 
-        _renderer.__cleanup();
+		_renderer.__cleanup();
 		_renderer.setShader(_renderer.__defaultShader);
+		_renderer.__worldTransform.identity();
+		_renderer.__worldTransform.scale(_scaleFactor, _scaleFactor);
 		_renderer.__setRenderTarget(_bitmap);
-        
+
 		_renderer.__allowSmoothing = antialiasing;
 		_renderer.__pixelRatio = #if openfl_disable_hdpi 1 #else Lib.current.stage.window.scale #end;
 
@@ -97,7 +99,7 @@ class RenderTexture implements IFlxDestroyable
 		var cacheRTTDepthStencil = _context.__state.renderToTextureDepthStencil;
 		var cacheRTTAntiAlias = _context.__state.renderToTextureAntiAlias;
 		var cacheRTTSurfaceSelector = _context.__state.renderToTextureSurfaceSelector;
-		
+
 		_context.setRenderToTexture(_texture, true);
 
 		_renderer.__render(_camera.canvas);
@@ -116,18 +118,38 @@ class RenderTexture implements IFlxDestroyable
 		_resizeTexture(width, height);
 	}
 
-	function _resizeTexture(width:Int, height:Int)
+	function _resizeTexture(width:Int, height:Int):Void
 	{
-		if (_texture.__width == width && _texture.__height == height)
-			return;
+		if (_texture != null)
+		{
+			if (_texture.__width == width && _texture.__height == height)
+				return;
+			else
+			{
+				_texture.dispose();
+				_bitmap.dispose();
+			}
+		}
 
-		_texture.dispose();
 		_texture = _context.createRectangleTexture(width, height, BGRA, true);
 
-		_bitmap.__texture = _texture;
-		_bitmap.__textureContext = _texture.__textureContext;
-		_bitmap.__resize(width, height);
-		
+		if (_bitmap == null)
+		{
+			_bitmap = BitmapData.fromTexture(_texture);
+		}
+		else
+		{
+			_bitmap.__texture = _texture;
+			_bitmap.__textureContext = _texture.__textureContext;
+			_bitmap.__resize(width, height);
+		}
+
+		// I have no idea why this is a thing
+		_scaleFactor = 1.0 / Math.min(FlxG.scaleMode.scale.x, FlxG.scaleMode.scale.y);
+
+		if (graphic == null)
+			graphic = FlxGraphic.fromBitmapData(_bitmap, true, null, false);
+
 		graphic.bitmap = _bitmap;
 		// because flixel doesn't update this automatically?
 		graphic.imageFrame.frame.frame.set(0, 0, width, height);

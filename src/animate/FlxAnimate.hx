@@ -19,15 +19,14 @@ import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
 
+using flixel.util.FlxColorTransformUtil;
+
 #if !flash
 import animate.internal.RenderTexture;
 #end
-
 #if FLX_DEBUG
 import flixel.FlxBasic;
 #end
-
-using flixel.util.FlxColorTransformUtil;
 
 class FlxAnimate extends FlxSprite
 {
@@ -241,12 +240,12 @@ class FlxAnimate extends FlxSprite
 		if (willUseRenderTexture)
 		{
 			if (_renderTexture == null)
-				_renderTexture = new RenderTexture(Math.round(bounds.width), Math.round(bounds.height));
+				_renderTexture = new RenderTexture(Math.ceil(bounds.width), Math.ceil(bounds.height));
 
 			if (_renderTextureDirty)
 			{
 				_renderTexture.clear();
-				_renderTexture.resize(Math.round(bounds.width), Math.round(bounds.height));
+				_renderTexture.resize(Math.ceil(bounds.width), Math.ceil(bounds.height));
 				_renderTexture.drawToCamera((camera, matrix) ->
 				{
 					matrix.translate(-bounds.x, -bounds.y);
@@ -256,7 +255,7 @@ class FlxAnimate extends FlxSprite
 
 				_renderTextureDirty = false;
 			}
-			
+
 			camera.drawPixels(_renderTexture.graphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 		}
 		else
