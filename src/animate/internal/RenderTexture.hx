@@ -27,10 +27,11 @@ class RenderTexture implements IFlxDestroyable
 	static var _context:Context3D;
 	static var _renderer:OpenGLRenderer;
 
-	var _texture:RectangleTexture;
-	var _bitmap:BitmapData;
+	var _textures:Map<String, BitmapData>;
 	var _camera:FlxCamera;
 	var _matrix:FlxMatrix;
+
+	var _bitmap:BitmapData;
 	var _scaleFactor:Float = 1.0;
 
 	public function new(width:Int, height:Int)
@@ -44,35 +45,26 @@ class RenderTexture implements IFlxDestroyable
 			_renderer.__worldTransform = new Matrix();
 		}
 
+		_textures = [];
 		_camera = new FlxCamera();
 		_matrix = new FlxMatrix();
 
-		resize(width, height);
+		// prepare the initial texture
+		_scaleFactor = 1.0 / Math.min(FlxG.scaleMode.scale.x, FlxG.scaleMode.scale.y);
+		_resizeTexture(width, height);
 	}
 
 	public function destroy():Void
 	{
-		if (_texture != null)
-		{
-			_texture.dispose();
-			_texture = null;
-		}
+		for (texture in _textures.iterator())
+			texture.dispose();
 
-		_bitmap = FlxDestroyUtil.dispose(_bitmap);
+		_textures = null;
+		_bitmap = null;
+
 		graphic = FlxDestroyUtil.destroy(graphic);
 		_camera = FlxDestroyUtil.destroy(_camera);
 		_matrix = null;
-	}
-
-	public function clear():Void
-	{
-		_camera.clearDrawStack();
-		_camera.canvas.graphics.clear();
-		#if FLX_DEBUG
-		_camera.debugLayer.graphics.clear();
-		#end
-
-		_bitmap.fillRect(_bitmap.rect, 0);
 	}
 
 	public function drawToCamera(draw:FlxCamera->FlxMatrix->Void):Void
@@ -100,7 +92,7 @@ class RenderTexture implements IFlxDestroyable
 		var cacheRTTAntiAlias = _context.__state.renderToTextureAntiAlias;
 		var cacheRTTSurfaceSelector = _context.__state.renderToTextureSurfaceSelector;
 
-		_context.setRenderToTexture(_texture, true);
+		_context.setRenderToTexture(_bitmap.__texture, true);
 
 		_renderer.__render(_camera.canvas);
 
@@ -110,47 +102,40 @@ class RenderTexture implements IFlxDestroyable
 			_context.setRenderToBackBuffer();
 	}
 
-	public function resize(width:Int, height:Int):Void
+	public function init(width:Int, height:Int,):Void
 	{
+		_camera.clearDrawStack();
+		_camera.canvas.graphics.clear();
+		#if FLX_DEBUG
+		_camera.debugLayer.graphics.clear();
+		#end
+
 		_camera.width = width;
 		_camera.height = height;
 
 		_resizeTexture(width, height);
+		graphic.bitmap = _bitmap;
+		graphic.imageFrame.frame.frame.set(0, 0, width, height);
+
+		_bitmap.fillRect(_bitmap.rect, 0);
 	}
 
 	function _resizeTexture(width:Int, height:Int):Void
 	{
-		if (_texture != null)
+		if (_bitmap != null && _bitmap.width == width && _bitmap.height == height)
+			return;
+
+		var id:String = Std.string(width) + 'x' + Std.string(height);
+		if (_textures.exists(id))
 		{
-			if (_texture.__width == width && _texture.__height == height)
-				return;
-			else
-			{
-				_texture.dispose();
-			}
+			_bitmap = _textures.get(id);
+			return;
 		}
 
-		_texture = _context.createRectangleTexture(width, height, BGRA, true);
-
-		if (_bitmap == null)
-		{
-			_bitmap = BitmapData.fromTexture(_texture);
-		}
-		else
-		{
-			_bitmap.__texture = _texture;
-			_bitmap.__textureContext = _texture.__textureContext;
-			_bitmap.__resize(width, height);
-		}
-
-		// I have no idea why this is a thing
-		_scaleFactor = 1.0 / Math.min(FlxG.scaleMode.scale.x, FlxG.scaleMode.scale.y);
+		_bitmap = BitmapData.fromTexture(_context.createRectangleTexture(width, height, BGRA, true));
+		_textures.set(id, _bitmap);
 
 		if (graphic == null)
 			graphic = FlxGraphic.fromBitmapData(_bitmap, true, null, false);
-
-		graphic.bitmap = _bitmap;
-		// because flixel doesn't update this automatically?
-		graphic.imageFrame.frame.frame.set(0, 0, width, height);
 	}
 }
