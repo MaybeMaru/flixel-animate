@@ -127,7 +127,6 @@ class RenderTexture implements IFlxDestroyable
 			else
 			{
 				_texture.dispose();
-				_bitmap.dispose();
 			}
 		}
 
