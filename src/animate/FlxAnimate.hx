@@ -244,7 +244,7 @@ class FlxAnimate extends FlxSprite
 
 			if (_renderTextureDirty)
 			{
-				_renderTexture.init(Math.ceil(bounds.width), Math.ceil(bounds.height));
+				_renderTexture.resize(Math.ceil(bounds.width), Math.ceil(bounds.height));
 				_renderTexture.drawToCamera((camera, matrix) ->
 				{
 					matrix.translate(-bounds.x, -bounds.y);
