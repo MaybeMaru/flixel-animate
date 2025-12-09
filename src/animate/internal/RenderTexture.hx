@@ -79,21 +79,23 @@ class RenderTexture implements IFlxDestroyable
 	public function render():Void
 	{
 		_camera.render();
+
 		_camera.canvas.__update(false, true);
 
 		_currentBitmap.__fillRect(_currentBitmap.rect, 0, true);
 
-		{
-			_renderer.__cleanup();
-			_renderer.__allowSmoothing = antialiasing;
-			_renderer.__pixelRatio = #if openfl_disable_hdpi 1 #else Lib.current.stage.window.scale #end;
-			_renderer.__worldAlpha = 1 / _camera.canvas.__worldAlpha;
-			_renderer.__worldTransform.copyFrom(_camera.canvas.__renderTransform);
-			_renderer.__worldTransform.invert();
-			_renderer.__worldColorTransform.__copyFrom(_camera.canvas.__worldColorTransform);
-			_renderer.__worldColorTransform.__invert();
-			_renderer.__setRenderTarget(_currentBitmap);
-		}
+		_renderer.__cleanup();
+
+		_renderer.setShader(_renderer.__defaultShader);
+
+		_renderer.__allowSmoothing = antialiasing;
+		_renderer.__pixelRatio = #if openfl_disable_hdpi 1 #else Lib.current.stage.window.scale #end;
+		_renderer.__worldAlpha = 1 / _camera.canvas.__worldAlpha;
+		_renderer.__worldTransform.copyFrom(_camera.canvas.__renderTransform);
+		_renderer.__worldTransform.invert();
+		_renderer.__worldColorTransform.__copyFrom(_camera.canvas.__worldColorTransform);
+		_renderer.__worldColorTransform.__invert();
+		_renderer.__setRenderTarget(_currentBitmap);
 
 		_currentBitmap.__drawGL(_camera.canvas, _renderer);
 	}
