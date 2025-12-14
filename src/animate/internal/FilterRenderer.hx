@@ -51,10 +51,30 @@ import flixel.util.FlxColor;
 @:access(lime.graphics.Image)
 @:access(openfl.display3D.textures.TextureBase)
 @:access(animate.internal.elements.MovieClipInstance)
+@:access(animate.internal.Frame)
 #end
 class FilterRenderer
 {
 	#if !flash
+	public static function bakeFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
+	{
+		var maskedFrame = maskFrame(frame, currentFrame, layer);
+
+		var filters = frame._filters;
+		if (filters != null && filters.length > 0)
+		{
+			return _bakeFilters(filters, frame.getBounds(currentFrame, null, null, false), frame._filterQuality, (cam, mat) ->
+			{
+				if (maskedFrame != null)
+					maskedFrame.draw(cam, currentFrame, frame.index, mat);
+				else
+					frame._drawElements(cam, currentFrame, mat);
+			});
+		}
+
+		return maskedFrame;
+	}
+
 	public static function maskFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
 	{
 		var masker = layer.parentLayer;
@@ -184,24 +204,32 @@ class FilterRenderer
 		return bitmap;
 	}
 
-	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint,
-			quality:FilterQuality = MEDIUM):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>):AtlasInstance
+	{
+		return _bakeFilters(movieclip._filters, movieclip.getBounds(frameIndex, null, null, false), movieclip._filterQuality, (cam, mat) ->
+		{
+			movieclip._drawTimeline(cam, frameIndex, 0, mat);
+		});
+	}
+
+	// static function bakeFilters
+	// public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>):AtlasInstance
+	static function _bakeFilters(filters:Array<BitmapFilter>, bounds:FlxRect, quality:FilterQuality, draw:(FlxCamera, FlxMatrix) -> Void)
 	{
 		var bitmap:BitmapData;
-		var bounds:FlxRect;
 		var filteredBounds:FlxRect;
 
 		var resultFilteredBounds:FlxRect;
 		var scaledFilters:Array<BitmapFilter> = [];
+		var scale = quality.getFiltersScale(filters);
 
 		bitmap = renderToBitmap((cam, mat) ->
 		{
-			bounds = movieclip.getBounds(frameIndex, null, null, false);
 			@:privateAccess
-			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), movieclip._filters);
+			filteredBounds = expandFilterBounds(bounds.copyTo(FlxRect.get()), filters);
 
 			mat.setTo(1 / scale.x, 0, 0, 1 / scale.y, 0, 0);
-			movieclip._drawTimeline(cam, frameIndex, 0, mat);
+			draw(cam, mat);
 			cam.render();
 
 			if (filters != null && filters.length > 0)
@@ -263,6 +291,8 @@ class FilterRenderer
 		var element = new AtlasInstance();
 		element.frame = frame;
 		element.matrix = mat;
+
+		scale.put();
 
 		return element;
 	}
@@ -504,6 +534,11 @@ class FilterRenderer
 		element.matrix = mat;
 
 		return element;
+	}
+
+	public static function bakeFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>
+	{
+		return maskFrame(frame, currentFrame, layer);
 	}
 
 	public static function maskFrame(frame:Frame, currentFrame:Int, layer:Layer):Null<AtlasInstance>

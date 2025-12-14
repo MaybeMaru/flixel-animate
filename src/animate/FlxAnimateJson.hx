@@ -2,6 +2,7 @@ package animate;
 
 import animate.internal.filters.AdjustColorFilter;
 import flixel.FlxG;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.util.FlxColor;
 import haxe.ds.Vector;
@@ -112,6 +113,8 @@ extern abstract FrameJson(Dynamic)
 
 	public var SND(get, never):SoundJson;
 
+	public var F(get, never):Null<Array<FilterJson>>;
+
 	inline function get_I()
 		return this.I ?? this.index;
 
@@ -126,6 +129,14 @@ extern abstract FrameJson(Dynamic)
 
 	inline function get_SND()
 		return this.SND;
+
+	inline function get_F()
+	{
+		var filters:Dynamic = this.F ?? this.filters;
+		if (filters == null || filters is Array)
+			return filters;
+		return this.F = FilterJson.resolve(filters);
+	}
 }
 
 extern typedef SoundJson =
@@ -354,7 +365,7 @@ abstract FilterJson(Dynamic)
 				return dsf;
 
 			case "glowFilter" | "GF":
-				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR, Q, IN, KK);
+				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR / 100, Q, IN, KK);
 				return gf;
 
 				// TODO: add missing filters support for other targets

@@ -135,31 +135,7 @@ class MovieClipInstance extends SymbolInstance
 		if (_bakedFrames[frameIndex] != null)
 			return;
 
-		var scale = FlxPoint.get(1, 1);
-		var pixelFactor:Float = _filterQuality.getPixelFactor();
-		var qualityFactor:Float = _filterQuality.getQualityFactor();
-
-		for (filter in filters)
-		{
-			if (filter is BlurFilter)
-			{
-				var blur:BlurFilter = cast filter;
-				if (_filterQuality != FilterQuality.HIGH)
-				{
-					var qualityMult = FlxMath.remapToRange(blur.quality, 0, 3, 1, 3) * qualityFactor;
-					scale.x *= Math.max(((blur.blurX) / pixelFactor) * qualityMult, 1);
-					scale.y *= Math.max(((blur.blurY) / pixelFactor) * qualityMult, 1);
-				}
-			}
-		}
-
-		// TODO: double check this, i *think* this is applied later so its not necessary here
-		// scale.x /= Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-		// scale.y /= Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-
-		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters, scale, _filterQuality);
-		scale.put();
-
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFilters(this, frameIndex, filters);
 		if (bakedFrame == null)
 			return;
 

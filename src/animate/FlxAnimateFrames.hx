@@ -8,6 +8,7 @@ import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.graphics.frames.FlxFramesCollection.FlxFrameCollectionType;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -17,6 +18,8 @@ import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import haxe.ds.Vector;
 import haxe.io.Path;
+import openfl.filters.BitmapFilter;
+import openfl.filters.BlurFilter;
 
 using StringTools;
 
@@ -634,5 +637,28 @@ enum abstract FilterQuality(Int) to Int
 			case FilterQuality.RUDY: 8.0;
 			default: 1.0;
 		}
+	}
+
+	public function getFiltersScale(filters:Array<BitmapFilter>)
+	{
+		var scale = FlxPoint.get(1, 1);
+		var pixelFactor:Float = getPixelFactor();
+		var qualityFactor:Float = getQualityFactor();
+
+		for (filter in filters)
+		{
+			if (filter is BlurFilter)
+			{
+				var blur:BlurFilter = cast filter;
+				if (this != FilterQuality.HIGH)
+				{
+					var qualityMult = FlxMath.remapToRange(blur.quality, 0, 3, 1, 3) * qualityFactor;
+					scale.x *= Math.max(((blur.blurX) / pixelFactor) * qualityMult, 1);
+					scale.y *= Math.max(((blur.blurY) / pixelFactor) * qualityMult, 1);
+				}
+			}
+		}
+
+		return scale;
 	}
 }

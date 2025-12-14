@@ -1,5 +1,6 @@
 package animate.internal;
 
+import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson.LayerJson;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
@@ -190,23 +191,32 @@ class Layer implements IFlxDestroyable
 			}
 		}
 
-		if (!isMasked)
-			return;
-
 		// Add settings from parent frames
 		var _cacheOnLoad:Bool = false;
+		var _filterQuality:FilterQuality = FilterQuality.MEDIUM;
 		@:privateAccess {
 			if (parent != null && parent._settings != null)
+			{
 				_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+				_filterQuality = parent._settings.filterQuality ?? FilterQuality.MEDIUM;
+			}
 		}
 
+		// TODO: this whole system sucks and is due for a rewrite
+		// Make some kind of wrapper/cleaner filter render both for movieclip and frame filtering
+		// Also may be worth dropping the filters Flash support for simplicity (even tho its so cool)
 		for (frame in frames)
 		{
+			frame._filterQuality = _filterQuality;
+
 			if (frame.elements.length <= 0)
 				continue;
 
-			frame._dirty = true;
-			frame._requireBake = true;
+			if (isMasked || frame._dirty)
+			{
+				frame._dirty = true;
+				frame._requireBake = true;
+			}
 
 			// Cache all frames on start, if set by the settings
 			if (_cacheOnLoad) // TODO: fix some size issues when using cacheOnLoad with masks

@@ -1,5 +1,6 @@
 package animate.internal;
 
+import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson.FrameJson;
 import animate.internal.AnimateDrawCommand;
 import animate.internal.elements.*;
@@ -11,6 +12,7 @@ import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
 import flixel.util.FlxDestroyUtil;
+import openfl.filters.BitmapFilter;
 import openfl.media.Sound;
 
 using StringTools;
@@ -65,6 +67,19 @@ class Frame implements IFlxDestroyable
 
 		element.parentFrame = this;
 		elements.insert(index, element);
+		setDirty();
+	}
+
+	/**
+	 * Changes the filters of the movieclip.
+	 * Requires the movieclip to be rebaked when called.
+	 *
+	 * @param filters An array with ``BitmapFilter`` objects to apply to the movieclip.
+	 */
+	public function setFilters(?filters:Array<BitmapFilter>):Void
+	{
+		this._filters = filters;
+		this._requireBake = (filters != null && filters.length > 0);
 		setDirty();
 	}
 
@@ -243,6 +258,22 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
+		// Resolve and precache bitmap filters
+		var jsonFilters = frame.F;
+		if (jsonFilters != null && jsonFilters.length > 0)
+		{
+			var filters:Array<BitmapFilter> = [];
+			for (filter in jsonFilters)
+			{
+				var bmpFilter:Null<BitmapFilter> = filter.toBitmapFilter();
+				if (bmpFilter != null)
+					filters.push(bmpFilter);
+			}
+
+			this._filters = filters;
+			this._dirty = true;
+		}
+
 		if (frame.SND != null)
 		{
 			final soundPath:String = parent.path + '/LIBRARY/' + frame.SND.N;
@@ -254,32 +285,32 @@ class Frame implements IFlxDestroyable
 				var buffer = lime.media.AudioBuffer.fromBytes(bytes);
 				var openflSound = Sound.fromAudioBuffer(buffer);
 				sound = FlxG.sound.load(openflSound);
-				return;
 			}
+			else
 			#end
-
-			sound = FlxG.sound.load(soundPath);
+			{
+				sound = FlxG.sound.load(soundPath);
+			}
 		}
 	}
 
-	@:allow(animate.internal.Layer)
 	var _dirty:Bool = false;
-
-	@:allow(animate.internal.Layer)
 	var _requireBake:Bool = false;
+	var _filters:Array<BitmapFilter> = null;
+	var _filterQuality:FilterQuality = FilterQuality.MEDIUM;
 
 	var _bakedFrames:BakedFramesVector;
 	var _bakedIndices:Array<Int>;
 
 	function _bakeFrame(frameIndex:Int):Void
 	{
-		if (layer.parentLayer == null)
+		if (layer.parentLayer == null && (_filters == null || _filters.length == 0))
 		{
 			_dirty = false;
 			return;
 		}
 
-		// Prepare vector to store masks
+		// Prepare vector to store baked frames
 		if (_bakedFrames == null)
 			_bakedFrames = new BakedFramesVector(duration);
 
@@ -320,7 +351,7 @@ class Frame implements IFlxDestroyable
 		if (frameIndex == -1 || _bakedFrames[frameIndex] != null)
 			return;
 
-		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
+		var bakedFrame:Null<AtlasInstance> = FilterRenderer.bakeFrame(this, frameIndex + this.index, layer);
 		if (bakedFrame == null)
 			return;
 
