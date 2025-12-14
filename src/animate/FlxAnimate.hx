@@ -244,7 +244,7 @@ class FlxAnimate extends FlxSprite
 
 			if (_renderTextureDirty)
 			{
-				_renderTexture.resize(Math.ceil(bounds.width), Math.ceil(bounds.height));
+				_renderTexture.init(Math.ceil(bounds.width), Math.ceil(bounds.height));
 				_renderTexture.drawToCamera((camera, matrix) ->
 				{
 					matrix.translate(-bounds.x, -bounds.y);
@@ -449,6 +449,7 @@ class FlxAnimate extends FlxSprite
 	override function destroy():Void
 	{
 		super.destroy();
+		_renderTexture = FlxDestroyUtil.destroy(_renderTexture);
 		anim = FlxDestroyUtil.destroy(anim);
 		library = null;
 		timeline = null;

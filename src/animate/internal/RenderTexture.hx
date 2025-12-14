@@ -42,52 +42,80 @@ class RenderTexture implements IFlxDestroyable
 		_camera = new FlxCamera();
 		_matrix = new FlxMatrix();
 
-		_resetCamera(width, height);
-		_ensureTexture(width, height);
+		init(width, height);
 	}
 
 	public function destroy():Void
 	{
-		graphic = FlxDestroyUtil.destroy(graphic);
-
 		_renderer.__cleanup();
 		_renderer = null;
 
 		for (bitmap in _bitmaps.iterator())
 		{
-			bitmap.__texture?.dispose();
+			if (bitmap.__texture != null)
+				bitmap.__texture.dispose();
 			bitmap.dispose();
 		}
 
 		_bitmaps = null;
-
-		_currentBitmap.__texture?.dispose();
-		_currentBitmap.dispose();
 		_currentBitmap = null;
 
 		_camera = FlxDestroyUtil.destroy(_camera);
 		_matrix = null;
+
+		graphic = FlxDestroyUtil.destroy(graphic);
 	}
 
-	public function drawToCamera(draw:FlxCamera->FlxMatrix->Void):Void
+	/**
+	 * Initializes the render texture internal data to be used for rendering.
+	 * This function **MUST** be called before using ``RenderTexture.render`` if you plan on dynamically
+	 * changing the size of the texture from it's initial resolution.
+	 * 
+	 * @param width New width of the texture.
+	 * @param height New height of the texture.
+	 * 
+	 */
+	public function init(width:Int, height:Int):Void
+	{
+		_camera.clearDrawStack();
+		_camera.canvas.graphics.clear();
+		#if FLX_DEBUG
+		_camera.debugLayer.graphics.clear();
+		#end
+		_camera.width = width;
+		_camera.height = height;
+
+		_prepareTexture(width, height);
+		graphic.bitmap = _currentBitmap;
+		graphic.imageFrame.frame.frame.set(0, 0, width, height);
+
+		_currentBitmap.__fillRect(_currentBitmap.rect, 0, true);
+	}
+
+	/**
+	 * Provides a way to add custom draw contents onto the internal camera of the texture.
+	 * Used a custom callback which supplies the ``FlxCamera`` to render to and a usable helper identity ``FlxMatrix``.
+	 * 
+	 * @param drawCallback Custom callback with the internal ``FlxCamera`` and helper ``FlxMatrix``.
+	 * 
+	 */
+	public function drawToCamera(drawCallback:FlxCamera->FlxMatrix->Void):Void
 	{
 		_matrix.identity();
-		draw(_camera, _matrix);
+		drawCallback(_camera, _matrix);
 	}
 
-	// Custom draw because `BitmapData.draw` creates an `OpenGLRenderer` everytime it calls the function.
+	/**
+	 * Renders the drawn contents of the internal camera onto the texture.
+	 */
 	public function render():Void
 	{
 		_camera.render();
-
 		_camera.canvas.__update(false, true);
-
-		_currentBitmap.__fillRect(_currentBitmap.rect, 0, true);
 
 		_renderer.__cleanup();
 
 		_renderer.setShader(_renderer.__defaultShader);
-
 		_renderer.__allowSmoothing = antialiasing;
 		_renderer.__pixelRatio = #if openfl_disable_hdpi 1 #else Lib.current.stage.window.scale #end;
 		_renderer.__worldAlpha = 1 / _camera.canvas.__worldAlpha;
@@ -100,47 +128,20 @@ class RenderTexture implements IFlxDestroyable
 		_currentBitmap.__drawGL(_camera.canvas, _renderer);
 	}
 
-	public function resize(width:Int, height:Int):Void
+	function _prepareTexture(width:Int, height:Int):Void
 	{
-		_resetCamera(width, height);
-		_ensureTexture(width, height);
-	}
+		var requireTexture = _currentBitmap == null || (_currentBitmap.width != width || _currentBitmap.height != height);
+		if (!requireTexture)
+			return;
 
-	/**
-	 * @see https://github.com/HaxeFlixel/flixel/blob/873758673392d6424f3430e6f1bf68656efe1cf7/flixel/system/frontEnds/CameraFrontEnd.hx#L277-L282
-	 */
-	function _resetCamera(width:Int, height:Int):Void
-	{
-		_camera.clearDrawStack();
-		_camera.canvas.graphics.clear();
-		#if FLX_DEBUG
-		_camera.debugLayer.graphics.clear();
-		#end
-		_camera.width = width;
-		_camera.height = height;
-	}
+		final id:String = Std.string(width) + 'x' + Std.string(height);
 
-	function _ensureTexture(width:Int, height:Int):Void
-	{
-		if (_currentBitmap == null || (_currentBitmap.width != width || _currentBitmap.height != height))
-		{
-			final id:String = Std.string(width) + 'x' + Std.string(height);
+		if (!_bitmaps.exists(id))
+			_bitmaps.set(id, BitmapData.fromTexture(FlxG.stage.context3D.createRectangleTexture(width, height, BGRA, true)));
 
-			if (!_bitmaps.exists(id))
-			{
-				_bitmaps.set(id, BitmapData.fromTexture(FlxG.stage.context3D.createRectangleTexture(width, height, BGRA, true)));
-			}
+		_currentBitmap = _bitmaps.get(id);
 
-			_currentBitmap = _bitmaps.get(id);
-
-			if (graphic == null)
-				graphic = FlxGraphic.fromBitmapData(_currentBitmap, false, null, false);
-		}
-
-		if (graphic.bitmap != _currentBitmap)
-			graphic.bitmap = _currentBitmap;
-
-		if (graphic.imageFrame.frame.frame.width != width || graphic.imageFrame.frame.frame.height != height)
-			graphic.imageFrame.frame.frame.set(0, 0, width, height);
+		if (graphic == null)
+			graphic = FlxGraphic.fromBitmapData(_currentBitmap, false, null, false);
 	}
 }
