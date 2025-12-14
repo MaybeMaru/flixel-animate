@@ -449,6 +449,7 @@ class FlxAnimate extends FlxSprite
 	override function destroy():Void
 	{
 		super.destroy();
+		_renderTexture = FlxDestroyUtil.destroy(_renderTexture);
 		anim = FlxDestroyUtil.destroy(anim);
 		library = null;
 		timeline = null;
