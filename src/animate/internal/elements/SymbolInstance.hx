@@ -65,8 +65,10 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 				case "CA" | "Alpha":
 					setColorTransform(1.0, 1.0, 1.0, color.AM, 0.0, 0.0, 0.0, 0.0);
 				case "CBRT" | "Brightness":
-					var brightness = color.BRT * 255.0;
-					setColorTransform(1.0, 1.0, 1.0, 1.0, brightness, brightness, brightness, 0.0);
+					var brightness = color.BRT;
+					var colorMult = 1.0 - Math.abs(brightness);
+					var colorOff = brightness >= 0.0 ? brightness * 255.0 : 0.0;
+					setColorTransform(colorMult, colorMult, colorMult, 1.0, colorOff, colorOff, colorOff, 0.0);
 				case "T" | "Tint":
 					var tint:FlxColor = FlxColor.fromString(color.TC);
 					var tintMult:Float = color.TM;
