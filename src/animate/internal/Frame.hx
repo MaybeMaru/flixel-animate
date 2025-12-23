@@ -2,16 +2,19 @@ package animate.internal;
 
 import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson.FrameJson;
-import animate.internal.AnimateDrawCommand;
-import animate.internal.elements.*;
-import animate.internal.elements.Element.ElementType;
-import animate.internal.elements.MovieClipInstance.BakedFramesVector;
+import animate.internal.elements.AtlasInstance;
+import animate.internal.elements.ButtonInstance;
+import animate.internal.elements.Element;
+import animate.internal.elements.MovieClipInstance;
+import animate.internal.elements.SymbolInstance;
+import animate.internal.elements.TextFieldInstance;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
 import flixel.util.FlxDestroyUtil;
+import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.media.Sound;
 
@@ -27,6 +30,7 @@ class Frame implements IFlxDestroyable
 	public var duration:Int;
 	public var name:String;
 	public var sound:Null<FlxSound>;
+	public var blend:BlendMode;
 
 	public function new(?layer:Layer)
 	{
@@ -220,6 +224,7 @@ class Frame implements IFlxDestroyable
 		this.index = frame.I;
 		this.duration = frame.DU;
 		this.name = frame.N ?? "";
+		this.blend = #if flash animate.internal.filters.Blend.fromInt(frame.B); #else frame.B; #end
 
 		var e = frame.E;
 		if (e != null)
@@ -376,6 +381,9 @@ class Frame implements IFlxDestroyable
 
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
+		if (command != null)
+			command.blend = AnimateDrawCommand.resolveBlendMode(command.blend, this.blend);
+
 		if (_dirty)
 		{
 			if (layer != null)

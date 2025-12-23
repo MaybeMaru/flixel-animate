@@ -29,7 +29,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name			What this animation should be called (e.g. `"run"`).
 	 * @param label			Frame label tag to load the animation from.
 	 * @param frameRate		The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
@@ -82,7 +82,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name 			What this animation should be called (e.g. `"run"`).
 	 * @param label 		Frame label tag to load the animation from.
 	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
@@ -146,7 +146,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name 			What this animation should be called (e.g. `"run"`).
 	 * @param timeline 		``Timeline`` object used to add the animation from.
 	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
@@ -167,7 +167,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name 			What this animation should be called (e.g. `"run"`).
 	 * @param timeline 		``Timeline`` object used to add the animation from.
 	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
@@ -193,7 +193,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name 			What this animation should be called (e.g. `"run"`).
 	 * @param symbolName 	Name of the symbol used to add the animation from.
 	 * @param frameRate 	The speed in frames per second that the animation should play at (e.g. `40` fps), leave ``null`` to use the default framerate.
@@ -225,7 +225,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Adds a new animation to the sprite, requires to be loaded with a Texture Atlas.
-	 * 
+	 *
 	 * @param name 			What this animation should be called (e.g. `"run"`).
 	 * @param symbolName 	Name of the symbol used to add the animation from.
 	 * @param indices		An array of numbers indicating what frames to play in what order (e.g. `[0, 1, 2]`).
@@ -258,7 +258,7 @@ class FlxAnimateController extends FlxAnimationController
 
 	/**
 	 * Gets the list of indices of a frame label to be found from a timeline.
-	 * 
+	 *
 	 * @param label Frame label tag to find the indices of.
 	 * @param timeline Optional, ``Timeline`` object used to check the labels from, defaults to the main Texture Atlas document timeline.
 	 * @return Array of integer indices of the frame label, empty if none were found.
@@ -300,6 +300,8 @@ class FlxAnimateController extends FlxAnimationController
 			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
 			_animate.timeline.currentFrame = frame;
 			_animate.timeline.signalFrameChange(frame, this);
+			if (_animate.useRenderTexture)
+				_animate._renderTextureDirty = true;
 			frameIndex = frame;
 			fireCallback();
 
@@ -334,6 +336,8 @@ class FlxAnimateController extends FlxAnimationController
 			animateFrame.sourceSize.scale(_animate.library.matrix.a, _animate.library.matrix.d);
 
 		animateFrame.frame.copyFrom(bounds);
+		animateFrame.uv.set(0, 0, bounds.width, bounds.height);
+
 		_animate.frame = animateFrame;
 	}
 
