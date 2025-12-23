@@ -112,6 +112,8 @@ extern abstract FrameJson(Dynamic)
 
 	public var SND(get, never):SoundJson;
 
+	public var B(get, never):Null< #if flash Int #else BlendMode #end>;
+
 	inline function get_I()
 		return this.I ?? this.index;
 
@@ -126,6 +128,9 @@ extern abstract FrameJson(Dynamic)
 
 	inline function get_SND()
 		return this.SND;
+
+	inline function get_B()
+		return this.B ?? this.blend;
 }
 
 extern typedef SoundJson =

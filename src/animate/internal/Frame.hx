@@ -7,6 +7,7 @@ import animate.internal.elements.Element;
 import animate.internal.elements.MovieClipInstance;
 import animate.internal.elements.SymbolInstance;
 import animate.internal.elements.TextFieldInstance;
+import animate.internal.filters.Blend;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
@@ -30,6 +31,7 @@ class Frame implements IFlxDestroyable
 	public var duration:Int;
 	public var name:String;
 	public var sound:Null<FlxSound>;
+	public var blend:BlendMode;
 
 	public function new(?layer:Layer)
 	{
@@ -210,6 +212,7 @@ class Frame implements IFlxDestroyable
 		this.index = frame.I;
 		this.duration = frame.DU;
 		this.name = frame.N ?? "";
+		this.blend = #if flash animate.internal.filters.Blend.fromInt(frame.B); #else frame.B; #end
 
 		var e = frame.E;
 		if (e != null)
@@ -336,6 +339,8 @@ class Frame implements IFlxDestroyable
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
 			?shader:FlxShader):Void
 	{
+		var blend = Blend.resolve(this.blend, blend);
+
 		if (_dirty)
 		{
 			if (layer != null)
