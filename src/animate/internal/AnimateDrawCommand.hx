@@ -60,17 +60,25 @@ class AnimateDrawCommand implements IFlxDestroyable
 		}
 
 		// prepare blend
-		if (Frame.__isDirtyCall)
-			this.blend = NORMAL;
-		else if (command.blend == null || command.blend == NORMAL)
-			this.blend = element.blend;
-		else
-			this.blend = command.blend;
+		this.blend = resolveBlendMode(command.blend, element.blend);
 
 		// prepare other values
 		this.antialiasing = command.antialiasing;
 		this.shader = command.shader;
 		this.onSymbolDraw = command.onSymbolDraw;
+	}
+
+	public static inline function resolveBlendMode(commandBlend:BlendMode, elementBlend:BlendMode)
+	{
+		var result = NORMAL;
+		if (!Frame.__isDirtyCall)
+		{
+			if (commandBlend == null || commandBlend == NORMAL)
+				result = elementBlend;
+			else
+				result = commandBlend;
+		}
+		return result;
 	}
 
 	public function isVisible():Bool
