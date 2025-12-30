@@ -5,6 +5,7 @@ import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
@@ -17,6 +18,7 @@ typedef Element = AnimateElement<Dynamic>;
 class AnimateElement<T> implements IFlxDestroyable
 {
 	public var blend:BlendMode;
+	public var shader:FlxShader;
 	public var matrix:FlxMatrix;
 	public var visible:Bool;
 	public var elementType(default, null):ElementType;
@@ -37,6 +39,7 @@ class AnimateElement<T> implements IFlxDestroyable
 	public function new(?data:T, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
 		_mat = new FlxMatrix();
+		matrix = new FlxMatrix();
 		blend = null;
 		parentFrame = frame;
 		visible = true;
@@ -103,6 +106,7 @@ class AnimateElement<T> implements IFlxDestroyable
 		_mat = null;
 		matrix = null;
 		parentFrame = null;
+		shader = null;
 		drawCommand = FlxDestroyUtil.destroy(drawCommand);
 	}
 }

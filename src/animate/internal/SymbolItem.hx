@@ -60,11 +60,8 @@ class SymbolItem implements IFlxDestroyable
 		}
 
 		instance.libraryItem = this;
-		instance.matrix = new FlxMatrix();
-		instance.transformationPoint = FlxPoint.get();
-		instance.loopType = LOOP;
-		instance.firstFrame = 0;
-		instance.setColorTransform(1, 1, 1, 1, 0, 0, 0, 0);
+		instance.setColorTransform(1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+
 		return instance;
 	}
 }

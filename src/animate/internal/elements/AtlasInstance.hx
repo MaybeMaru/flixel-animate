@@ -45,7 +45,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		{
 			this.frame = parent.getByName(data.N);
 			this.sourceFrame = this.frame;
-			this.matrix = data.MX.toMatrix();
+			this.matrix = data.MX.toMatrix(this.matrix);
 
 			#if flash
 			// FlxFrame.paint doesnt work for rotated frames lol

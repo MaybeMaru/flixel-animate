@@ -62,9 +62,14 @@ class AnimateDrawCommand implements IFlxDestroyable
 		// prepare blend
 		this.blend = resolveBlendMode(command.blend, element.blend);
 
+		// prepare shader
+		if (element.shader != null)
+			this.shader = element.shader;
+		else
+			this.shader = command.shader;
+
 		// prepare other values
 		this.antialiasing = command.antialiasing;
-		this.shader = command.shader;
 		this.onSymbolDraw = command.onSymbolDraw;
 	}
 

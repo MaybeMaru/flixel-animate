@@ -2,25 +2,21 @@ package animate.internal.elements;
 
 import animate.FlxAnimateJson;
 import animate.internal.elements.Element;
-import animate.internal.filters.Blend;
 import flixel.FlxCamera;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
 class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 {
 	public var libraryItem:SymbolItem;
-	public var firstFrame:Int;
-	public var loopType:LoopType;
+	public var firstFrame:Int = 0;
+	public var loopType:LoopType = LOOP;
 	public var symbolName(get, never):String;
 	public var transformationPoint:FlxPoint;
 
@@ -29,11 +25,13 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		super(data, parent, frame);
 		this.elementType = GRAPHIC;
 
+		this.transformationPoint = FlxPoint.get();
+
 		if (data == null)
 			return;
 
 		this.libraryItem = parent.getSymbol(data.SN);
-		this.matrix = data.MX.toMatrix();
+		this.matrix = data.MX.toMatrix(this.matrix);
 		this.firstFrame = data.FF;
 		this.isColored = false;
 
@@ -45,7 +43,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		}
 
 		var trp:Null<TransformationPointJson> = data.TRP;
-		this.transformationPoint = FlxPoint.get(trp?.x ?? 0.0, trp?.y ?? 0.0);
+		this.transformationPoint.set(trp?.x ?? 0.0, trp?.y ?? 0.0);
 
 		if (libraryItem == null)
 			visible = false;

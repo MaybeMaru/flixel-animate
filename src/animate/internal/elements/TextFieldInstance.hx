@@ -29,7 +29,7 @@ class TextFieldInstance extends AtlasInstance
 		super(null, null, frame);
 
 		this.elementType = TEXT;
-		this.matrix = data.MX.toMatrix();
+		this.matrix = data.MX.toMatrix(this.matrix);
 
 		field = new TextField();
 		format = new TextFormat();

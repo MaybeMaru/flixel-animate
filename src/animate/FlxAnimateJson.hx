@@ -740,9 +740,11 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 		return [a, b, c, d, tx, ty];
 	}
 
-	extern public inline function toMatrix():FlxMatrix
+	extern public inline function toMatrix(?result:FlxMatrix):FlxMatrix
 	{
-		return new FlxMatrix(a, b, c, d, tx, ty);
+		result ??= new FlxMatrix();
+		result.setTo(a, b, c, d, tx, ty);
+		return result;
 	}
 
 	extern inline function get_a()
