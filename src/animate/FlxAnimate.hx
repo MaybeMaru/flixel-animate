@@ -247,6 +247,7 @@ class FlxAnimate extends FlxSprite
 			drawStage(camera);
 
 		var command = _drawCommand;
+		command.parentSprite = this;
 		command.transform = colorTransform;
 		command.blend = blend;
 		command.antialiasing = antialiasing;

@@ -32,6 +32,8 @@ class Frame implements IFlxDestroyable
 	public var sound:Null<FlxSound>;
 	public var blend:BlendMode;
 
+	// public var tween:Tween;
+
 	public function new(?layer:Layer)
 	{
 		this.elements = [];
@@ -279,9 +281,10 @@ class Frame implements IFlxDestroyable
 			this._dirty = true;
 		}
 
-		if (frame.SND != null)
+		var jsonSound = frame.SND;
+		if (jsonSound != null)
 		{
-			final soundPath:String = parent.path + '/LIBRARY/' + frame.SND.N;
+			final soundPath:String = parent.path + '/LIBRARY/' + jsonSound.N;
 
 			#if (cpp || hl) // Default sound loading has issues with WAV files on native for some reason
 			if (soundPath.endsWith(".wav"))
@@ -297,6 +300,12 @@ class Frame implements IFlxDestroyable
 				sound = FlxG.sound.load(soundPath);
 			}
 		}
+
+		// var jsonTween = frame.TWN;
+		// if (jsonTween != null)
+		// {
+		//	tween = new Tween(this, jsonTween);
+		// }
 	}
 
 	var _dirty:Bool = false;
@@ -342,7 +351,7 @@ class Frame implements IFlxDestroyable
 				for (i in 0...duration)
 				{
 					// only render the neccesary frame indices
-					var parentFrame = layer.parentLayer.getFrameAtIndex(index + i);
+					var parentFrame = (layer.parentLayer == null) ? this : layer.parentLayer.getFrameAtIndex(index + i);
 					_bakedIndices.push(parentFrame == null ? -1 : parentFrame.index);
 				}
 			}
@@ -382,7 +391,7 @@ class Frame implements IFlxDestroyable
 	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
 	{
 		if (command != null)
-			command.blend = AnimateDrawCommand.resolveBlendMode(command.blend, this.blend);
+			command.prepareFrameCommand(this);
 
 		if (_dirty)
 		{
@@ -405,6 +414,9 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
+		// if (tween != null)
+		//	tween.drawTransform(camera, currentFrame, parentMatrix, command);
+		// else
 		_drawElements(camera, currentFrame, parentMatrix, command);
 	}
 

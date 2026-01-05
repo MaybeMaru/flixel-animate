@@ -116,6 +116,8 @@ extern abstract FrameJson(Dynamic)
 	public var F(get, never):Null<Array<FilterJson>>;
 	public var B(get, never):Null< #if flash Int #else BlendMode #end>;
 
+	public var TWN(get, never):TweenJson;
+
 	inline function get_I()
 		return this.I ?? this.index;
 
@@ -141,6 +143,115 @@ extern abstract FrameJson(Dynamic)
 
 	inline function get_B()
 		return this.B ?? this.blend;
+
+	inline function get_TWN()
+		return this.TWN ?? this.tween;
+}
+
+extern abstract TweenJson(Dynamic)
+{
+	// cubic
+	public var CV(get, never):Array<PointJson>;
+
+	public var ES(get, never):Int;
+	public var TP(get, never):String;
+
+	// motion
+	public var RT(get, never):String;
+	public var RTT(get, never):Int;
+	public var SL(get, never):Bool;
+	public var SP(get, never):Bool;
+	public var SC(get, never):Bool;
+
+	// motion object
+	public var TM(get, never):TweenTimeMapJson;
+	public var PC(get, never):Array<TweenPropertyContainerJson>;
+
+	inline function get_CV()
+		return this.CV ?? this.curve;
+
+	inline function get_ES()
+		return this.ES ?? this.ease;
+
+	inline function get_TP()
+		return this.TP ?? this.type;
+
+	inline function get_RT()
+		return this.RT ?? this.rotate;
+
+	inline function get_RTT()
+		return this.RTT ?? this.rotateTimes;
+
+	inline function get_SL()
+		return this.SL ?? this.scale;
+
+	inline function get_SP()
+		return this.SP ?? this.snap;
+
+	inline function get_SC()
+		return this.SC ?? this.sync;
+
+	inline function get_TM()
+		return this.TM ?? this.timeMap;
+
+	inline function get_PC()
+		return this.PC ?? this.propertyContainer;
+}
+
+extern abstract TweenTimeMapJson(Dynamic)
+{
+	public var S(get, never):Int;
+	public var TP(get, never):String;
+
+	inline function get_S()
+		return this.S ?? this.strength;
+
+	inline function get_TP()
+		return this.TP ?? this.type;
+}
+
+extern abstract TweenPropertyContainerJson(Dynamic)
+{
+	public var ID(get, never):Int;
+	public var P(get, never):Array<TweenProperty>;
+
+	inline function get_ID()
+		return this.ID;
+
+	inline function get_P()
+		return this.P ?? this.properties;
+}
+
+extern abstract TweenProperty(Dynamic)
+{
+	public var ID(get, never):Int;
+	public var KFR(get, never):Array<TweenKeyframe>;
+
+	inline function get_ID()
+		return this.ID;
+
+	inline function get_KFR()
+		return this.KFR ?? this.keyframes;
+}
+
+extern abstract TweenKeyframe(Dynamic)
+{
+	public var ANC(get, never):Int;
+	public var NXT(get, never):Int;
+	public var PRV(get, never):Int;
+	public var I(get, never):Int;
+
+	inline function get_ANC()
+		return this.ANC ?? this.anchor;
+
+	inline function get_NXT()
+		return this.NXT ?? this.next;
+
+	inline function get_PRV()
+		return this.PRV ?? this.previous;
+
+	inline function get_I()
+		return this.I ?? this.index;
 }
 
 extern typedef SoundJson =
@@ -172,7 +283,7 @@ abstract SymbolInstanceJson(Dynamic)
 	public var SN(get, never):String;
 	public var FF(get, never):Int;
 	public var ST(get, never):String;
-	public var TRP(get, never):TransformationPointJson;
+	public var TRP(get, never):PointJson;
 	public var LP(get, never):String;
 	public var MX(get, never):MatrixJson;
 
@@ -668,7 +779,7 @@ extern abstract ColorJson(Dynamic)
 		return this.BRT ?? this.brightness;
 }
 
-extern typedef TransformationPointJson =
+extern typedef PointJson =
 {
 	x:Float,
 	y:Float

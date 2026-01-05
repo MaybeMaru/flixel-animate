@@ -2,6 +2,7 @@ package animate.internal;
 
 import animate.internal.elements.Element;
 import animate.internal.elements.SymbolInstance;
+import flixel.math.FlxMatrix;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
@@ -15,6 +16,7 @@ using flixel.util.FlxColorTransformUtil;
  */
 class AnimateDrawCommand implements IFlxDestroyable
 {
+	public var parentSprite:Null<FlxAnimate> = null;
 	public var transform:Null<ColorTransform> = null;
 	public var blend:Null<BlendMode> = null;
 	public var antialiasing:Null<Bool> = false;
@@ -23,11 +25,33 @@ class AnimateDrawCommand implements IFlxDestroyable
 
 	public function new() {}
 
+	public function copyFrom(?command:AnimateDrawCommand)
+	{
+		if (command == null)
+		{
+			parentSprite = null;
+			transform = null;
+			blend = null;
+			antialiasing = null;
+			shader = null;
+			onSymbolDraw = null;
+			return;
+		}
+
+		parentSprite = command.parentSprite;
+		transform = command.transform;
+		blend = command.blend;
+		antialiasing = command.antialiasing;
+		shader = command.shader;
+		onSymbolDraw = command.onSymbolDraw;
+	}
+
 	public function prepareCommand(?command:AnimateDrawCommand, element:Element)
 	{
 		// set some default data if parent command is null
 		if (command == null)
 		{
+			this.parentSprite = null;
 			this.transform = element.transform;
 
 			if (Frame.__isDirtyCall)
@@ -69,8 +93,14 @@ class AnimateDrawCommand implements IFlxDestroyable
 			this.shader = command.shader;
 
 		// prepare other values
+		this.parentSprite = command.parentSprite;
 		this.antialiasing = command.antialiasing;
 		this.onSymbolDraw = command.onSymbolDraw;
+	}
+
+	public function prepareFrameCommand(frame:Frame)
+	{
+		blend = resolveBlendMode(blend, frame.blend);
 	}
 
 	public static inline function resolveBlendMode(commandBlend:BlendMode, elementBlend:BlendMode)
@@ -108,6 +138,7 @@ class AnimateDrawCommand implements IFlxDestroyable
 
 	public function destroy():Void
 	{
+		parentSprite = null;
 		transform = null;
 		blend = null;
 		antialiasing = false;

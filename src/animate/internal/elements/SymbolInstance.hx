@@ -42,8 +42,11 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			default: LoopType.LOOP;
 		}
 
-		var trp:Null<TransformationPointJson> = data.TRP;
-		this.transformationPoint.set(trp?.x ?? 0.0, trp?.y ?? 0.0);
+		var trp:Null<PointJson> = data.TRP;
+		if (trp != null)
+			this.transformationPoint.set(trp.x, trp.y);
+		else
+			this.transformationPoint.set(0.0, 0.0);
 
 		if (libraryItem == null)
 			visible = false;

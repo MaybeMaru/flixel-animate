@@ -64,7 +64,9 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 		basic.setPosition(x - screenPoint.x, y - screenPoint.y);
 
 		basic.angle += Math.atan2(parentMatrix.b, parentMatrix.a) * 180 / Math.PI;
-		basic.colorTransform.concat(_transform);
+
+		if (isColored)
+			basic.colorTransform.concat(_transform);
 
 		basic.blend = command.blend;
 		basic.antialiasing = basic.antialiasing || command.antialiasing;
