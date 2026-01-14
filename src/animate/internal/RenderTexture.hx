@@ -2,11 +2,16 @@ package animate.internal;
 
 import flixel.FlxCamera;
 import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxFrame;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxRect;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.Lib;
 import openfl.display.BitmapData;
+import openfl.display.BlendMode;
 import openfl.display.OpenGLRenderer;
 import openfl.display3D.Context3D;
 import openfl.display3D.textures.RectangleTexture;
@@ -31,6 +36,7 @@ class RenderTexture implements IFlxDestroyable
 	var _currentBitmap:BitmapData;
 	var _camera:FlxCamera;
 	var _matrix:FlxMatrix;
+	var _frame:FlxFrame;
 
 	public function new(width:Int, height:Int):Void
 	{
@@ -43,6 +49,31 @@ class RenderTexture implements IFlxDestroyable
 		_matrix = new FlxMatrix();
 
 		init(width, height);
+	}
+
+	public function draw(?parent:FlxSprite, camera:FlxCamera, matrix:FlxMatrix, ?colorTransform:ColorTransform, ?blend:BlendMode, ?smoothing:Bool,
+			?shader:FlxShader):Void
+	{
+		var frame:FlxFrame = graphic.imageFrame.frame;
+
+		if (parent != null)
+		{
+			if (parent.clipRect != null)
+			{
+				if (parent.clipRect.isEmpty) // no need to render shit
+					return;
+
+				_frame = frame.copyTo(_frame);
+				frame = _frame;
+				frame.clip(parent.clipRect);
+			}
+		}
+
+		_matrix.identity();
+		frame.prepareMatrix(_matrix);
+		_matrix.concat(matrix);
+
+		camera.drawPixels(frame, graphic.bitmap, _matrix, colorTransform, blend, smoothing, shader);
 	}
 
 	public function destroy():Void

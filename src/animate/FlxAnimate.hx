@@ -191,7 +191,8 @@ class FlxAnimate extends FlxSprite
 		#if flash
 		var willUseRenderTexture:Bool = false;
 		#else
-		var willUseRenderTexture:Bool = useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+		var willUseRenderTexture:Bool = useRenderTexture
+			&& (alpha != 1 || shader != null || (blend != null && blend != NORMAL) || clipRect != null);
 		#end
 
 		var matrix = _matrix;
@@ -280,7 +281,7 @@ class FlxAnimate extends FlxSprite
 				_renderTextureDirty = false;
 			}
 
-			camera.drawPixels(_renderTexture.graphic.imageFrame.frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+			_renderTexture.draw(this, camera, matrix, colorTransform, blend, antialiasing, shader);
 		}
 		else
 		#end
