@@ -332,6 +332,7 @@ class FlxAnimate extends FlxSprite
 		return v;
 	}
 
+	#if (flixel >= "5.4.0")
 	override function get_numFrames():Int
 	{
 		if (!isAnimate)
@@ -345,6 +346,7 @@ class FlxAnimate extends FlxSprite
 
 		return 0;
 	}
+	#end
 
 	private function set_anim(newController:FlxAnimateController):FlxAnimateController
 	{
@@ -400,6 +402,7 @@ class FlxAnimate extends FlxSprite
 		return framePixels;
 	}
 
+	#if (flixel >= "5.0.0")
 	override function getScreenBounds(?newRect:FlxRect, ?camera:FlxCamera):FlxRect
 	{
 		var bounds = super.getScreenBounds(newRect, camera);
@@ -416,6 +419,7 @@ class FlxAnimate extends FlxSprite
 
 		return bounds;
 	}
+	#end
 
 	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
 	{

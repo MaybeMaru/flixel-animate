@@ -151,11 +151,18 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 
 		Timeline.applyMatrixToRect(bounds, matrix);
 
+		#if (flixel >= "5.2.0")
 		// manually inlining this because we dont need the bounds.putWeak part
 		return (bounds.right > camera.viewMarginLeft)
 			&& (bounds.x < camera.viewMarginRight)
 			&& (bounds.bottom > camera.viewMarginTop)
 			&& (bounds.y < camera.viewMarginBottom);
+		#else
+		var point = FlxPoint.get(bounds.x, bounds.y);
+		var result = camera.containsPoint(point, bounds.width, bounds.height);
+		point.put();
+		return result;
+		#end
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect

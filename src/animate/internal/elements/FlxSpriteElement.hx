@@ -59,8 +59,15 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 			}
 			else
 			{
-				_transform.setMultipliers(color.redMultiplier, color.greenMultiplier, color.blueMultiplier, color.alphaMultiplier);
-				_transform.setOffsets(color.redOffset, color.greenOffset, color.blueOffset, color.alphaOffset);
+				_transform.redMultiplier = color.redMultiplier;
+				_transform.greenMultiplier = color.greenMultiplier;
+				_transform.blueMultiplier = color.blueMultiplier;
+				_transform.alphaMultiplier = color.alphaMultiplier;
+
+				_transform.redOffset = color.redOffset;
+				_transform.greenOffset = color.greenOffset;
+				_transform.blueOffset = color.blueOffset;
+				_transform.alphaOffset = color.alphaOffset;
 			}
 		}
 
@@ -97,8 +104,16 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 
 		if (_hasTransform)
 		{
-			basic.setColorTransform(_transform.redMultiplier, _transform.greenMultiplier, _transform.blueMultiplier, _transform.alphaMultiplier,
-				_transform.redOffset, _transform.greenOffset, _transform.blueOffset, _transform.alphaOffset);
+			var transform = basic.colorTransform;
+			transform.redMultiplier = _transform.redMultiplier;
+			transform.greenMultiplier = _transform.greenMultiplier;
+			transform.blueMultiplier = _transform.blueMultiplier;
+			transform.alphaMultiplier = _transform.alphaMultiplier;
+
+			transform.redOffset = _transform.redOffset;
+			transform.greenOffset = _transform.greenOffset;
+			transform.blueOffset = _transform.blueOffset;
+			transform.alphaOffset = _transform.alphaOffset;
 		}
 	}
 
@@ -113,7 +128,11 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 
 	override function getObjectBounds(?result:FlxRect):FlxRect
 	{
+		#if (flixel >= "5.0.0")
 		return basic.getScreenBounds(result);
+		#else
+		return (result != null) ? result.set() : FlxRect.get();
+		#end
 	}
 }
 

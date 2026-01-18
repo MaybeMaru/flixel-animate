@@ -681,7 +681,14 @@ class FilterRenderer
 
 class CamPool extends FlxCamera implements IFlxPooled
 {
-	public static final pool:FlxPool<CamPool> = new FlxPool(PoolFactory.fromFunction(() -> new CamPool()));
+	public static var pool(get, null):FlxPool<CamPool>;
+
+	inline static function get_pool():FlxPool<CamPool>
+	{
+		if (pool == null)
+			pool = new FlxPool(cast(() -> new CamPool()));
+		return pool;
+	}
 
 	public function new()
 	{
@@ -710,4 +717,6 @@ class CamPool extends FlxCamera implements IFlxPooled
 	public function putWeak() {}
 
 	override function destroy() {}
+
+	private var _inPool:Bool;
 }

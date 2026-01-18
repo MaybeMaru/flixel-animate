@@ -294,18 +294,24 @@ class FlxAnimateController extends FlxAnimationController
 		if (!isAnimate)
 			return super.set_frameIndex(frame);
 
-		if (numFrames > 0)
+		var curAnim:Null<FlxAnimateAnimation> = cast _curAnim;
+		if (curAnim != null)
 		{
-			frame = frame % numFrames;
-			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
-			_animate.timeline.currentFrame = frame;
-			_animate.timeline.signalFrameChange(frame, this);
-			if (_animate.useRenderTexture)
-				_animate._renderTextureDirty = true;
-			frameIndex = frame;
-			fireCallback();
+			final numFrames = #if (flixel >= "5.4.0") numFrames #else curAnim.timeline.frameCount #end;
+			if (numFrames > 0)
+			{
+				frame = frame % numFrames;
 
-			updateTimelineBounds();
+				_animate.timeline = curAnim.timeline;
+				_animate.timeline.currentFrame = frame;
+				_animate.timeline.signalFrameChange(frame, this);
+				if (_animate.useRenderTexture)
+					_animate._renderTextureDirty = true;
+				frameIndex = frame;
+				fireCallback();
+
+				updateTimelineBounds();
+			}
 		}
 
 		return frameIndex;
@@ -333,7 +339,10 @@ class FlxAnimateController extends FlxAnimationController
 		animateFrame.sourceSize.set(bounds.width, bounds.height);
 
 		if (_animate.applyStageMatrix)
-			animateFrame.sourceSize.scale(_animate.library.matrix.a, _animate.library.matrix.d);
+		{
+			animateFrame.sourceSize.x *= _animate.library.matrix.a;
+			animateFrame.sourceSize.y *= _animate.library.matrix.d;
+		}
 
 		animateFrame.frame.copyFrom(bounds);
 		animateFrame.uv.set(0, 0, bounds.width, bounds.height);
@@ -409,10 +418,12 @@ class FlxAnimateAnimation extends FlxAnimation
 {
 	public var timeline:Timeline;
 
+	#if (flixel >= "5.3.0")
 	override function getCurrentFrameDuration():Float
 	{
 		return frameDuration;
 	}
+	#end
 
 	override function destroy()
 	{

@@ -164,8 +164,16 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (isColored) // Concat symbol's color to the current color transform
 		{
 			var t = this.transform;
-			_transform.setMultipliers(t.redMultiplier, t.greenMultiplier, t.blueMultiplier, t.alphaMultiplier);
-			_transform.setOffsets(t.redOffset, t.greenOffset, t.blueOffset, t.alphaOffset);
+
+			_transform.redMultiplier = t.redMultiplier;
+			_transform.greenMultiplier = t.greenMultiplier;
+			_transform.blueMultiplier = t.blueMultiplier;
+			_transform.alphaMultiplier = t.alphaMultiplier;
+
+			_transform.redOffset = t.redOffset;
+			_transform.greenOffset = t.greenOffset;
+			_transform.blueOffset = t.blueOffset;
+			_transform.alphaOffset = t.alphaOffset;
 
 			if (transform != null)
 				_transform.concat(transform);
@@ -196,8 +204,16 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (_transform == null)
 			_transform = new ColorTransform();
 
-		transform.setMultipliers(rMult, gMult, bMult, aMult);
-		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
+		transform.redMultiplier = rMult;
+		transform.greenMultiplier = gMult;
+		transform.blueMultiplier = bMult;
+		transform.alphaMultiplier = aMult;
+
+		transform.redOffset = rOffset;
+		transform.greenOffset = gOffset;
+		transform.blueOffset = bOffset;
+		transform.alphaOffset = aOffset;
+
 		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
 	}
 

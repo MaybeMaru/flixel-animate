@@ -130,7 +130,8 @@ class Timeline implements IFlxDestroyable
 
 		if (applyStageMatrix && parent?.matrix != null)
 		{
-			result.scale(parent.matrix.a, parent.matrix.d);
+			result.x *= parent.matrix.a;
+			result.y *= parent.matrix.d;
 		}
 
 		return result;
