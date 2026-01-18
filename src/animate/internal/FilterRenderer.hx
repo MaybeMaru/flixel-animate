@@ -686,7 +686,7 @@ class CamPool extends FlxCamera implements IFlxPooled
 	inline static function get_pool():FlxPool<CamPool>
 	{
 		if (pool == null)
-			pool = new FlxPool(cast(() -> new CamPool()));
+			pool = new FlxPool(#if (flixel >= "5.5.0") () -> new CamPool() #else CamPool #end);
 		return pool;
 	}
 
