@@ -202,13 +202,14 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			cBounds.put();
 		});
 		#else
-		final view = camera.getViewMarginRect();
+
+		final view:FlxRect = #if (flixel >= "5.2.0") camera.getViewMarginRect() #else FlxRect.get(camera.viewOffsetX, camera.viewOffsetY, camera.viewOffsetWidth, camera.viewOffsetHeight) #end;
 		final rect = bounds.copyTo(FlxRect.get());
 		view.left -= 2;
 		view.top -= 2;
 		view.right += 2;
 		view.bottom += 2;
-		rect.clipTo(view);
+		view.intersection(rect, rect);
 
 		if (rect.width > 0 && rect.height > 0)
 		{
