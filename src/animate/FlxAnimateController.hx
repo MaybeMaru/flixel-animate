@@ -294,18 +294,24 @@ class FlxAnimateController extends FlxAnimationController
 		if (!isAnimate)
 			return super.set_frameIndex(frame);
 
-		if (numFrames > 0)
+		var curAnim:Null<FlxAnimateAnimation> = cast _curAnim;
+		if (curAnim != null)
 		{
-			frame = frame % numFrames;
-			_animate.timeline = cast(_curAnim, FlxAnimateAnimation).timeline;
-			_animate.timeline.currentFrame = frame;
-			_animate.timeline.signalFrameChange(frame, this);
-			if (_animate.useRenderTexture)
-				_animate._renderTextureDirty = true;
-			frameIndex = frame;
-			fireCallback();
+			final numFrames = #if (flixel >= "5.4.0") numFrames #else curAnim.timeline.frameCount #end;
+			if (numFrames > 0)
+			{
+				frame = frame % numFrames;
 
-			updateTimelineBounds();
+				_animate.timeline = curAnim.timeline;
+				_animate.timeline.currentFrame = frame;
+				_animate.timeline.signalFrameChange(frame, this);
+				if (_animate.useRenderTexture)
+					_animate._renderTextureDirty = true;
+				frameIndex = frame;
+				fireCallback();
+
+				updateTimelineBounds();
+			}
 		}
 
 		return frameIndex;
