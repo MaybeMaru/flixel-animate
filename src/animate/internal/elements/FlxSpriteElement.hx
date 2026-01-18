@@ -128,7 +128,11 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 
 	override function getObjectBounds(?result:FlxRect):FlxRect
 	{
+		#if (flixel >= "5.0.0")
 		return basic.getScreenBounds(result);
+		#else
+		return (result != null) ? result.set() : FlxRect.get();
+		#end
 	}
 }
 

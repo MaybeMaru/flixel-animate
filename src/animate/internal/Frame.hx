@@ -12,7 +12,6 @@ import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
-import flixel.sound.FlxSound;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
@@ -20,6 +19,12 @@ import openfl.geom.ColorTransform;
 import openfl.media.Sound;
 
 using StringTools;
+
+#if (flixel >= "5.3.0")
+import flixel.sound.FlxSound;
+#else
+import flixel.system.FlxSound;
+#end
 
 @:access(animate.FlxAnimateFrames)
 @:allow(animate.internal.Layer)

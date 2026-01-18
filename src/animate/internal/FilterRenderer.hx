@@ -717,4 +717,6 @@ class CamPool extends FlxCamera implements IFlxPooled
 	public function putWeak() {}
 
 	override function destroy() {}
+
+	private var _inPool:Bool;
 }

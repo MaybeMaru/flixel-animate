@@ -339,7 +339,10 @@ class FlxAnimateController extends FlxAnimationController
 		animateFrame.sourceSize.set(bounds.width, bounds.height);
 
 		if (_animate.applyStageMatrix)
-			animateFrame.sourceSize.scale(_animate.library.matrix.a, _animate.library.matrix.d);
+		{
+			animateFrame.sourceSize.x *= _animate.library.matrix.a;
+			animateFrame.sourceSize.y *= _animate.library.matrix.d;
+		}
 
 		animateFrame.frame.copyFrom(bounds);
 		animateFrame.uv.set(0, 0, bounds.width, bounds.height);
@@ -415,10 +418,12 @@ class FlxAnimateAnimation extends FlxAnimation
 {
 	public var timeline:Timeline;
 
+	#if (flixel >= "5.3.0")
 	override function getCurrentFrameDuration():Float
 	{
 		return frameDuration;
 	}
+	#end
 
 	override function destroy()
 	{
