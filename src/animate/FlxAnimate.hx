@@ -2,6 +2,7 @@ package animate;
 
 import animate.FlxAnimateController.FlxAnimateAnimation;
 import animate.FlxAnimateFrames.FlxAnimateSettings;
+import animate.internal.FilterRenderer;
 import animate.internal.Frame;
 import animate.internal.StageBG;
 import animate.internal.Timeline;
@@ -18,6 +19,7 @@ import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxDestroyUtil;
 import haxe.io.Path;
 import openfl.display.BitmapData;
+import openfl.geom.Matrix;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -374,27 +376,32 @@ class FlxAnimate extends FlxSprite
 			final bounds = timeline._bounds;
 			final flipX = checkFlipX();
 			final flipY = checkFlipY();
-			final mat = new FlxMatrix(flipX ? -1 : 1, 0, 0, flipY ? -1 : 1, flipX ? bounds.width : 0, flipY ? bounds.height : 0);
+			final mat = #if flash new Matrix() #else Matrix.__pool.get() #end;
 
 			#if flash
-			framePixels = animate.internal.FilterRenderer.getBitmap((cam, m) ->
+			framePixels = FilterRenderer.getBitmap((cam, m) ->
 			{
 				m.concat(mat);
 				timeline.draw(cam, m, null, NORMAL, true, null);
 			}, bounds, false);
 			#else
-			// TODO: optimize this to use FilterRenderer stuff
-			var resultMat = new FlxMatrix(1, 0, 0, 1, -bounds.x, -bounds.y);
-			resultMat.concat(mat);
-			mat.identity();
+			framePixels = FilterRenderer.renderToBitmap((camera:FlxCamera, matrix:FlxMatrix) ->
+			{
+				Frame.__isDirtyCall = false;
+				matrix.translate(-bounds.x, -bounds.y);
+				matrix.concat(mat);
 
-			var cam = new FlxCamera(0, 0, Math.ceil(bounds.width), Math.ceil(bounds.height));
-			timeline.draw(cam, resultMat, null, NORMAL, true, null);
-			cam.render();
+				camera.width = Math.ceil(bounds.width);
+				camera.height = Math.ceil(bounds.height);
 
-			framePixels = new BitmapData(Std.int(bounds.width), Std.int(bounds.height), true, 0);
-			framePixels.draw(cam.canvas, mat, null, null, null, true);
-			cam.canvas.graphics.clear();
+				timeline.currentFrame = animation.frameIndex;
+				timeline.draw(camera, matrix, null, NORMAL, true, null);
+				camera.render();
+
+				if (camera.canvas.graphics.__bounds != null)
+					camera.canvas.graphics.__bounds.setTo(0, 0, Math.ceil(bounds.width), Math.ceil(bounds.height));
+			});
+			Matrix.__pool.release(mat);
 			#end
 		}
 
@@ -453,7 +460,9 @@ class FlxAnimate extends FlxSprite
 	override function destroy():Void
 	{
 		super.destroy();
+		#if !flash
 		_renderTexture = FlxDestroyUtil.destroy(_renderTexture);
+		#end
 		anim = FlxDestroyUtil.destroy(anim);
 		library = null;
 		timeline = null;
