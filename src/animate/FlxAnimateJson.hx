@@ -373,7 +373,7 @@ abstract FilterJson(Dynamic)
 				return dsf;
 
 			case "glowFilter" | "GF":
-				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR, Q, IN, KK);
+				var gf = new GlowFilter(FlxColor.fromString(C), A, BLX, BLY, STR / 100, Q, IN, KK);
 				return gf;
 
 				// TODO: add missing filters support for other targets
