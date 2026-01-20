@@ -68,18 +68,8 @@ class AnimateDrawCommand implements IFlxDestroyable
 		// prepare color transform
 		if (element.isColored)
 		{
-			var colorData = element.transform;
-			var colorOut = element._transform;
-
-			colorOut.redMultiplier = colorData.redMultiplier;
-			colorOut.greenMultiplier = colorData.greenMultiplier;
-			colorOut.blueMultiplier = colorData.blueMultiplier;
-			colorOut.alphaMultiplier = colorData.alphaMultiplier;
-
-			colorOut.redOffset = colorData.redOffset;
-			colorOut.greenOffset = colorData.greenOffset;
-			colorOut.blueOffset = colorData.blueOffset;
-			colorOut.alphaOffset = colorData.alphaOffset;
+			final colorOut:ColorTransform = element._transform;
+			copyTransform(colorOut, element.transform);
 
 			if (command.transform != null)
 				concatTransform(colorOut, command.transform);
@@ -131,7 +121,9 @@ class AnimateDrawCommand implements IFlxDestroyable
 
 	// adding my own color transform concat because the operators used by openfl's function assigns more variables
 	// i know its stupid but trust me on this one
-	function concatTransform(first:ColorTransform, second:ColorTransform):Void
+
+	@:noCompletion
+	public static function concatTransform(first:ColorTransform, second:ColorTransform):Void
 	{
 		first.redOffset = second.redOffset * first.redMultiplier + first.redOffset;
 		first.greenOffset = second.greenOffset * first.greenMultiplier + first.greenOffset;
@@ -142,6 +134,22 @@ class AnimateDrawCommand implements IFlxDestroyable
 		first.greenMultiplier = first.greenMultiplier * second.greenMultiplier;
 		first.blueMultiplier = first.blueMultiplier * second.blueMultiplier;
 		first.alphaMultiplier = first.alphaMultiplier * second.alphaMultiplier;
+	}
+
+	// TODO: add this in other places that copy color transforms too
+
+	@:noCompletion
+	public static function copyTransform(to:ColorTransform, from:ColorTransform):Void
+	{
+		to.redMultiplier = from.redMultiplier;
+		to.greenMultiplier = from.greenMultiplier;
+		to.blueMultiplier = from.blueMultiplier;
+		to.alphaMultiplier = from.alphaMultiplier;
+
+		to.redOffset = from.redOffset;
+		to.greenOffset = from.greenOffset;
+		to.blueOffset = from.blueOffset;
+		to.alphaOffset = from.alphaOffset;
 	}
 
 	public function destroy():Void
