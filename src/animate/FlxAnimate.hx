@@ -362,6 +362,19 @@ class FlxAnimate extends FlxSprite
 		return v;
 	}
 
+	override function set_clipRect(rect:FlxRect):FlxRect
+	{
+		if (!isAnimate)
+			return super.set_clipRect(rect);
+
+		if (rect != null)
+			clipRect = rect.round();
+		else
+			clipRect = null;
+
+		return rect;
+	}
+
 	#if (flixel >= "5.4.0")
 	override function get_numFrames():Int
 	{

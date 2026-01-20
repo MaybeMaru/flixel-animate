@@ -63,9 +63,7 @@ class RenderTexture implements IFlxDestroyable
 				if (parent.clipRect.isEmpty) // no need to render shit
 					return;
 
-				_frame = frame.copyTo(_frame);
-				frame = _frame;
-				frame.clip(parent.clipRect);
+				frame = frame.clipTo(parent.clipRect, _frame);
 			}
 		}
 
