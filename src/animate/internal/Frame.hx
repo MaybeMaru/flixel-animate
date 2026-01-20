@@ -12,13 +12,19 @@ import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
-import flixel.sound.FlxSound;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.media.Sound;
 
 using StringTools;
+
+#if (flixel >= "5.3.0")
+import flixel.sound.FlxSound;
+#else
+import flixel.system.FlxSound;
+#end
 
 @:access(animate.FlxAnimateFrames)
 @:allow(animate.internal.Layer)
@@ -223,9 +229,11 @@ class Frame implements IFlxDestroyable
 		var e = frame.E;
 		if (e != null)
 		{
-			for (element in e)
+			for (elementJson in e)
 			{
-				this.elements.push(Element._fromJson(element, parent, this));
+				final element:Element = Element._fromJson(elementJson, parent, this);
+				if (element != null)
+					this.elements.push(element);
 			}
 		}
 

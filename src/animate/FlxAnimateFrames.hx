@@ -367,7 +367,13 @@ class FlxAnimateFrames extends FlxAtlasFrames
 				atlas.addAtlasFrame(rect, size, FlxPoint.get(), sprite.name, sprite.rotated ? ANGLE_NEG_90 : ANGLE_0);
 			}
 
+			#if (flixel >= "5.4.0")
 			frames.addAtlas(atlas);
+			#else
+			for (frame in atlas.frames)
+				frames.pushFrame(frame);
+			#end
+
 			spritemapCollection.addSpritemap(graphic);
 		}
 
@@ -407,6 +413,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	@:allow(animate.FlxAnimateController)
 	var addedCollections:Array<FlxAnimateFrames>;
 
+	#if (flixel >= "5.4.0")
 	override function addAtlas(collection:FlxAtlasFrames, overwriteHash:Bool = false):FlxAtlasFrames
 	{
 		if (collection is FlxAnimateFrames)
@@ -416,6 +423,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			addedCollections.push(animateCollection);
 
 			// Add other non-texture atlas frames that could've been added to the animate frames, such as Sparrow
+
 			var spritemap:FlxAnimateSpritemapCollection = cast animateCollection.parent;
 			for (graphic in animateCollection.usedGraphics)
 			{
@@ -479,6 +487,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		return atlasB.addAtlas(atlasA);
 	}
+	#end
 
 	var checkedDirtySymbols:Array<String> = [];
 
@@ -588,17 +597,29 @@ class FlxAnimateSpritemapCollection extends FlxGraphic
 			spritemaps.push(graphic);
 	}
 
+	function destroySpritemaps():Void
+	{
+		for (spritemap in spritemaps)
+			FlxG.bitmap.remove(spritemap);
+
+		spritemaps.resize(0);
+		parentFrames = FlxDestroyUtil.destroy(parentFrames);
+	}
+
+	#if (flixel >= "5.4.0")
 	override function checkUseCount():Void
 	{
 		if (useCount <= 0 && destroyOnNoUse && !persist)
-		{
-			for (spritemap in spritemaps)
-				FlxG.bitmap.remove(spritemap);
-
-			spritemaps.resize(0);
-			parentFrames = FlxDestroyUtil.destroy(parentFrames);
-		}
+			destroySpritemaps();
 	}
+	#else
+	override function set_useCount(value:Int):Int
+	{
+		if (value <= 0 && _destroyOnNoUse && !persist)
+			destroySpritemaps();
+		return _useCount = value;
+	}
+	#end
 
 	override function destroy():Void
 	{

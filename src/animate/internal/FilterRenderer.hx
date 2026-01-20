@@ -155,6 +155,7 @@ class FilterRenderer
 		if (gfx.__bounds == null)
 			return null;
 
+		var renderer = FilterRenderer.renderer;
 		var context = renderer.__context3D;
 		var cacheRTT = context.__state.renderToTexture;
 		var cacheRTTDepthStencil = context.__state.renderToTextureDepthStencil;
@@ -162,26 +163,19 @@ class FilterRenderer
 		var cacheRTTSurfaceSelector = context.__state.renderToTextureSurfaceSelector;
 
 		var bounds = gfx.__bounds;
-		var bmp = new BitmapData(Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
+		var bmp = BitmapData.fromTexture(FlxG.stage.context3D.createRectangleTexture(Math.ceil(bounds.width), Math.ceil(bounds.height), BGRA, true));
 
 		renderer.__worldTransform.translate(-bounds.x, -bounds.y);
+		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(bmp);
-		context.setRenderToTexture(bmp.getTexture(context));
 
+		context.setRenderToTexture(bmp.getTexture(context));
 		Context3DGraphics.render(gfx, renderer);
 
-		renderer.__worldTransform.identity();
-
-		var gl = renderer.__gl;
-		var renderBuffer = bmp.getTexture(context);
-
-		@:privateAccess
-		gl.readPixels(0, 0, bmp.width, bmp.height, renderBuffer.__format, gl.UNSIGNED_BYTE, bmp.image.data);
-		bmp.image.version = 0;
-		bmp.__textureVersion = -1;
-
-		(cacheRTT != null) ? context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias,
-			cacheRTTSurfaceSelector) : context.setRenderToBackBuffer();
+		if (cacheRTT != null)
+			context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias, cacheRTTSurfaceSelector);
+		else
+			context.setRenderToBackBuffer();
 
 		return bmp;
 	}
@@ -717,7 +711,14 @@ class FilterRenderer
 
 class CamPool extends FlxCamera implements IFlxPooled
 {
-	public static final pool:FlxPool<CamPool> = new FlxPool(PoolFactory.fromFunction(() -> new CamPool()));
+	public static var pool(get, null):FlxPool<CamPool>;
+
+	inline static function get_pool():FlxPool<CamPool>
+	{
+		if (pool == null)
+			pool = new FlxPool(#if (flixel >= "5.5.0") () -> new CamPool() #else CamPool #end);
+		return pool;
+	}
 
 	public function new()
 	{
@@ -743,5 +744,9 @@ class CamPool extends FlxCamera implements IFlxPooled
 		pool.putUnsafe(this);
 	}
 
+	public function putWeak() {}
+
 	override function destroy() {}
+
+	private var _inPool:Bool;
 }

@@ -153,6 +153,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 
 		Timeline.applyMatrixToRect(bounds, matrix);
 
+		#if (flixel >= "5.2.0")
 		// manually inlining this because we dont need the bounds.putWeak part
 		if (bounds.right > camera.viewMarginLeft)
 			if (bounds.x < camera.viewMarginRight)
@@ -160,6 +161,12 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 					if (bounds.y < camera.viewMarginBottom)
 						return true;
 		return false;
+		#else
+		var point = FlxPoint.get(bounds.x, bounds.y);
+		var result = camera.containsPoint(point, bounds.width, bounds.height);
+		point.put();
+		return result;
+		#end
 	}
 
 	override function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, includeFilters:Bool = true, useCachedBounds:Bool = false):FlxRect
@@ -199,13 +206,14 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			cBounds.put();
 		});
 		#else
-		final view = camera.getViewMarginRect();
+		final view:FlxRect = #if (flixel >= "5.2.0") camera.getViewMarginRect() #else FlxRect.get(camera.viewOffsetX, camera.viewOffsetY,
+			camera.viewOffsetWidth, camera.viewOffsetHeight) #end;
 		final rect = bounds.copyTo(FlxRect.get());
 		view.left -= 2;
 		view.top -= 2;
 		view.right += 2;
 		view.bottom += 2;
-		rect.clipTo(view);
+		view.intersection(rect, rect);
 
 		if (rect.width > 0 && rect.height > 0)
 		{

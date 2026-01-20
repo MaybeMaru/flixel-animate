@@ -26,7 +26,21 @@ extern typedef SpritemapJson =
 	ATLAS:
 	{
 		SPRITES:Array<SpriteJson>
-	}
+	},
+	meta:SpritemapMeta
+}
+
+extern typedef SpritemapMeta =
+{
+	app:String,
+	version:String,
+	image:String,
+	format:String,
+	size:
+	{
+		w:Int, h:Int
+	},
+	resolution:String
 }
 
 extern typedef SpriteJson =
