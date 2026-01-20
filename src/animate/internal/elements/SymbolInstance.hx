@@ -170,6 +170,21 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return libraryItem != null ? libraryItem.name : "";
 	}
 
+	@:allow(animate.internal.elements.Element)
+	@:allow(animate.FlxAnimateFrames)
+	private static function _fromJson(si:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame):SymbolInstance
+	{
+		return switch (si.ST)
+		{
+			case "B" | "button":
+				new ButtonInstance(si, parent, frame);
+			case "MC" | "movieclip":
+				new MovieClipInstance(si, parent, frame);
+			default:
+				new SymbolInstance(si, parent, frame);
+		};
+	}
+
 	override function destroy()
 	{
 		super.destroy();

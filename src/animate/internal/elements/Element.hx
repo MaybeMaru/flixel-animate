@@ -1,5 +1,6 @@
 package animate.internal.elements;
 
+import animate.FlxAnimateJson.ElementJson;
 import animate.internal.AnimateDrawCommand;
 import flixel.FlxCamera;
 import flixel.math.FlxMatrix;
@@ -100,6 +101,26 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	public inline function toTextFieldInstance():TextFieldInstance
 		return cast this;
+
+	@:allow(animate.internal.Frame)
+	private static function _fromJson(element:ElementJson, ?parent:FlxAnimateFrames, ?frame:Frame):Element
+	{
+		var si = element.SI;
+		if (si != null)
+			return SymbolInstance._fromJson(si, parent, frame);
+
+		var asi = element.ASI;
+		if (asi != null)
+			return new AtlasInstance(asi, parent, frame);
+		else
+		{
+			var tfi = element.TFI;
+			if (tfi != null)
+				return new TextFieldInstance(tfi, parent, frame);
+		}
+
+		return null;
+	}
 
 	public function destroy()
 	{

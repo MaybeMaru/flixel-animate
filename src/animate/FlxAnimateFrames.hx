@@ -7,7 +7,6 @@ import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.graphics.frames.FlxFramesCollection.FlxFrameCollectionType;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
@@ -48,7 +47,8 @@ typedef FlxAnimateSettings =
 	?swfMode:Bool,
 	?cacheOnLoad:Bool,
 	?filterQuality:FilterQuality,
-	?onSymbolCreate:SymbolItem->Void
+	?onSymbolCreate:SymbolItem->Void,
+	?applyInterpolation:Bool
 }
 
 /**
@@ -57,15 +57,11 @@ typedef FlxAnimateSettings =
  * Note that this engine does **NOT** convert texture atlases into spritesheets, therefore trying to get
  * frames from a ``FlxAnimateFrames`` will result in getting the limb frames of the spritemap.
  *
- * If you need an actual frame of the texture atlas animation I recommend manually creating it using
- * ``framePixels`` on a ``FlxAnimate``. Though it may cause performance issues, so use with precaution.
+ * If you need an actual frame of the texture atlas animation I recommend using ``useRenderTexture``
+ * on a ``FlxAnimate``. Though it may cause performance issues, so use with precaution.
  */
 class FlxAnimateFrames extends FlxAtlasFrames
 {
-	// TODO:
-	// public var instance:SymbolInstance;
-	// public var stageInstance:SymbolInstanceJson;
-
 	/**
 	 * The main ``Timeline`` that the Texture Atlas was exported from.
 	 */
@@ -84,10 +80,17 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	public var stageColor:FlxColor;
 
 	/**
+	 * Symbol instance of the Texture Atlas on the Animate stage.
+	 * Null if not exported from an instanced symbol.
+	 */
+	public var stageInstance:Null<SymbolInstance>;
+
+	/**
 	 * Matrix of the Texture Atlas on the Animate stage.
 	 * Defaults to an empty matrix if not exported from an instanced symbol.
+	 * Shortcut for ``library.stageInstance.matrix``
 	 */
-	public var matrix:FlxMatrix; // TODO: to be replaced with library.instance
+	public var matrix(get, never):FlxMatrix;
 
 	/**
 	 * Default frame rate that the Texture Atlas was exported from.
@@ -381,8 +384,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		frames.stageColor = FlxColor.fromString(metadata.BGC);
 
 		// stage instance of the main symbol
-		var stageInstance:Null<SymbolInstanceJson> = animData.AN.STI;
-		frames.matrix = (stageInstance != null) ? stageInstance.MX.toMatrix() : new FlxMatrix();
+		var stageInstance = animData.AN.STI;
+		if (stageInstance != null)
+			frames.stageInstance = SymbolInstance._fromJson(stageInstance, frames);
 
 		// clear the temp data crap
 		frames._symbolDictionary = null;
@@ -543,9 +547,17 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		stageRect = FlxDestroyUtil.put(stageRect);
 		timeline = FlxDestroyUtil.destroy(timeline);
+		stageInstance = FlxDestroyUtil.destroy(stageInstance);
+		_stageMatrix = null;
 		checkedDirtySymbols = null;
 		dictionary = null;
-		matrix = null;
+	}
+
+	var _stageMatrix:FlxMatrix;
+
+	inline function get_matrix():FlxMatrix
+	{
+		return stageInstance?.matrix ?? (_stageMatrix ??= new FlxMatrix());
 	}
 }
 

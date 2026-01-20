@@ -49,7 +49,10 @@ sprite.anim.addByTimeline("tlAnim", someTimelineObject);
 sprite.anim.addByTimelineIndices("tlIndicesAnim", someTimelineObject, [0, 1, 2, 3]);
 
 sprite.anim.addByFrameLabel("labelAnim", "frameLabelName");
-sprite.anim.addByFrameLabelIndices("labelIndicesAnim", "frameLabelName", [0, 1, 2, 3])
+sprite.anim.addByFrameLabelIndices("labelIndicesAnim", "frameLabelName", [0, 1, 2, 3]);
+
+sprite.anim.addByElement("elementAnim", someElementObject);
+sprite.anim.addByElementIndices("elementIndicesAnim", someElementObject, [0, 1, 2, 3]);
 ```
 
 ### Load Settings

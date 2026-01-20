@@ -3,6 +3,7 @@ package animate.internal;
 import animate.FlxAnimateJson.TimelineJson;
 import animate.internal.elements.Element;
 import flixel.FlxCamera;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
@@ -19,8 +20,11 @@ class Timeline implements IFlxDestroyable
 	public var layers:Array<Layer>;
 	public var name:String;
 	public var currentFrame:Int;
-	public var frameCount:Int;
 	public var parent(default, null):FlxAnimateFrames;
+
+	public var frameCount(get, null):Int;
+
+	var _dirtyFrameCount:Bool = false;
 
 	var _layerMap:Map<String, Layer>;
 	var _bounds:FlxRect;
@@ -37,6 +41,29 @@ class Timeline implements IFlxDestroyable
 
 		if (timeline != null)
 			_loadJson(timeline);
+	}
+
+	public function addNewLayer(?name:String, ?duration:Int)
+	{
+		var layer = new Layer(this);
+		layer.name = name ?? "Layer_" + (layers.length + 1);
+
+		var keyframe = new Frame(layer);
+		keyframe.index = 0;
+		keyframe.duration = FlxMath.maxInt(duration ?? this.frameCount, 1);
+
+		@:privateAccess {
+			layer.frames.push(keyframe);
+			for (_ in 0...keyframe.duration)
+				layer.frameIndices.push(0);
+		}
+
+		_layerMap.set(layer.name, layer);
+		layers.push(layer);
+
+		_dirtyFrameCount = true;
+
+		return layer;
 	}
 
 	/**
@@ -312,11 +339,15 @@ class Timeline implements IFlxDestroyable
 		{
 			var layer = layers[i];
 			layer._loadJson(layersJson[i], parent, i, layers);
-
-			if (layer.frameCount > frameCount)
-				frameCount = layer.frameCount;
 		}
 
+		refresh();
+	}
+
+	@:noCompletion
+	public function refresh():Void
+	{
+		_dirtyFrameCount = true;
 		_bounds = getWholeBounds(false, _bounds);
 	}
 
@@ -338,6 +369,21 @@ class Timeline implements IFlxDestroyable
 	public function toString():String
 	{
 		return '{name: $name, frameCount: $frameCount}';
+	}
+
+	function get_frameCount():Int
+	{
+		if (!_dirtyFrameCount)
+			return frameCount;
+
+		for (layer in layers)
+		{
+			if (layer.frameCount > frameCount)
+				frameCount = layer.frameCount;
+		}
+
+		_dirtyFrameCount = false;
+		return frameCount;
 	}
 
 	@:noCompletion

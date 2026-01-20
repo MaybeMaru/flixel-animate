@@ -32,7 +32,7 @@ class Frame implements IFlxDestroyable
 	public var sound:Null<FlxSound>;
 	public var blend:BlendMode;
 
-	// public var tween:Tween;
+	public var tween:Tween;
 
 	public function new(?layer:Layer)
 	{
@@ -123,20 +123,12 @@ class Frame implements IFlxDestroyable
 	@:access(animate.internal.Layer)
 	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC):SymbolInstance
 	{
-		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
+		var timeline = new animate.internal.Timeline(null, layer.timeline.parent, "tempSymbol");
+		var frame = timeline.addNewLayer().frames[0];
 
-		var frame = new Frame();
+		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
 		for (element in elements)
 			frame.add(element);
-
-		var timeline = new animate.internal.Timeline(null, layer.timeline.parent, "tempSymbol");
-		var layer = new Layer(timeline);
-
-		layer.frames.push(frame);
-		layer.frameIndices.push(0);
-
-		timeline.layers.push(layer);
-		timeline.frameCount = layer.frameCount;
 
 		var item = new SymbolItem(timeline);
 		var instance = item.createInstance(type);
@@ -233,35 +225,7 @@ class Frame implements IFlxDestroyable
 		{
 			for (element in e)
 			{
-				var si = element.SI;
-				if (si != null)
-				{
-					this.elements.push(switch (si.ST)
-					{
-						case "B" | "button":
-							new ButtonInstance(si, parent, this);
-						case "MC" | "movieclip":
-							new MovieClipInstance(si, parent, this);
-						default:
-							new SymbolInstance(si, parent, this);
-					});
-				}
-				else
-				{
-					var asi = element.ASI;
-					if (asi != null)
-					{
-						this.elements.push(new AtlasInstance(asi, parent, this));
-					}
-					else
-					{
-						var tfi = element.TFI;
-						if (tfi != null)
-						{
-							this.elements.push(new TextFieldInstance(tfi, parent, this));
-						}
-					}
-				}
+				this.elements.push(Element._fromJson(element, parent, this));
 			}
 		}
 
@@ -301,11 +265,11 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
-		// var jsonTween = frame.TWN;
-		// if (jsonTween != null)
-		// {
-		//	tween = new Tween(this, jsonTween);
-		// }
+		var jsonTween = frame.TWN;
+		if (jsonTween != null)
+		{
+			tween = new Tween(this, jsonTween);
+		}
 	}
 
 	var _dirty:Bool = false;
@@ -414,10 +378,10 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
-		// if (tween != null)
-		//	tween.drawTransform(camera, currentFrame, parentMatrix, command);
-		// else
-		_drawElements(camera, currentFrame, parentMatrix, command);
+		if (tween != null)
+			tween.drawTransform(camera, currentFrame, parentMatrix, command);
+		else
+			_drawElements(camera, currentFrame, parentMatrix, command);
 	}
 
 	@:allow(animate.internal.FilterRenderer)
