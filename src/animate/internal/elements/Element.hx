@@ -82,8 +82,16 @@ class AnimateElement<T> implements IFlxDestroyable
 		if (_transform == null)
 			_transform = new ColorTransform();
 
-		transform.setMultipliers(rMult, gMult, bMult, aMult);
-		transform.setOffsets(rOffset, gOffset, bOffset, aOffset);
+		transform.redMultiplier = rMult;
+		transform.greenMultiplier = gMult;
+		transform.blueMultiplier = bMult;
+		transform.alphaMultiplier = aMult;
+
+		transform.redOffset = rOffset;
+		transform.greenOffset = gOffset;
+		transform.blueOffset = bOffset;
+		transform.alphaOffset = aOffset;
+
 		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
 	}
 

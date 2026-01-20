@@ -70,8 +70,16 @@ class AnimateDrawCommand implements IFlxDestroyable
 		{
 			var colorData = element.transform;
 			var colorOut = element._transform;
-			colorOut.setMultipliers(colorData.redMultiplier, colorData.greenMultiplier, colorData.blueMultiplier, colorData.alphaMultiplier);
-			colorOut.setOffsets(colorData.redOffset, colorData.greenOffset, colorData.blueOffset, colorData.alphaOffset);
+
+			colorOut.redMultiplier = colorData.redMultiplier;
+			colorOut.greenMultiplier = colorData.greenMultiplier;
+			colorOut.blueMultiplier = colorData.blueMultiplier;
+			colorOut.alphaMultiplier = colorData.alphaMultiplier;
+
+			colorOut.redOffset = colorData.redOffset;
+			colorOut.greenOffset = colorData.greenOffset;
+			colorOut.blueOffset = colorData.blueOffset;
+			colorOut.alphaOffset = colorData.alphaOffset;
 
 			if (command.transform != null)
 				concatTransform(colorOut, command.transform);
