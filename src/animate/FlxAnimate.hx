@@ -210,28 +210,7 @@ class FlxAnimate extends FlxSprite
 			matrix.translate(-library.matrix.tx, -library.matrix.ty);
 		}
 
-		matrix.translate(-origin.x, -origin.y);
-		matrix.scale(scale.x, scale.y);
-
-		if (angle != 0)
-		{
-			updateTrig();
-			matrix.rotateWithTrig(_cosAngle, _sinAngle);
-		}
-
-		if (skew.x != 0 || skew.y != 0)
-		{
-			updateSkew();
-			matrix.concat(_skewMatrix);
-		}
-
-		getScreenPosition(_point, camera);
-		_point.x += origin.x - offset.x;
-		_point.y += origin.y - offset.y;
-		matrix.translate(_point.x, _point.y);
-
-		if (isPixelPerfectRender(camera))
-			preparePixelPerfectMatrix(matrix);
+		prepareDrawMatrix(matrix, camera);
 
 		if (renderStage)
 			drawStage(camera);
@@ -277,25 +256,7 @@ class FlxAnimate extends FlxSprite
 		final matrix = this._matrix; // TODO: Just use local?
 
 		frame.prepareMatrix(matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
-		matrix.translate(-origin.x, -origin.y);
-		matrix.scale(scale.x, scale.y);
-		if (bakedRotationAngle <= 0)
-		{
-			updateTrig();
-			if (angle != 0)
-				matrix.rotateWithTrig(_cosAngle, _sinAngle);
-		}
-		if (skew.x != 0 || skew.y != 0)
-		{
-			updateSkew();
-			_matrix.concat(_skewMatrix);
-		}
-		getScreenPosition(_point, camera);
-		_point.x += origin.x - offset.x;
-		_point.y += origin.y - offset.y;
-		matrix.translate(_point.x, _point.y);
-		if (isPixelPerfectRender(camera))
-			preparePixelPerfectMatrix(matrix);
+		prepareDrawMatrix(matrix, camera);
 		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
@@ -303,6 +264,32 @@ class FlxAnimate extends FlxSprite
 	{
 		matrix.tx = Math.floor(matrix.tx);
 		matrix.ty = Math.floor(matrix.ty);
+	}
+
+	function prepareDrawMatrix(matrix:FlxMatrix, camera:FlxCamera):Void
+	{
+		matrix.translate(-origin.x, -origin.y);
+		matrix.scale(scale.x, scale.y);
+
+		if (angle != 0)
+		{
+			updateTrig();
+			matrix.rotateWithTrig(_cosAngle, _sinAngle);
+		}
+
+		if (skew.x != 0 || skew.y != 0)
+		{
+			updateSkew();
+			matrix.concat(_skewMatrix);
+		}
+
+		getScreenPosition(_point, camera);
+		_point.x += origin.x - offset.x;
+		_point.y += origin.y - offset.y;
+		matrix.translate(_point.x, _point.y);
+
+		if (isPixelPerfectRender(camera))
+			preparePixelPerfectMatrix(matrix);
 	}
 
 	var stageBg:StageBG;
@@ -410,21 +397,31 @@ class FlxAnimate extends FlxSprite
 	}
 
 	#if (flixel >= "5.0.0")
-	override function getScreenBounds(?newRect:FlxRect, ?camera:FlxCamera):FlxRect
+	override function getScreenBounds(?rect:FlxRect, ?camera:FlxCamera):FlxRect
 	{
-		var bounds = super.getScreenBounds(newRect, camera);
+		if (rect == null)
+			rect = FlxRect.get();
+
+		if (camera == null)
+			camera = getDefaultCamera();
+
+		rect.set(0.0, 0.0, frameWidth, frameHeight);
+
+		final matrix = this._matrix;
+		matrix.identity();
 
 		if (isAnimate)
 		{
-			final origin = getAnimateOrigin();
-			bounds.x += origin.x;
-			bounds.y += origin.y;
-			origin.put();
+			if (applyStageMatrix)
+			{
+				matrix.concat(library.matrix);
+				matrix.translate(-library.matrix.tx, -library.matrix.ty);
+			}
 		}
 
-		// TODO: add skewed bounds expansion
+		prepareDrawMatrix(matrix, camera);
 
-		return bounds;
+		return Timeline.applyMatrixToRect(rect, matrix);
 	}
 	#end
 
