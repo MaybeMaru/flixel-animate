@@ -403,7 +403,7 @@ class FlxAnimate extends FlxSprite
 			rect = FlxRect.get();
 
 		if (camera == null)
-			camera = getDefaultCamera();
+			camera = #if (flixel >= "5.7.0") getDefaultCamera() #else FlxG.camera #end;
 
 		rect.set(0.0, 0.0, frameWidth, frameHeight);
 
