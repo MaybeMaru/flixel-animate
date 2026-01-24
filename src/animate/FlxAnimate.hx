@@ -204,12 +204,6 @@ class FlxAnimate extends FlxSprite
 			matrix.translate(0, bounds.height);
 		}
 
-		if (applyStageMatrix)
-		{
-			matrix.concat(library.matrix);
-			matrix.translate(-library.matrix.tx, -library.matrix.ty);
-		}
-
 		prepareDrawMatrix(matrix, camera);
 
 		if (renderStage)
@@ -413,15 +407,6 @@ class FlxAnimate extends FlxSprite
 
 		final matrix = this._matrix;
 		matrix.identity();
-
-		if (isAnimate)
-		{
-			if (applyStageMatrix)
-			{
-				matrix.concat(library.matrix);
-				matrix.translate(-library.matrix.tx, -library.matrix.ty);
-			}
-		}
 
 		prepareDrawMatrix(matrix, camera);
 
