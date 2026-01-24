@@ -268,6 +268,10 @@ class FlxAnimate extends FlxSprite
 
 	function prepareDrawMatrix(matrix:FlxMatrix, camera:FlxCamera):Void
 	{
+		final animateOrigin = getAnimateOrigin();
+		matrix.translate(animateOrigin.x, animateOrigin.y);
+		animateOrigin.put();
+
 		matrix.translate(-origin.x, -origin.y);
 		matrix.scale(scale.x, scale.y);
 
@@ -424,20 +428,6 @@ class FlxAnimate extends FlxSprite
 		return Timeline.applyMatrixToRect(rect, matrix);
 	}
 	#end
-
-	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
-	{
-		final point = super.getScreenPosition(result, camera);
-
-		if (isAnimate)
-		{
-			final origin = getAnimateOrigin();
-			point.add(origin.x, origin.y);
-			origin.put();
-		}
-
-		return point;
-	}
 
 	function getAnimateOrigin(?result:FlxPoint):FlxPoint
 	{
