@@ -176,15 +176,19 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
-	function drawAnimate(camera:FlxCamera):Void
+	function checkRenderTexture():Bool
 	{
 		#if flash
-		var willUseRenderTexture:Bool = false;
+		return false;
 		#else
-		var willUseRenderTexture:Bool = useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
+		return isAnimate && useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL));
 		#end
+	}
 
-		var matrix = _matrix;
+	function drawAnimate(camera:FlxCamera):Void
+	{
+		final willUseRenderTexture = checkRenderTexture();
+		final matrix = _matrix;
 		matrix.identity();
 
 		@:privateAccess
@@ -192,19 +196,7 @@ class FlxAnimate extends FlxSprite
 		if (!willUseRenderTexture)
 			matrix.translate(-bounds.x, -bounds.y);
 
-		if (checkFlipX())
-		{
-			matrix.scale(-1, 1);
-			matrix.translate(bounds.width, 0);
-		}
-
-		if (checkFlipY())
-		{
-			matrix.scale(1, -1);
-			matrix.translate(0, bounds.height);
-		}
-
-		prepareDrawMatrix(matrix, camera);
+		prepareAnimateMatrix(matrix, camera, bounds);
 
 		if (renderStage)
 			drawStage(camera);
@@ -239,6 +231,23 @@ class FlxAnimate extends FlxSprite
 		}
 	}
 
+	function prepareAnimateMatrix(matrix:FlxMatrix, camera:FlxCamera, bounds:FlxRect):Void
+	{
+		if (checkFlipX())
+		{
+			matrix.scale(-1, 1);
+			matrix.translate(bounds.width, 0);
+		}
+
+		if (checkFlipY())
+		{
+			matrix.scale(1, -1);
+			matrix.translate(0, bounds.height);
+		}
+
+		prepareDrawMatrix(matrix, camera);
+	}
+
 	// I dont think theres a way to override the matrix without needing to do this lol
 	#if (flixel >= "6.1.0")
 	override function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
@@ -254,17 +263,14 @@ class FlxAnimate extends FlxSprite
 		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
-	function preparePixelPerfectMatrix(matrix:FlxMatrix):Void
-	{
-		matrix.tx = Math.floor(matrix.tx);
-		matrix.ty = Math.floor(matrix.ty);
-	}
-
 	function prepareDrawMatrix(matrix:FlxMatrix, camera:FlxCamera):Void
 	{
-		final animateOrigin = getAnimateOrigin();
-		matrix.translate(animateOrigin.x, animateOrigin.y);
-		animateOrigin.put();
+		final doStageMatrix:Bool = (isAnimate && applyStageMatrix);
+
+		if (doStageMatrix)
+		{
+			matrix.translate(timeline._bounds.x, timeline._bounds.y);
+		}
 
 		matrix.translate(-origin.x, -origin.y);
 		matrix.scale(scale.x, scale.y);
@@ -281,6 +287,11 @@ class FlxAnimate extends FlxSprite
 			matrix.concat(_skewMatrix);
 		}
 
+		if (doStageMatrix)
+		{
+			matrix.concat(library.matrix);
+		}
+
 		getScreenPosition(_point, camera);
 		_point.x += origin.x - offset.x;
 		_point.y += origin.y - offset.y;
@@ -288,6 +299,12 @@ class FlxAnimate extends FlxSprite
 
 		if (isPixelPerfectRender(camera))
 			preparePixelPerfectMatrix(matrix);
+	}
+
+	function preparePixelPerfectMatrix(matrix:FlxMatrix):Void
+	{
+		matrix.tx = Math.floor(matrix.tx);
+		matrix.ty = Math.floor(matrix.ty);
 	}
 
 	var stageBg:StageBG;
@@ -408,9 +425,20 @@ class FlxAnimate extends FlxSprite
 		final matrix = this._matrix;
 		matrix.identity();
 
-		prepareDrawMatrix(matrix, camera);
+		isAnimate ? prepareAnimateMatrix(matrix, camera, timeline._bounds) : prepareDrawMatrix(matrix, camera);
 
-		return Timeline.applyMatrixToRect(rect, matrix);
+		if (isAnimate && renderStage)
+		{
+			var stageRect = library.stageRect;
+			rect.x = -timeline._bounds.x - (stageRect.width / 2);
+			rect.y = -timeline._bounds.y - (stageRect.height / 2);
+			rect.width = Math.max(rect.width, stageRect.width);
+			rect.height = Math.max(rect.height, stageRect.height);
+		}
+
+		Timeline.applyMatrixToRect(rect, matrix);
+
+		return rect;
 	}
 	#end
 
