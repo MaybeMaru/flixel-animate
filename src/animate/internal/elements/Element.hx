@@ -148,12 +148,3 @@ enum abstract ElementType(String) to String
 	var BUTTON = "button";
 	var TEXT = "text";
 }
-/*
-	camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
-	?shader:FlxShader
- */ /*
-	class ElementDrawCommand extends BaseDrawCommand
-	{
-	public var frameIndex:Int = 0;
-	}
- */

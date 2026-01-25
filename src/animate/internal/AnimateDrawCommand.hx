@@ -98,6 +98,19 @@ class AnimateDrawCommand implements IFlxDestroyable
 
 	public function prepareFrameCommand(frame:Frame)
 	{
+		// prepare color transform
+		if (frame.isColored)
+		{
+			final colorOut:ColorTransform = frame._transform;
+			copyTransform(colorOut, frame.transform);
+
+			if (transform != null)
+				concatTransform(colorOut, transform);
+
+			this.transform = colorOut;
+		}
+
+		// prepare blend
 		blend = resolveBlendMode(blend, frame.blend);
 	}
 

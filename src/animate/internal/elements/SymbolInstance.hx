@@ -9,6 +9,9 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
+import flixel.util.typeLimit.OneOfTwo;
+import openfl.display.BlendMode;
+import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -71,6 +74,27 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 					var mult:Float = 1.0 - tintMult;
 					setColorTransform(mult, mult, mult, 1.0, tint.red * tintMult, tint.green * tintMult, tint.blue * tintMult, 0.0);
 			}
+		}
+	}
+
+	/**
+	 * Swaps the attached ``SymbolItem`` to a different one from the library or added by the user.
+	 * @param newItem	New ``SymbolItem`` name or object to replace the current symbol with.
+	 */
+	public function swapSymbol(newItem:OneOfTwo<String, SymbolItem>):Void
+	{
+		if (newItem is String)
+		{
+			if (libraryItem != null)
+			{
+				var foundItem = libraryItem.timeline.parent.getSymbol(newItem);
+				if (foundItem != null)
+					libraryItem = foundItem;
+			}
+		}
+		else
+		{
+			libraryItem = newItem;
 		}
 	}
 

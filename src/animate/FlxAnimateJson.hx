@@ -129,6 +129,7 @@ extern abstract FrameJson(Dynamic)
 
 	public var F(get, never):Null<Array<FilterJson>>;
 	public var B(get, never):Null< #if flash Int #else BlendMode #end>;
+	public var C(get, never):Null<ColorJson>;
 
 	public var TWN(get, never):TweenJson;
 
@@ -157,6 +158,9 @@ extern abstract FrameJson(Dynamic)
 
 	inline function get_B()
 		return this.B ?? this.blend;
+
+	inline function get_C()
+		return this.C ?? this.color;
 
 	inline function get_TWN()
 		return this.TWN ?? this.tween;

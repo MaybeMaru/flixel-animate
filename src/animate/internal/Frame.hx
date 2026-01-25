@@ -3,22 +3,22 @@ package animate.internal;
 import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson.FrameJson;
 import animate.internal.elements.AtlasInstance;
-import animate.internal.elements.ButtonInstance;
 import animate.internal.elements.Element;
 import animate.internal.elements.MovieClipInstance;
 import animate.internal.elements.SymbolInstance;
-import animate.internal.elements.TextFieldInstance;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
-import flixel.system.FlxAssets.FlxShader;
+import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
+import openfl.geom.ColorTransform;
 import openfl.media.Sound;
 
 using StringTools;
+using flixel.util.FlxColorTransformUtil;
 
 #if (flixel >= "5.3.0")
 import flixel.sound.FlxSound;
@@ -37,6 +37,13 @@ class Frame implements IFlxDestroyable
 	public var name:String;
 	public var sound:Null<FlxSound>;
 	public var blend:BlendMode;
+	public var isColored(default, null):Bool;
+
+	@:noCompletion
+	public var transform:ColorTransform;
+
+	@:noCompletion
+	public var _transform:ColorTransform;
 
 	public var tween:Tween;
 
@@ -208,6 +215,37 @@ class Frame implements IFlxDestroyable
 		return rect;
 	}
 
+	public extern overload inline function setColorTransform(rMult:Float = 1, gMult:Float = 1, bMult:Float = 1, aMult:Float = 1, rOffset:Float = 0,
+			gOffset:Float = 0, bOffset:Float = 0, aOffset:Float = 0):Void
+	{
+		_setColorTransform(rMult, gMult, bMult, aMult, rOffset, gOffset, bOffset, aOffset);
+	}
+
+	public extern overload inline function setColorTransform(color:FlxColor):Void
+	{
+		_setColorTransform(color.redFloat, color.greenFloat, color.blueFloat, 1, 0, 0, 0, 0);
+	}
+
+	function _setColorTransform(rMult:Float, gMult:Float, bMult:Float, aMult:Float, rOffset:Float, gOffset:Float, bOffset:Float, aOffset:Float)
+	{
+		if (transform == null)
+			transform = new ColorTransform();
+		if (_transform == null)
+			_transform = new ColorTransform();
+
+		transform.redMultiplier = rMult;
+		transform.greenMultiplier = gMult;
+		transform.blueMultiplier = bMult;
+		transform.alphaMultiplier = aMult;
+
+		transform.redOffset = rOffset;
+		transform.greenOffset = gOffset;
+		transform.blueOffset = bOffset;
+		transform.alphaOffset = aOffset;
+
+		isColored = (transform.hasRGBAMultipliers() || transform.hasRGBAOffsets());
+	}
+
 	public inline function iterator()
 	{
 		return elements.iterator();
@@ -277,6 +315,12 @@ class Frame implements IFlxDestroyable
 		if (jsonTween != null)
 		{
 			tween = new Tween(this, jsonTween);
+		}
+
+		var jsonColor = frame.C;
+		if (jsonColor != null)
+		{
+			setColorTransform(jsonColor.RM, jsonColor.GM, jsonColor.BM, jsonColor.AM, jsonColor.RO, jsonColor.GO, jsonColor.BO, jsonColor.AO);
 		}
 	}
 
