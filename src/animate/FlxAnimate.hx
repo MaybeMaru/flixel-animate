@@ -270,6 +270,7 @@ class FlxAnimate extends FlxSprite
 		if (doStageMatrix)
 		{
 			matrix.translate(timeline._bounds.x, timeline._bounds.y);
+			matrix.concat(library.matrix);
 		}
 
 		matrix.translate(-origin.x, -origin.y);
@@ -285,11 +286,6 @@ class FlxAnimate extends FlxSprite
 		{
 			updateSkew();
 			matrix.concat(_skewMatrix);
-		}
-
-		if (doStageMatrix)
-		{
-			matrix.concat(library.matrix);
 		}
 
 		getScreenPosition(_point, camera);
