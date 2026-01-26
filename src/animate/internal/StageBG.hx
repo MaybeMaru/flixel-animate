@@ -4,6 +4,7 @@ import flixel.FlxCamera;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
 
+@:access(animate.FlxAnimate)
 @:nullSafety(Strict)
 class StageBG extends FlxSprite
 {
@@ -30,6 +31,14 @@ class StageBG extends FlxSprite
 		mat.identity();
 		mat.scale(parent.library.stageRect.width, parent.library.stageRect.height);
 		mat.translate(-0.5 * (mat.a - 1), -0.5 * (mat.d - 1));
+
+		if (parent.checkRenderTexture())
+		{
+			@:privateAccess
+			var bounds = parent.timeline._bounds;
+			mat.translate(-bounds.x, -bounds.y);
+		}
+
 		mat.concat(parent._matrix);
 
 		camera.drawPixels(this._frame, this.framePixels, mat, this.colorTransform, parent.blend, false, parent.shader);
