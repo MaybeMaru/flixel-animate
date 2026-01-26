@@ -36,6 +36,7 @@ import animate.internal.elements.AtlasInstance.BakedInstance;
 import flixel.util.FlxColor;
 #end
 
+// TODO: make renderer use textures instead of full bitmaps
 #if !flash
 @:access(flixel.FlxCamera)
 @:access(flixel.graphics.frames.FlxFrame)
@@ -142,19 +143,27 @@ class FilterRenderer
 		var cacheRTTSurfaceSelector = context.__state.renderToTextureSurfaceSelector;
 
 		var bounds = gfx.__bounds;
-		var bmp = BitmapData.fromTexture(FlxG.stage.context3D.createRectangleTexture(Math.ceil(bounds.width), Math.ceil(bounds.height), BGRA, true));
+		var bmp = new BitmapData(Math.ceil(bounds.width), Math.ceil(bounds.height), true, 0);
 
 		renderer.__worldTransform.translate(-bounds.x, -bounds.y);
 		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(bmp);
-
 		context.setRenderToTexture(bmp.getTexture(context));
+
 		Context3DGraphics.render(gfx, renderer);
 
-		if (cacheRTT != null)
-			context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias, cacheRTTSurfaceSelector);
-		else
-			context.setRenderToBackBuffer();
+		renderer.__worldTransform.identity();
+
+		var gl = renderer.__gl;
+		var renderBuffer = bmp.getTexture(context);
+
+		@:privateAccess
+		gl.readPixels(0, 0, bmp.width, bmp.height, renderBuffer.__format, gl.UNSIGNED_BYTE, bmp.image.data);
+		bmp.image.version = 0;
+		bmp.__textureVersion = -1;
+
+		(cacheRTT != null) ? context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias,
+			cacheRTTSurfaceSelector) : context.setRenderToBackBuffer();
 
 		return bmp;
 	}
@@ -348,6 +357,7 @@ class FilterRenderer
 			bmp.__renderTransform.translate(point.x, point.y);
 		}
 
+		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(bitmap);
 		renderer.__scissorRect(null);
 		renderer.__renderFilterPass(bmp, renderer.__defaultDisplayShader, true);
@@ -441,6 +451,7 @@ class FilterRenderer
 	public static function renderWithShader(target:BitmapData, bitmap:BitmapData, shader:Shader):Void @:privateAccess
 	{
 		var renderer = FilterRenderer.renderer;
+		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(target);
 
 		target.__renderTransform.identity();
