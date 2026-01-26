@@ -168,17 +168,6 @@ class Frame implements IFlxDestroyable
 			return rect;
 		}
 
-		// Get the filtered/masked bounds, if they exist
-		/*if (_bakedFrames != null)
-			{
-				var bakedFrame = _bakedFrames[frameIndex];
-				if (bakedFrame != null)
-				{
-					bakedFrame.getBounds(frameIndex, rect, matrix, includeFilters);
-					return rect;
-				}
-		}*/
-
 		var tmpRect = FlxRect.get();
 
 		// Loop through the bounds of each element
@@ -189,8 +178,8 @@ class Frame implements IFlxDestroyable
 			rect = Timeline.expandBounds(rect, tmpRect);
 		}
 
-		// If the frame is not yet masked, calculate the masked bounds manually
-		if (_dirty && this.layer.parentLayer != null)
+		// Calculate masked bounds of the frame
+		if (this.layer.layerType == CLIPPED && this.layer.parentLayer != null)
 		{
 			tmpRect.set();
 			var maskerBounds = this.layer.parentLayer.getBounds(frameIndex + this.index, tmpRect, matrix, includeFilters, useCachedBounds);
