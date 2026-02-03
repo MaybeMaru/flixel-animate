@@ -30,6 +30,9 @@ import animate.internal.RenderTexture;
 import flixel.FlxBasic;
 #end
 
+/**
+ * Fuck you, Adobe.
+ */
 class FlxAnimate extends FlxSprite
 {
 	/**
