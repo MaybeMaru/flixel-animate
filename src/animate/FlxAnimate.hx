@@ -222,7 +222,6 @@ class FlxAnimate extends FlxSprite
 		command.blend = blend;
 		command.antialiasing = antialiasing;
 		command.shader = shader;
-
 		command.onSymbolDraw = onSymbolDraw;
 
 		timeline.currentFrame = animation.frameIndex;
