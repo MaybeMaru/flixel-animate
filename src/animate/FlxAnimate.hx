@@ -33,6 +33,9 @@ import animate.internal.RenderTexture;
 import flixel.FlxBasic;
 #end
 
+/**
+ * Fuck you, Adobe.
+ */
 class FlxAnimate extends FlxSprite
 {
 	/**
@@ -188,16 +191,19 @@ class FlxAnimate extends FlxSprite
 		#end
 	}
 
-	function drawAnimate(camera:FlxCamera):Void
+	function checkRenderTexture():Bool
 	{
 		#if flash
-		var willUseRenderTexture:Bool = false;
+		return false;
 		#else
-		var willUseRenderTexture:Bool = useRenderTexture
-			&& (alpha != 1 || shader != null || (blend != null && blend != NORMAL) || clipRect != null);
+		return isAnimate && useRenderTexture && (alpha != 1 || shader != null || (blend != null && blend != NORMAL) || clipRect != null);
 		#end
+	}
 
-		var matrix = _matrix;
+	function drawAnimate(camera:FlxCamera):Void
+	{
+		final willUseRenderTexture = checkRenderTexture();
+		final matrix = _matrix;
 		matrix.identity();
 
 		@:privateAccess
@@ -205,46 +211,7 @@ class FlxAnimate extends FlxSprite
 		if (!willUseRenderTexture)
 			matrix.translate(-bounds.x, -bounds.y);
 
-		if (checkFlipX())
-		{
-			matrix.scale(-1, 1);
-			matrix.translate(bounds.width, 0);
-		}
-
-		if (checkFlipY())
-		{
-			matrix.scale(1, -1);
-			matrix.translate(0, bounds.height);
-		}
-
-		if (applyStageMatrix)
-		{
-			matrix.concat(library.matrix);
-			matrix.translate(-library.matrix.tx, -library.matrix.ty);
-		}
-
-		matrix.translate(-origin.x, -origin.y);
-		matrix.scale(scale.x, scale.y);
-
-		if (angle != 0)
-		{
-			updateTrig();
-			matrix.rotateWithTrig(_cosAngle, _sinAngle);
-		}
-
-		if (skew.x != 0 || skew.y != 0)
-		{
-			updateSkew();
-			matrix.concat(_skewMatrix);
-		}
-
-		getScreenPosition(_point, camera);
-		_point.x += origin.x - offset.x;
-		_point.y += origin.y - offset.y;
-		matrix.translate(_point.x, _point.y);
-
-		if (isPixelPerfectRender(camera))
-			preparePixelPerfectMatrix(matrix);
+		prepareAnimateMatrix(matrix, camera, bounds);
 
 		if (renderStage)
 			drawStage(camera);
@@ -294,6 +261,23 @@ class FlxAnimate extends FlxSprite
 
 	public var onSymbolDraw:Null<SymbolInstance->Void>;
 
+	function prepareAnimateMatrix(matrix:FlxMatrix, camera:FlxCamera, bounds:FlxRect):Void
+	{
+		if (checkFlipX())
+		{
+			matrix.scale(-1, 1);
+			matrix.translate(bounds.width, 0);
+		}
+
+		if (checkFlipY())
+		{
+			matrix.scale(1, -1);
+			matrix.translate(0, bounds.height);
+		}
+
+		prepareDrawMatrix(matrix, camera);
+	}
+
 	// I dont think theres a way to override the matrix without needing to do this lol
 	#if (flixel >= "6.1.0")
 	override function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
@@ -305,26 +289,46 @@ class FlxAnimate extends FlxSprite
 		final matrix = this._matrix; // TODO: Just use local?
 
 		frame.prepareMatrix(matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
+		prepareDrawMatrix(matrix, camera);
+		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
+	}
+
+	function prepareDrawMatrix(matrix:FlxMatrix, camera:FlxCamera):Void
+	{
+		final doStageMatrix:Bool = (isAnimate && applyStageMatrix);
+
+		if (doStageMatrix)
+		{
+			matrix.translate(timeline._bounds.x, timeline._bounds.y);
+		}
+
 		matrix.translate(-origin.x, -origin.y);
 		matrix.scale(scale.x, scale.y);
-		if (bakedRotationAngle <= 0)
+
+		if (angle != 0)
 		{
 			updateTrig();
-			if (angle != 0)
-				matrix.rotateWithTrig(_cosAngle, _sinAngle);
+			matrix.rotateWithTrig(_cosAngle, _sinAngle);
 		}
+
 		if (skew.x != 0 || skew.y != 0)
 		{
 			updateSkew();
-			_matrix.concat(_skewMatrix);
+			matrix.concat(_skewMatrix);
 		}
+
+		if (doStageMatrix) // TODO: add some way to customize the order of this thing
+		{
+			matrix.concat(library.matrix);
+		}
+
 		getScreenPosition(_point, camera);
 		_point.x += origin.x - offset.x;
 		_point.y += origin.y - offset.y;
 		matrix.translate(_point.x, _point.y);
+
 		if (isPixelPerfectRender(camera))
 			preparePixelPerfectMatrix(matrix);
-		camera.drawPixels(frame, framePixels, matrix, colorTransform, blend, antialiasing, shader);
 	}
 
 	function preparePixelPerfectMatrix(matrix:FlxMatrix):Void
@@ -451,37 +455,35 @@ class FlxAnimate extends FlxSprite
 	}
 
 	#if (flixel >= "5.0.0")
-	override function getScreenBounds(?newRect:FlxRect, ?camera:FlxCamera):FlxRect
+	override function getScreenBounds(?rect:FlxRect, ?camera:FlxCamera):FlxRect
 	{
-		var bounds = super.getScreenBounds(newRect, camera);
+		if (rect == null)
+			rect = FlxRect.get();
 
-		if (isAnimate)
+		if (camera == null)
+			camera = #if (flixel >= "5.7.0") getDefaultCamera() #else FlxG.camera #end;
+
+		rect.set(0.0, 0.0, frameWidth, frameHeight);
+
+		final matrix = this._matrix;
+		matrix.identity();
+
+		isAnimate ? prepareAnimateMatrix(matrix, camera, timeline._bounds) : prepareDrawMatrix(matrix, camera);
+
+		if (isAnimate && renderStage)
 		{
-			final origin = getAnimateOrigin();
-			bounds.x += origin.x;
-			bounds.y += origin.y;
-			origin.put();
+			var stageRect = library.stageRect;
+			rect.x = -timeline._bounds.x - (stageRect.width / 2);
+			rect.y = -timeline._bounds.y - (stageRect.height / 2);
+			rect.width = Math.max(rect.width, stageRect.width);
+			rect.height = Math.max(rect.height, stageRect.height);
 		}
 
-		// TODO: add skewed bounds expansion
+		Timeline.applyMatrixToRect(rect, matrix);
 
-		return bounds;
+		return rect;
 	}
 	#end
-
-	override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
-	{
-		final point = super.getScreenPosition(result, camera);
-
-		if (isAnimate)
-		{
-			final origin = getAnimateOrigin();
-			point.add(origin.x, origin.y);
-			origin.put();
-		}
-
-		return point;
-	}
 
 	function getAnimateOrigin(?result:FlxPoint):FlxPoint
 	{
