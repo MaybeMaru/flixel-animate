@@ -116,12 +116,12 @@ class Frame implements IFlxDestroyable
 	{
 		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
 
-		var frame = new Frame();
-		for (element in elements)
-			frame.add(element);
-
 		var timeline = new animate.internal.Timeline(null, layer.timeline.parent, "tempSymbol");
 		var layer = new Layer(timeline);
+
+		var frame = new Frame(layer);
+		for (element in elements)
+			frame.add(element);
 
 		layer.frames.push(frame);
 		layer.frameIndices.push(0);
