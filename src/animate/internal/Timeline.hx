@@ -10,6 +10,8 @@ import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.typeLimit.OneOfTwo;
 
+using StringTools;
+
 @:access(openfl.geom.Point)
 @:access(openfl.geom.Matrix)
 @:access(flixel.graphics.frames.FlxFrame)
@@ -130,6 +132,7 @@ class Timeline implements IFlxDestroyable
 	/**
 	 * Returns an array of all the elements at the current frame displayed on the timeline.
 	 * May be innacurate if theres more than one ``FlxAnimate`` object playing the same timeline.
+	 * 
 	 * For accuracy of your specific needs, I recommend using ``getElementsAtIndex`` more.
 	 *
 	 * @return An array of all the ``Element`` objects at the current frame.
@@ -137,6 +140,54 @@ class Timeline implements IFlxDestroyable
 	public function getCurrentElements():Array<Element>
 	{
 		return getElementsAtIndex(currentFrame);
+	}
+
+	/**
+	 * Returns the first frame label in the timeline at a specific frame index.
+	 * 
+	 * @param index Frame index ``Int`` to get the element objects from.
+	 * @return		Label ``String`` of the specific frame index, an empty string if not found.
+	 */
+	public function getFrameLabelAtIndex(index:Int):String
+	{
+		for (layer in layers)
+		{
+			var frame = layer.getFrameAtIndex(index);
+			if (frame != null && frame.name.length > 0)
+				return frame.name;
+		}
+		return "";
+	}
+
+	/**
+	 * Gets the list of indices of a frame label to be found from a timeline.
+	 *
+	 * @param label Frame label tag to find the indices of.
+	 * @return Array of ``Int`` indices of the frame label, empty if none were found.
+	 */
+	public function findFrameLabelIndices(label:String):Array<Int>
+	{
+		var foundFrames:Array<Int> = [];
+		var hasFoundLabel:Bool = false;
+
+		for (layer in layers)
+		{
+			for (frame in layer.frames)
+			{
+				if (frame.name.rtrim() == label)
+				{
+					hasFoundLabel = true;
+
+					for (i in 0...frame.duration)
+						foundFrames.push(frame.index + i);
+				}
+			}
+
+			if (hasFoundLabel)
+				break;
+		}
+
+		return foundFrames;
 	}
 
 	/**

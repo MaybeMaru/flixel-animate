@@ -126,9 +126,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 					if (data.SN == name)
 					{
 						var timeline = new Timeline(data.TL, this, name);
-						var symbol = new SymbolItem(timeline);
-						dictionary.set(timeline.name, symbol);
-						return symbol;
+						return _addItem(new SymbolItem(timeline));
 					}
 				}
 			}
@@ -139,9 +137,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			{
 				var data:TimelineJson = Json.parse(getTextFromPath(path + "/LIBRARY/" + name + ".json"));
 				var timeline = new Timeline(data, this, name);
-				var symbol = new SymbolItem(timeline);
-				dictionary.set(timeline.name, symbol);
-				return symbol;
+				return _addItem(new SymbolItem(timeline));
 			}
 		}
 
@@ -153,6 +149,21 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 		FlxG.log.warn('SymbolItem with name "$name" doesnt exist.');
 		return null;
+	}
+
+	function _addItem(item:SymbolItem):SymbolItem
+	{
+		var id = item.timeline.name;
+		dictionary.set(id, item);
+
+		if (id.contains("/"))
+		{
+			var name = id.split("/").pop();
+			if (!dictionary.exists(name))
+				dictionary.set(name, item);
+		}
+
+		return item;
 	}
 
 	/**

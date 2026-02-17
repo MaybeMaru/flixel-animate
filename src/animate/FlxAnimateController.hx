@@ -335,32 +335,12 @@ class FlxAnimateController extends FlxAnimationController
 	 *
 	 * @param label Frame label tag to find the indices of.
 	 * @param timeline Optional, ``Timeline`` object used to check the labels from, defaults to the main Texture Atlas document timeline.
-	 * @return Array of integer indices of the frame label, empty if none were found.
+	 * @return Array of ``Int`` indices of the frame label, empty if none were found.
 	 */
 	public function findFrameLabelIndices(label:String, ?timeline:Timeline):Array<Int>
 	{
-		var foundFrames:Array<Int> = [];
-		var hasFoundLabel:Bool = false;
 		var mainTimeline = timeline ?? getDefaultTimeline();
-
-		for (layer in mainTimeline.layers)
-		{
-			for (frame in layer.frames)
-			{
-				if (frame.name.rtrim() == label)
-				{
-					hasFoundLabel = true;
-
-					for (i in 0...frame.duration)
-						foundFrames.push(frame.index + i);
-				}
-			}
-
-			if (hasFoundLabel)
-				break;
-		}
-
-		return foundFrames;
+		return mainTimeline.findFrameLabelIndices(label);
 	}
 
 	override function set_frameIndex(frame:Int):Int

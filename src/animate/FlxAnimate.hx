@@ -477,8 +477,8 @@ class FlxAnimate extends FlxSprite
 		if (isAnimate && renderStage)
 		{
 			var stageRect = library.stageRect;
-			rect.x = -timeline._bounds.x - (stageRect.width / 2);
-			rect.y = -timeline._bounds.y - (stageRect.height / 2);
+			rect.x = -timeline._bounds.x - (stageRect.width * 0.5);
+			rect.y = -timeline._bounds.y - (stageRect.height * 0.5);
 			rect.width = Math.max(rect.width, stageRect.width);
 			rect.height = Math.max(rect.height, stageRect.height);
 		}
