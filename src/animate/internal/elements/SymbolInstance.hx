@@ -10,8 +10,6 @@ import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.typeLimit.OneOfTwo;
-import openfl.display.BlendMode;
-import openfl.geom.ColorTransform;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -179,15 +177,45 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			return;
 
 		_drawTimeline(camera, index, frameIndex, parentMatrix, drawCommand);
+
+		#if FLX_DEBUG
+		if (FlxAnimate.drawDebugPivot)
+			_drawPivot(camera, parentMatrix);
+		#end
 	}
 
-	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
+	function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
 		_mat.copyFrom(matrix);
 		_mat.concat(parentMatrix);
 		libraryItem.timeline.currentFrame = getFrameIndex(index, frameIndex);
 		libraryItem.timeline.draw(camera, _mat, command);
 	}
+
+	#if FLX_DEBUG
+	function _drawPivot(camera:FlxCamera, parentMatrix:FlxMatrix):Void
+	{
+		var parentX:Float = matrix.transformX(transformationPoint.x, transformationPoint.y);
+		var parentY:Float = matrix.transformY(transformationPoint.x, transformationPoint.y);
+
+		var pivotX = parentMatrix.transformX(parentX, parentY);
+		var pivotY = parentMatrix.transformY(parentX, parentY);
+
+		final view:FlxRect = #if (flixel >= "5.2.0") camera.getViewMarginRect() #else FlxRect.get(camera.viewOffsetX, camera.viewOffsetY,
+			camera.viewOffsetWidth, camera.viewOffsetHeight) #end;
+
+		if ((pivotX + 5) > view.x && pivotX < view.right && (pivotY + 5) > view.y && pivotY < view.bottom)
+		{
+			final gfx = camera.debugLayer.graphics;
+			gfx.lineStyle(1 / camera.zoom, 0xff000000);
+			gfx.beginFill(0xffffffff);
+			gfx.drawCircle(pivotX, pivotY, 5 / camera.zoom);
+			gfx.endFill();
+		}
+
+		view.put();
+	}
+	#end
 
 	inline function get_symbolName():String
 	{

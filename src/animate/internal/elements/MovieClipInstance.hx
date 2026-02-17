@@ -4,13 +4,10 @@ import animate.FlxAnimateFrames.FilterQuality;
 import animate.FlxAnimateJson;
 import animate.internal.elements.AtlasInstance;
 import flixel.FlxCamera;
-import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
-import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
 import openfl.filters.BitmapFilter;
-import openfl.filters.BlurFilter;
 
 class MovieClipInstance extends SymbolInstance
 {
@@ -158,7 +155,7 @@ class MovieClipInstance extends SymbolInstance
 		super.draw(camera, index, frameIndex, parentMatrix, command);
 	}
 
-	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
+	override function _drawTimeline(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
 		if (_bakedFrames != null)
 		{

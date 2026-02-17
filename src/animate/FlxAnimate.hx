@@ -44,6 +44,11 @@ class FlxAnimate extends FlxSprite
 	public static var drawDebugLimbs:Bool = false;
 
 	/**
+	 * Whether to draw the pivot points of limbs in a Texture Atlas animation.
+	 */
+	public static var drawDebugPivot:Bool = false;
+
+	/**
 	 * Change the skew of your sprite's graphic.
 	 */
 	public var skew(default, null):FlxPoint;
@@ -216,7 +221,7 @@ class FlxAnimate extends FlxSprite
 		if (renderStage)
 			drawStage(camera);
 
-		var command = _drawCommand;
+		final command = _drawCommand;
 		command.parentSprite = this;
 		command.transform = colorTransform;
 		command.blend = blend;

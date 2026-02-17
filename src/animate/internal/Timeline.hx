@@ -287,14 +287,15 @@ class Timeline implements IFlxDestroyable
 	}
 
 	@:allow(animate.FlxAnimateController)
-	private function signalFrameChange(frameIndex:Int, animation:FlxAnimateController):Void
+	@:allow(animate.internal.elements.SymbolInstance)
+	private function signalFrameChange(index:Int, animation:FlxAnimateController):Void
 	{
 		for (layer in layers)
 		{
-			var frame = layer.getFrameAtIndex(frameIndex);
+			var frame = layer.getFrameAtIndex(index);
 			if (frame != null)
 			{
-				var isKeyFrame:Bool = (frame.index == frameIndex);
+				var isKeyFrame:Bool = (frame.index == index);
 				if (isKeyFrame)
 				{
 					if (frame.sound != null)

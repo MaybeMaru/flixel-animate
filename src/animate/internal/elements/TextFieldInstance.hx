@@ -62,7 +62,7 @@ class TextFieldInstance extends AtlasInstance
 		redraw();
 	}
 
-	function redraw()
+	function redraw():Void
 	{
 		if (!_dirty)
 			return;
@@ -102,7 +102,7 @@ class TextFieldInstance extends AtlasInstance
 		return text;
 	}
 
-	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand)
+	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
 		if (_dirty)
 		{
@@ -113,7 +113,7 @@ class TextFieldInstance extends AtlasInstance
 		super.draw(camera, index, frameIndex, parentMatrix, command);
 	}
 
-	override function destroy()
+	override function destroy():Void
 	{
 		super.destroy();
 		field = null;
