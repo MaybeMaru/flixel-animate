@@ -21,7 +21,7 @@ class AnimateDrawCommand implements IFlxDestroyable
 	public var blend:Null<BlendMode> = null;
 	public var antialiasing:Null<Bool> = false;
 	public var shader:Null<FlxShader> = null;
-	public var onSymbolDraw:SymbolInstance->Void = null;
+	public var onSymbolDraw:(symbol:SymbolInstance, command:AnimateDrawCommand) -> Void = null;
 
 	public function new() {}
 

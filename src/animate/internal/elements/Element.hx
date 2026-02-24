@@ -134,6 +134,8 @@ class AnimateElement<T> implements IFlxDestroyable
 	{
 		_mat = null;
 		matrix = null;
+		transform = null;
+		_transform = null;
 		parentFrame = null;
 		shader = null;
 		drawCommand = FlxDestroyUtil.destroy(drawCommand);

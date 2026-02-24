@@ -263,7 +263,7 @@ class FlxAnimate extends FlxSprite
 		}
 	}
 
-	public var onSymbolDraw:Null<SymbolInstance->Void>;
+	public var onSymbolDraw:Null<(symbol:SymbolInstance, command:AnimateDrawCommand) -> Void>;
 
 	function prepareAnimateMatrix(matrix:FlxMatrix, camera:FlxCamera, bounds:FlxRect):Void
 	{

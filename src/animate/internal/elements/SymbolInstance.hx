@@ -23,6 +23,8 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 	public function new(?data:SymbolInstanceJson, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
+		_drawCommand = new AnimateDrawCommand();
+
 		super(data, parent, frame);
 		this.elementType = GRAPHIC;
 
@@ -166,10 +168,18 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		return libraryItem.timeline.getBounds(getFrameIndex(frameIndex, 0), null, rect, targetMatrix, includeFilters, useCachedBounds);
 	}
 
+	var _drawCommand:AnimateDrawCommand;
+
 	override function draw(camera:FlxCamera, index:Int, frameIndex:Int, parentMatrix:FlxMatrix, ?command:AnimateDrawCommand):Void
 	{
-		if (command != null && command.onSymbolDraw != null)
-			command.onSymbolDraw(this);
+		if (command != null)
+		{
+			_drawCommand.copyFrom(command);
+			command = _drawCommand;
+
+			if (command.onSymbolDraw != null)
+				command.onSymbolDraw(this, command);
+		}
 
 		drawCommand.prepareCommand(command, this);
 
@@ -242,9 +252,8 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		super.destroy();
 		transformationPoint = FlxDestroyUtil.put(transformationPoint);
 		libraryItem = null;
-		transform = null;
-		_transform = null;
 		_tmpMatrix = null;
+		_drawCommand = null;
 	}
 
 	public function toString():String
