@@ -67,4 +67,29 @@ class SymbolItem implements IFlxDestroyable
 		instance.setColorTransform(1, 1, 1, 1, 0, 0, 0, 0);
 		return instance;
 	}
+
+	/**
+	 * Creates a duplicated copy of the symbol item object.
+	 * Clones everything down to the timeline, layers, elements, etc.
+	 * Also adds it to the library of the texture atlas it comes from.
+	 *
+	 * @param name 	Optional, new name of the duplicated item.
+	 * @return		A new ``SymbolItem`` copy of the library symbol item.
+	 */
+	/*public function duplicate(?name:String):SymbolItem
+		{
+			if (name == null)
+			{
+				name = this.name;
+				while (timeline.parent.existsSymbol(name))
+					name += " copy";
+			}
+
+			var copyItem = new SymbolItem(timeline.clone());
+			copyItem.name = name;
+			copyItem.timeline.libraryItem = copyItem;
+			copyItem.timeline.parent.setSymbol(null, copyItem);
+
+			return copyItem;
+	}*/
 }

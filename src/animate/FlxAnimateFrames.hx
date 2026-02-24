@@ -106,8 +106,19 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 */
 	public function getSymbol(name:String):Null<SymbolItem>
 	{
-		if (existsSymbol(name))
+		if (dictionary.exists(name))
+		{
 			return dictionary.get(name);
+		}
+		else
+		{
+			if (name.contains("/")) // Look for the shortcut name if the symbol is contained in a folder
+			{
+				final shortcut:String = name.split("/").pop();
+				if (dictionary.exists(shortcut))
+					return dictionary.get(shortcut);
+			}
+		}
 
 		if (_isInlined)
 		{
@@ -120,7 +131,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 					if (data.SN == name)
 					{
 						var timeline = new Timeline(data.TL, this, name);
-						return _addItem(new SymbolItem(timeline));
+						return setSymbol(null, new SymbolItem(timeline));
 					}
 				}
 			}
@@ -131,7 +142,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			{
 				var data:TimelineJson = Json.parse(getTextFromPath(path + "/LIBRARY/" + name + ".json"));
 				var timeline = new Timeline(data, this, name);
-				return _addItem(new SymbolItem(timeline));
+				return setSymbol(null, new SymbolItem(timeline));
 			}
 		}
 
@@ -141,23 +152,8 @@ class FlxAnimateFrames extends FlxAtlasFrames
 				return collection.dictionary.get(name);
 		}
 
-		FlxG.log.warn('SymbolItem with name "$name" doesnt exist.');
+		FlxG.log.warn("SymbolItem with name " + '"$name"' + " doesn't exist.");
 		return null;
-	}
-
-	function _addItem(item:SymbolItem):SymbolItem
-	{
-		var id = item.timeline.name;
-		dictionary.set(id, item);
-
-		if (id.contains("/"))
-		{
-			var name = id.split("/").pop();
-			if (!dictionary.exists(name))
-				dictionary.set(name, item);
-		}
-
-		return item;
 	}
 
 	/**
@@ -168,17 +164,31 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 */
 	public function existsSymbol(name:String):Bool
 	{
-		return (dictionary.exists(name));
+		final existsBasic:Bool = dictionary.exists(name);
+		if (existsBasic)
+			return true;
+
+		if (name.contains("/")) // Look for the shortcut name if the symbol is contained in a folder
+		{
+			final shortcut:String = name.split("/").pop();
+			return dictionary.exists(shortcut);
+		}
+
+		return false;
 	}
 
 	/**
 	 * Adds a ``SymbolItem`` object to the texture atlas dictionary/library.
 	 *
-	 * @param name Name of the symbol item to add.
+	 * @param name 			Name of the symbol item to add, uses the timeline name if null.
+	 * @param symbolItem 	``SymbolItem`` object to add.
+	 * @return ``SymbolItem`` object that has been added, for chaining.
 	 */
-	public function setSymbol(name:String, symbolItem:SymbolItem):Void
+	public function setSymbol(?name:String, symbolItem:SymbolItem):SymbolItem
 	{
-		dictionary.set(name, symbolItem);
+		final id:String = name ?? symbolItem.timeline.name;
+		dictionary.set(id, symbolItem);
+		return symbolItem;
 	}
 
 	/**
