@@ -21,6 +21,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	public var libraryItem:SymbolItem;
 	public var blend:BlendMode;
 	public var firstFrame:Int;
+	public var lastFrame:Int;
 	public var loopType:LoopType;
 	public var symbolName(get, never):String;
 	public var transformationPoint:FlxPoint;
@@ -40,6 +41,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
 		this.firstFrame = data.FF;
+		this.lastFrame = data.LF;
 		this.isColored = false;
 
 		this.loopType = switch (data.LP)
@@ -97,17 +99,20 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	 */
 	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
-		var frameIndex = firstFrame + (index - frameIndex);
-		var frameCount = libraryItem.timeline.frameCount;
+		final frameIndex:Int = firstFrame + (index - frameIndex);
+		final frameCount:Int = libraryItem.timeline.frameCount - 1;
+
+		final hasLastFrame:Bool = (lastFrame > -1);
+		final endFrame:Int = hasLastFrame ? FlxMath.minInt(lastFrame, frameCount) : frameCount;
 
 		switch (loopType)
 		{
 			case LoopType.LOOP:
-				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
+				return FlxMath.wrap(frameIndex, hasLastFrame ? firstFrame : 0, endFrame);
 			case LoopType.PLAY_ONCE:
-				frameIndex = FlxMath.minInt(frameIndex, frameCount - 1);
+				return FlxMath.minInt(frameIndex, endFrame);
 			case LoopType.SINGLE_FRAME:
-				frameIndex = firstFrame;
+				return firstFrame;
 		}
 
 		return frameIndex;

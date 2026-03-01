@@ -175,6 +175,7 @@ abstract SymbolInstanceJson(Dynamic)
 {
 	public var SN(get, never):String;
 	public var FF(get, never):Int;
+	public var LF(get, never):Int;
 	public var ST(get, never):String;
 	public var TRP(get, never):TransformationPointJson;
 	public var LP(get, never):String;
@@ -189,6 +190,9 @@ abstract SymbolInstanceJson(Dynamic)
 
 	extern inline function get_FF()
 		return this.FF ?? this.firstFrame ?? 0;
+
+	extern inline function get_LF()
+		return this.LF ?? this.lastFrame ?? -1;
 
 	extern inline function get_ST()
 		return this.ST ?? this.symbolType;
