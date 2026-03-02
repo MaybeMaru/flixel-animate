@@ -99,23 +99,45 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	 */
 	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
-		final frameIndex:Int = firstFrame + (index - frameIndex);
-		final frameCount:Int = libraryItem.timeline.frameCount - 1;
+		var frameIndex:Int = firstFrame + (index - frameIndex);
 
+		final lastIndex:Int = libraryItem.timeline.frameCount - 1;
 		final hasLastFrame:Bool = (lastFrame > -1);
-		final endFrame:Int = hasLastFrame ? FlxMath.minInt(lastFrame, frameCount) : frameCount;
+		final doWrap:Bool = hasLastFrame && (lastFrame < firstFrame);
+
+		final length:Int = (doWrap ? lastIndex : (hasLastFrame ? FlxMath.minInt(lastFrame, lastIndex) : lastIndex)) - firstFrame + 1;
+		final totalLength:Int = doWrap ? length + (lastFrame + 1) : length;
 
 		switch (loopType)
 		{
-			case LoopType.LOOP:
-				return FlxMath.wrap(frameIndex, hasLastFrame ? firstFrame : 0, endFrame);
-			case LoopType.PLAY_ONCE:
-				return FlxMath.minInt(frameIndex, endFrame);
 			case LoopType.SINGLE_FRAME:
 				return firstFrame;
+
+			case LoopType.PLAY_ONCE:
+				frameIndex = FlxMath.minInt((frameIndex - firstFrame), totalLength - 1);
+
+			case LoopType.LOOP:
+				if (doWrap)
+				{
+					frameIndex = ((frameIndex - firstFrame) % totalLength + totalLength) % totalLength;
+				}
+				else
+				{
+					var low:Int = 0;
+					var high:Int = lastIndex;
+					if (hasLastFrame)
+					{
+						low = firstFrame;
+						high = FlxMath.minInt(lastFrame, lastIndex);
+					}
+					return FlxMath.wrap(frameIndex, low, high);
+				}
 		}
 
-		return frameIndex;
+		if (frameIndex < length)
+			return firstFrame + frameIndex;
+
+		return (doWrap ? 0 : -1) + (frameIndex - length);
 	}
 
 	/**
