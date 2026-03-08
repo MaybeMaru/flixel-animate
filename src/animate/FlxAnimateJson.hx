@@ -147,12 +147,24 @@ extern abstract FrameJson(Dynamic)
 		return this.B ?? this.blend;
 }
 
-extern typedef SoundJson =
+extern abstract SoundJson(Dynamic)
 {
-	N:String,
-	SNC:String,
-	LP:String,
-	RP:Int
+	public var N(get, never):String;
+	public var SNC(get, never):String;
+	public var LP(get, never):String;
+	public var RP(get, never):Int;
+
+	inline function get_N()
+		return this.N ?? this.name;
+
+	inline function get_SNC()
+		return this.SNC ?? this.Sync;
+
+	inline function get_LP()
+		return this.LP ?? this.Loop;
+
+	inline function get_RP()
+		return this.RP ?? this.Repeat ?? 0;
 }
 
 extern abstract ElementJson(Dynamic)
