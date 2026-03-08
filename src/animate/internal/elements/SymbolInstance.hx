@@ -16,7 +16,6 @@ using flixel.util.FlxColorTransformUtil;
 class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 {
 	public var libraryItem:SymbolItem;
-	public var blend:BlendMode;
 	public var firstFrame:Int = 0;
 	public var lastFrame:Int = -1;
 	public var loopType:LoopType = LOOP;

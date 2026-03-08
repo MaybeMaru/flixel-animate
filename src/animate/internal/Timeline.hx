@@ -349,9 +349,9 @@ class Timeline implements IFlxDestroyable
 	{
 		for (layer in layers)
 		{
-			final frame:Null<Frame> = layer.getFrameAtIndex(frameIndex);
+			final frame:Null<Frame> = layer.getFrameAtIndex(index);
 			if (frame != null)
-				frame.signalFrameChange(frameIndex, animation);
+				frame.signalFrameChange(index, animation);
 		}
 	}
 
