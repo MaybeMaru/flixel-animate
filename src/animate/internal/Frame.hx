@@ -35,7 +35,10 @@ class Frame implements IFlxDestroyable
 	public var index:Int;
 	public var duration:Int;
 	public var name:String;
+
 	public var sound:Null<FlxSound>;
+	public var soundSync:String; // "event", "play", "stop", "stream"
+
 	public var blend:BlendMode;
 	public var isColored(default, null):Bool;
 
@@ -280,10 +283,12 @@ class Frame implements IFlxDestroyable
 			this._dirty = true;
 		}
 
-		var jsonSound = frame.SND;
-		if (jsonSound != null)
+		var snd = frame.SND;
+		if (snd != null)
 		{
-			final soundPath:String = parent.path + '/LIBRARY/' + jsonSound.N;
+			soundSync = snd.SNC;
+
+			final soundPath:String = parent.path + '/LIBRARY/' + snd.N;
 
 			#if (cpp || hl) // Default sound loading has issues with WAV files on native for some reason
 			if (soundPath.endsWith(".wav"))
@@ -383,6 +388,48 @@ class Frame implements IFlxDestroyable
 		// All frames have been baked
 		if (_dirty && _bakedFrames.isFull())
 			_dirty = false;
+	}
+
+	@:allow(animate.internal.Timeline)
+	private function signalFrameChange(frameIndex:Int, animation:FlxAnimateController):Void
+	{
+		final isKeyFrame:Bool = (index == frameIndex);
+
+		if (isKeyFrame)
+		{
+			if (name.length > 0)
+				animation.onFrameLabel.dispatch(name);
+		}
+
+		if (sound != null)
+		{
+			// if (animation.curAnim != null && animation.curAnim.paused) {
+			// pause the sound too maybe?
+			// }
+
+			switch (soundSync)
+			{
+				case "event":
+					if (isKeyFrame)
+					{
+						@:privateAccess
+						FlxG.sound.play(sound._sound);
+					}
+				case "stop":
+					sound.stop();
+				case "start":
+					if (isKeyFrame)
+						sound.play(true);
+				case "stream":
+					if (isKeyFrame)
+						sound.play(true);
+
+					var streamTime = (frameIndex - index) * (1 / animation.curAnim.frameRate) * 1000;
+					var streamDiff = Math.abs(streamTime - sound.time);
+					if (streamDiff >= 50)
+						sound.time = streamTime;
+			}
+		}
 	}
 
 	@:allow(animate.internal.elements.SymbolInstance)

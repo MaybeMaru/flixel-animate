@@ -3,10 +3,16 @@ package animate.internal;
 import animate.FlxAnimateJson.TimelineJson;
 import animate.internal.elements.Element;
 import flixel.FlxCamera;
+import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
+import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
+import flixel.math.FlxRect;
+import flixel.sound.FlxSound;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.typeLimit.OneOfTwo;
 
@@ -343,19 +349,9 @@ class Timeline implements IFlxDestroyable
 	{
 		for (layer in layers)
 		{
-			var frame = layer.getFrameAtIndex(index);
+			final frame:Null<Frame> = layer.getFrameAtIndex(frameIndex);
 			if (frame != null)
-			{
-				var isKeyFrame:Bool = (frame.index == index);
-				if (isKeyFrame)
-				{
-					if (frame.sound != null)
-						frame.sound.play(true);
-
-					if (frame.name.length > 0)
-						animation.onFrameLabel.dispatch(frame.name);
-				}
-			}
+				frame.signalFrameChange(frameIndex, animation);
 		}
 	}
 

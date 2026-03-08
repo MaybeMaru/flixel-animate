@@ -272,12 +272,24 @@ extern abstract TweenKeyframe(Dynamic)
 		return this.I ?? this.index;
 }
 
-extern typedef SoundJson =
+extern abstract SoundJson(Dynamic)
 {
-	N:String,
-	SNC:String,
-	LP:String,
-	RP:Int
+	public var N(get, never):String;
+	public var SNC(get, never):String;
+	public var LP(get, never):String;
+	public var RP(get, never):Int;
+
+	inline function get_N()
+		return this.N ?? this.name;
+
+	inline function get_SNC()
+		return this.SNC ?? this.Sync;
+
+	inline function get_LP()
+		return this.LP ?? this.Loop;
+
+	inline function get_RP()
+		return this.RP ?? this.Repeat ?? 0;
 }
 
 extern abstract ElementJson(Dynamic)
@@ -300,6 +312,7 @@ abstract SymbolInstanceJson(Dynamic)
 {
 	public var SN(get, never):String;
 	public var FF(get, never):Int;
+	public var LF(get, never):Int;
 	public var ST(get, never):String;
 	public var TRP(get, never):PointJson;
 	public var LP(get, never):String;
@@ -314,6 +327,9 @@ abstract SymbolInstanceJson(Dynamic)
 
 	extern inline function get_FF()
 		return this.FF ?? this.firstFrame ?? 0;
+
+	extern inline function get_LF()
+		return this.LF ?? this.lastFrame ?? -1;
 
 	extern inline function get_ST()
 		return this.ST ?? this.symbolType;

@@ -16,7 +16,9 @@ using flixel.util.FlxColorTransformUtil;
 class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 {
 	public var libraryItem:SymbolItem;
+	public var blend:BlendMode;
 	public var firstFrame:Int = 0;
+	public var lastFrame:Int = -1;
 	public var loopType:LoopType = LOOP;
 	public var symbolName(get, never):String;
 	public var transformationPoint:FlxPoint;
@@ -36,6 +38,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix(this.matrix);
 		this.firstFrame = data.FF;
+		this.lastFrame = data.LF;
 		this.isColored = false;
 
 		this.loopType = switch (data.LP)
@@ -106,20 +109,44 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	 */
 	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
-		var frameIndex = firstFrame + (index - frameIndex);
-		var frameCount = libraryItem.timeline.frameCount;
+		frameIndex = firstFrame + (index - frameIndex);
+
+		final lastIndex:Int = libraryItem.timeline.frameCount - 1;
+		final hasLastFrame:Bool = (lastFrame > -1);
+		final doWrap:Bool = hasLastFrame && (lastFrame < firstFrame);
+
+		final length:Int = (doWrap ? lastIndex : (hasLastFrame ? FlxMath.minInt(lastFrame, lastIndex) : lastIndex)) - firstFrame + 1;
+		final totalLength:Int = doWrap ? length + (lastFrame + 1) : length;
 
 		switch (loopType)
 		{
 			case LoopType.LOOP:
-				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
+				if (doWrap)
+				{
+					frameIndex = ((frameIndex - firstFrame) % totalLength + totalLength) % totalLength;
+				}
+				else
+				{
+					if (hasLastFrame)
+						return FlxMath.wrap(frameIndex, firstFrame, FlxMath.minInt(lastFrame, lastIndex));
+
+					return FlxMath.wrap(frameIndex, 0, lastIndex);
+				}
+
 			case LoopType.PLAY_ONCE:
-				frameIndex = FlxMath.minInt(frameIndex, frameCount - 1);
+				frameIndex = FlxMath.minInt((frameIndex - firstFrame), totalLength - 1);
+
 			case LoopType.SINGLE_FRAME:
-				frameIndex = firstFrame;
+				return firstFrame;
 		}
 
-		return frameIndex;
+		if (frameIndex < length)
+			return firstFrame + frameIndex;
+
+		if (doWrap)
+			return (frameIndex - length);
+
+		return -1 + (frameIndex - length);
 	}
 
 	/**
