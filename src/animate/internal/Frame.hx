@@ -17,6 +17,7 @@ import flixel.util.FlxDestroyUtil;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
 import openfl.media.Sound;
+import openfl.utils.Assets;
 
 using StringTools;
 
@@ -38,6 +39,8 @@ class Frame implements IFlxDestroyable
 
 	public var sound:Null<FlxSound>;
 	public var soundSync:String; // "event", "play", "stop", "stream"
+
+	var _soundData:Null<Sound>;
 
 	public var blend:BlendMode;
 
@@ -254,19 +257,22 @@ class Frame implements IFlxDestroyable
 			soundSync = snd.SNC;
 
 			final soundPath:String = parent.path + '/LIBRARY/' + snd.N;
-
-			#if (cpp || hl) // Default sound loading has issues with WAV files on native for some reason
-			if (soundPath.endsWith(".wav"))
+			if (FlxAnimateAssets.exists(soundPath, SOUND))
 			{
-				var bytes = FlxAnimateAssets.getBytes(soundPath);
-				var buffer = lime.media.AudioBuffer.fromBytes(bytes);
-				var openflSound = Sound.fromAudioBuffer(buffer);
-				sound = FlxG.sound.load(openflSound);
-			}
-			else
-			#end
-			{
-				sound = FlxG.sound.load(soundPath);
+				#if (cpp || hl) // Default sound loading has issues with WAV files on native for some reason
+				if (soundPath.endsWith(".wav"))
+				{
+					var bytes = FlxAnimateAssets.getBytes(soundPath);
+					var buffer = lime.media.AudioBuffer.fromBytes(bytes);
+					_soundData = Sound.fromAudioBuffer(buffer);
+					sound = FlxG.sound.load(_soundData);
+				}
+				else
+				#end
+				{
+					_soundData = Assets.getSound(soundPath);
+					sound = FlxG.sound.load(_soundData);
+				}
 			}
 		}
 	}
@@ -352,10 +358,8 @@ class Frame implements IFlxDestroyable
 			{
 				case "event":
 					if (isKeyFrame)
-					{
-						@:privateAccess
-						FlxG.sound.play(sound._sound);
-					}
+						FlxG.sound.play(_soundData);
+
 				case "stop":
 					sound.stop();
 				case "start":
