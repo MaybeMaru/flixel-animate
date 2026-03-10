@@ -423,6 +423,7 @@ class Frame implements IFlxDestroyable
 	{
 		elements = FlxDestroyUtil.destroyArray(elements);
 		sound = FlxDestroyUtil.destroy(sound);
+		_soundData = null;
 		layer = null;
 
 		if (_bakedFrames != null)
