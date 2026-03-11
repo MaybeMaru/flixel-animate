@@ -251,6 +251,7 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
+		#if FLX_SOUND_SYSTEM
 		var snd = frame.SND;
 		if (snd != null)
 		{
@@ -275,6 +276,7 @@ class Frame implements IFlxDestroyable
 				}
 			}
 		}
+		#end
 	}
 
 	@:allow(animate.internal.Layer)
@@ -348,6 +350,7 @@ class Frame implements IFlxDestroyable
 				animation.onFrameLabel.dispatch(name);
 		}
 
+		#if FLX_SOUND_SYSTEM
 		if (sound != null)
 		{
 			// if (animation.curAnim != null && animation.curAnim.paused) {
@@ -375,6 +378,7 @@ class Frame implements IFlxDestroyable
 						sound.time = streamTime;
 			}
 		}
+		#end
 	}
 
 	@:allow(animate.internal.elements.SymbolInstance)
