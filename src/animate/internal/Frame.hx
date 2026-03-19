@@ -350,27 +350,21 @@ class Frame implements IFlxDestroyable
 		// This is used as a way to save on the necessary bitmaps to render a mask
 		if (_bakedIndices == null)
 		{
-			var isSimpleRender:Bool = true;
-			for (element in elements)
-			{
-				if (element is AtlasInstance)
-					continue;
-
-				if (!element.toSymbolInstance().isSimpleSymbol())
-				{
-					isSimpleRender = false;
-					break;
-				}
-			}
-
-			if (isSimpleRender)
+			if (this.isSimpleRender())
 			{
 				_bakedIndices = [];
 				for (i in 0...duration)
 				{
 					// only render the neccesary frame indices
-					var parentFrame = (layer.parentLayer == null) ? this : layer.parentLayer.getFrameAtIndex(index + i);
-					_bakedIndices.push(parentFrame == null ? -1 : parentFrame.index);
+					final parentFrame:Null<Frame> = (layer.parentLayer == null) ? this : layer.parentLayer.getFrameAtIndex(this.index + i);
+					if (parentFrame == null)
+					{
+						_bakedIndices.push(-1);
+					}
+					else
+					{
+						_bakedIndices.push(parentFrame.isSimpleRender() ? parentFrame.index : i);
+					}
 				}
 			}
 			else
@@ -396,6 +390,19 @@ class Frame implements IFlxDestroyable
 		// All frames have been baked
 		if (_dirty && _bakedFrames.isFull())
 			_dirty = false;
+	}
+
+	private function isSimpleRender():Bool
+	{
+		for (element in elements)
+		{
+			if (element is SymbolInstance)
+			{
+				if (!element.toSymbolInstance().isSimpleSymbol())
+					return false;
+			}
+		}
+		return true;
 	}
 
 	@:allow(animate.internal.Timeline)
