@@ -133,15 +133,16 @@ class AnimateDrawCommand implements IFlxDestroyable
 	}
 
 	// adding my own color transform concat because the operators used by openfl's function assigns more variables
+	// also because it turns out openfl's color transform concat is inverted compared to the usage it has in flixel-animate
 	// i know its stupid but trust me on this one
 
 	@:noCompletion
 	public static function concatTransform(first:ColorTransform, second:ColorTransform):Void
 	{
-		first.redOffset = second.redOffset * first.redMultiplier + first.redOffset;
-		first.greenOffset = second.greenOffset * first.greenMultiplier + first.greenOffset;
-		first.blueOffset = second.blueOffset * first.blueMultiplier + first.blueOffset;
-		first.alphaOffset = second.alphaOffset * first.alphaMultiplier + first.alphaOffset;
+		first.redOffset = first.redOffset * second.redMultiplier + second.redOffset;
+		first.greenOffset = first.greenOffset * second.greenMultiplier + second.greenOffset;
+		first.blueOffset = first.blueOffset * second.blueMultiplier + second.blueOffset;
+		first.alphaOffset = first.alphaOffset * second.alphaMultiplier + second.alphaOffset;
 
 		first.redMultiplier = first.redMultiplier * second.redMultiplier;
 		first.greenMultiplier = first.greenMultiplier * second.greenMultiplier;
