@@ -117,8 +117,6 @@ class RenderTexture implements IFlxDestroyable
 		_prepareTexture(width, height);
 		graphic.bitmap = _currentBitmap;
 		graphic.imageFrame.frame.frame.set(0, 0, width, height);
-
-		_currentBitmap.__fillRect(_currentBitmap.rect, 0, true);
 	}
 
 	/**
@@ -154,7 +152,24 @@ class RenderTexture implements IFlxDestroyable
 		_renderer.__worldColorTransform.__invert();
 		_renderer.__setRenderTarget(_currentBitmap);
 
-		_currentBitmap.__drawGL(_camera.canvas, _renderer);
+		var context = _renderer.__context3D;
+		var cacheRTT = context.__state.renderToTexture;
+		var cacheRTTDepthStencil = context.__state.renderToTextureDepthStencil;
+		var cacheRTTAntiAlias = context.__state.renderToTextureAntiAlias;
+		var cacheRTTSurfaceSelector = context.__state.renderToTextureSurfaceSelector;
+
+		context.setRenderToTexture(_currentBitmap.getTexture(context), true);
+		context.clear(0, 0, 0, 0);
+		_renderer.__render(_camera.canvas);
+
+		if (cacheRTT != null)
+		{
+			context.setRenderToTexture(cacheRTT, cacheRTTDepthStencil, cacheRTTAntiAlias, cacheRTTSurfaceSelector);
+		}
+		else
+		{
+			context.setRenderToBackBuffer();
+		}
 	}
 
 	function _prepareTexture(width:Int, height:Int):Void
