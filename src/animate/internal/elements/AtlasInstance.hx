@@ -38,7 +38,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	{
 		super(data, parent, frame);
 
-		this.tileMatrix = new FlxMatrix();
+		this.tileMatrix = FilterRenderer.matrixPool.get();
 		this.elementType = ATLAS;
 
 		if (data != null)
@@ -89,6 +89,8 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	override function destroy():Void
 	{
 		super.destroy();
+		FilterRenderer.matrixPool.release(tileMatrix);
+		tileMatrix = null;
 		frame = null;
 		sourceFrame = null;
 	}
@@ -184,6 +186,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 	}
 
 	#if (FLX_DEBUG && flash)
+	@:allow(animate.internal.elements.SymbolInstance)
 	static final _fillRect = new openfl.geom.Rectangle();
 	#end
 
@@ -194,7 +197,7 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 		var cBounds = camera.transformRect(bounds.copyTo(FlxRect.get()));
 		FlxG.signals.postDraw.addOnce(() ->
 		{
-			var buffer = FlxG.camera.buffer;
+			var buffer = camera.buffer;
 			_fillRect.setTo(cBounds.x, cBounds.y, cBounds.width, 1);
 			buffer.fillRect(_fillRect, color);
 			_fillRect.setTo(cBounds.x, cBounds.y + cBounds.height - 1, cBounds.width, 1);

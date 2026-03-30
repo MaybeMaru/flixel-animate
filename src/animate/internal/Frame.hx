@@ -96,6 +96,22 @@ class Frame implements IFlxDestroyable
 	}
 
 	/**
+	 * Removes an ``Element`` object from the elements list of the frame.
+	 * If the frame is masked it will require a redraw.
+	 *
+	 * @param element Element object to remove from the frame. Won't do anything if it's not part of it.
+	 */
+	public function remove(element:Element)
+	{
+		if (elements.indexOf(element) == -1)
+			return;
+
+		element.parentFrame = null;
+		elements.remove(element);
+		setDirty();
+	}
+
+	/**
 	 * Changes the filters of the movieclip.
 	 * Requires the movieclip to be rebaked when called.
 	 *

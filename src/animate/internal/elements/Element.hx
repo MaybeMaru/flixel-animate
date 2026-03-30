@@ -9,8 +9,10 @@ import flixel.math.FlxRect;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
+import flixel.util.FlxPool;
 import openfl.display.BlendMode;
 import openfl.geom.ColorTransform;
+import openfl.geom.Matrix;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -39,8 +41,8 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	public function new(?data:T, ?parent:FlxAnimateFrames, ?frame:Frame)
 	{
-		_mat = new FlxMatrix();
-		matrix = new FlxMatrix();
+		_mat = FilterRenderer.matrixPool.get();
+		matrix = FilterRenderer.matrixPool.get();
 		blend = null;
 		parentFrame = frame;
 		visible = true;
@@ -132,8 +134,12 @@ class AnimateElement<T> implements IFlxDestroyable
 
 	public function destroy()
 	{
+		FilterRenderer.matrixPool.release(_mat);
 		_mat = null;
+
+		FilterRenderer.matrixPool.release(matrix);
 		matrix = null;
+
 		transform = null;
 		_transform = null;
 		parentFrame = null;

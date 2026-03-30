@@ -1,5 +1,6 @@
 package animate;
 
+import animate.internal.FilterRenderer;
 import animate.internal.filters.AdjustColorFilter;
 import flixel.FlxG;
 import flixel.math.FlxMath;
@@ -887,7 +888,7 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 
 	extern public inline function toMatrix(?result:FlxMatrix):FlxMatrix
 	{
-		result ??= new FlxMatrix();
+		result ??= FilterRenderer.matrixPool.get();
 		result.setTo(a, b, c, d, tx, ty);
 		return result;
 	}

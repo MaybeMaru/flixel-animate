@@ -242,11 +242,23 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		if ((pivotX + 5) > view.x && pivotX < view.right && (pivotY + 5) > view.y && pivotY < view.bottom)
 		{
+			#if flash
+			flixel.FlxG.signals.postDraw.addOnce(() ->
+			{
+				@:privateAccess final point = camera.transformPoint(FlxPoint.get(pivotX, pivotY));
+				AtlasInstance._fillRect.setTo(point.x - 3.5, point.y - 3.5, 7, 7);
+				camera.buffer.fillRect(AtlasInstance._fillRect, 0xff000000);
+				AtlasInstance._fillRect.setTo(point.x - 2.5, point.y - 2.5, 5, 5);
+				camera.buffer.fillRect(AtlasInstance._fillRect, 0xffffffff);
+				point.put();
+			});
+			#else
 			final gfx = camera.debugLayer.graphics;
 			gfx.lineStyle(1 / camera.zoom, 0xff000000);
 			gfx.beginFill(0xffffffff);
 			gfx.drawCircle(pivotX, pivotY, 5 / camera.zoom);
 			gfx.endFill();
+			#end
 		}
 
 		view.put();

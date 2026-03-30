@@ -25,6 +25,7 @@ import openfl.geom.ColorTransform;
 import openfl.geom.Matrix;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
+import openfl.utils.ObjectPool;
 #if !flash
 import animate.internal.filters.MaskShader;
 import openfl.display.Graphics;
@@ -143,7 +144,9 @@ class FilterRenderer
 		var element = new AtlasInstance();
 		element.frame = frame;
 		element.blend = blend;
-		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
+
+		element.matrix = matrixPool.get();
+		element.matrix.setTo(1, 0, 0, 1, intersectX, intersectY);
 
 		// we wont need to keep the masker anymore
 		FlxDestroyUtil.dispose(masker);
@@ -194,15 +197,17 @@ class FilterRenderer
 		final lastDirtyCall:Bool = Frame.__isDirtyCall;
 		Frame.__isDirtyCall = true;
 
-		var cam = CamPool.get();
+		var cam = cameraPool.get();
 		var gfx = cam.canvas.graphics;
-		draw(cam, new FlxMatrix());
+		var matrix = matrixPool.get();
+		draw(cam, matrix);
 
 		var bitmap:Null<BitmapData> = renderGfx(gfx);
 
 		cam.clearDrawStack();
 		gfx.clear();
-		cam.put();
+		cameraPool.release(cam);
+		matrixPool.release(matrix);
 
 		Frame.__isDirtyCall = lastDirtyCall;
 
@@ -289,7 +294,7 @@ class FilterRenderer
 		var xOffset:Float = ((resultFilteredBounds.width * scale.x) - filteredBounds.width) / 2;
 		var yOffset:Float = ((resultFilteredBounds.height * scale.y) - filteredBounds.height) / 2;
 
-		var mat = new FlxMatrix();
+		var mat = matrixPool.get();
 		mat.scale(scale.x, scale.y);
 		mat.translate(filteredBounds.x - xOffset, filteredBounds.y - yOffset);
 
@@ -511,8 +516,7 @@ class FilterRenderer
 	#else
 	// Basic Flash filter baking impl
 	// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
-	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint,
-			quality:FilterQuality = MEDIUM):AtlasInstance
+	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>):AtlasInstance
 	{
 		var filteredBounds:FlxRect = movieclip.getBounds(0);
 		expandFilterBounds(filteredBounds, filters);
@@ -533,7 +537,7 @@ class FilterRenderer
 		for (filter in filters)
 			bitmap.applyFilter(bitmap, rect, point, filter);
 
-		var mat = new FlxMatrix();
+		var mat = matrixPool.get();
 		mat.translate(filteredBounds.left, filteredBounds.top);
 
 		var element = new AtlasInstance();
@@ -579,7 +583,9 @@ class FilterRenderer
 
 		var element = new AtlasInstance();
 		element.frame = frame;
-		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
+
+		element.matrix = matrixPool.get();
+		element.matrix.setTo(1, 0, 0, 1, intersectX, intersectY);
 
 		FlxDestroyUtil.dispose(masker);
 
@@ -588,7 +594,8 @@ class FilterRenderer
 
 	static function getBitmap(draw:(FlxCamera, FlxMatrix) -> Void, rect:FlxRect, forceDirty:Bool = true)
 	{
-		var cam = CamPool.getForBounds(rect);
+		var cam = cameraPool.get();
+		cam.setSize(Math.ceil(Math.max(rect.width, cam.width)), Math.ceil(Math.max(rect.height, cam.height)));
 
 		if ((cam.buffer.width < rect.width) || (cam.buffer.height < rect.height))
 		{
@@ -601,7 +608,7 @@ class FilterRenderer
 		cam.buffer.lock();
 		cam.buffer.fillRect(new Rectangle(0, 0, cam.buffer.width, cam.buffer.height), FlxColor.TRANSPARENT);
 
-		var mat = new FlxMatrix();
+		var mat = matrixPool.get();
 		mat.translate(-rect.left, -rect.top);
 
 		final lastDirtyCall:Bool = Frame.__isDirtyCall;
@@ -611,7 +618,7 @@ class FilterRenderer
 
 		var bitmap = new BitmapData(Std.int(rect.width), Std.int(rect.height), true, 0);
 		bitmap.copyPixels(cam.buffer, bitmap.rect, new Point(), null, null, true);
-		cam.put();
+		cameraPool.release(cam);
 		cam.buffer.unlock();
 
 		return bitmap;
@@ -718,46 +725,7 @@ class FilterRenderer
 
 		return baseBounds;
 	}
-}
 
-class CamPool extends FlxCamera implements IFlxPooled
-{
-	public static var pool(get, null):FlxPool<CamPool>;
-
-	inline static function get_pool():FlxPool<CamPool>
-	{
-		if (pool == null)
-			pool = new FlxPool(#if (flixel >= "5.5.0") () -> new CamPool() #else CamPool #end);
-		return pool;
-	}
-
-	public function new()
-	{
-		super();
-		pixelPerfectRender = true;
-	}
-
-	// TODO: use this as a replacement of Frame.__isDirtyCall
-	public static function getForBounds(rect:FlxRect)
-	{
-		var cam = get();
-		cam.setSize(Math.ceil(Math.max(rect.width, cam.width)), Math.ceil(Math.max(rect.height, cam.height)));
-		return cam;
-	}
-
-	public static function get()
-	{
-		return pool.get();
-	}
-
-	public function put()
-	{
-		pool.putUnsafe(this);
-	}
-
-	public function putWeak() {}
-
-	override function destroy() {}
-
-	private var _inPool:Bool;
+	public static final matrixPool:ObjectPool<FlxMatrix> = new ObjectPool<FlxMatrix>(() -> new FlxMatrix(), (m) -> m.identity());
+	public static final cameraPool:ObjectPool<FlxCamera> = new ObjectPool<FlxCamera>(() -> new FlxCamera(), (c) -> c);
 }
