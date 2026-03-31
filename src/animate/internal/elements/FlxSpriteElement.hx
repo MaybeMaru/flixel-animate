@@ -151,7 +151,8 @@ typedef FlxBasicElement = FlxTypedElement<FlxBasic>;
 class FlxTypedElement<T:FlxBasic> extends Element
 {
 	public var basic:T;
-	public var active:Bool;
+	public var active:Bool = true;
+	public var destroyObject:Bool = false;
 
 	var _camera:FlxCamera;
 
@@ -159,12 +160,13 @@ class FlxTypedElement<T:FlxBasic> extends Element
 	{
 		super(null, null, null);
 		this.basic = basic;
-		this.active = true;
 	}
 
 	override function destroy():Void
 	{
 		super.destroy();
+		if (destroyObject)
+			FlxDestroyUtil.destroy(basic);
 		basic = null;
 		_camera = null;
 	}
