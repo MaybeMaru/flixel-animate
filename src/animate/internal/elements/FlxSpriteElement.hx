@@ -55,15 +55,7 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 			}
 			else
 			{
-				_transform.redMultiplier = color.redMultiplier;
-				_transform.greenMultiplier = color.greenMultiplier;
-				_transform.blueMultiplier = color.blueMultiplier;
-				_transform.alphaMultiplier = color.alphaMultiplier;
-
-				_transform.redOffset = color.redOffset;
-				_transform.greenOffset = color.greenOffset;
-				_transform.blueOffset = color.blueOffset;
-				_transform.alphaOffset = color.alphaOffset;
+				AnimateDrawCommand.copyTransform(_transform, color);
 			}
 		}
 
@@ -73,16 +65,7 @@ class FlxSpriteElement extends FlxTypedElement<FlxSprite>
 		_blend = basic.blend;
 		_antialiasing = basic.antialiasing;
 
-		var color = basic.colorTransform;
-		_colorTransform.redMultiplier = color.redMultiplier;
-		_colorTransform.greenMultiplier = color.greenMultiplier;
-		_colorTransform.blueMultiplier = color.blueMultiplier;
-		_colorTransform.alphaMultiplier = color.alphaMultiplier;
-
-		_colorTransform.redOffset = color.redOffset;
-		_colorTransform.greenOffset = color.greenOffset;
-		_colorTransform.blueOffset = color.blueOffset;
-		_colorTransform.alphaOffset = color.alphaOffset;
+		AnimateDrawCommand.copyTransform(_colorTransform, basic.colorTransform);
 
 		// apply transformations
 		super.applyObjectTransform(camera, parentMatrix, command);
