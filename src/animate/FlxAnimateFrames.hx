@@ -1,8 +1,11 @@
 package animate;
 
 import animate.FlxAnimateJson;
+import animate.internal.Frame;
+import animate.internal.Layer;
 import animate.internal.SymbolItem;
 import animate.internal.Timeline;
+import animate.internal.elements.AtlasInstance;
 import animate.internal.elements.SymbolInstance;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
@@ -110,7 +113,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 	 * @param name Name of the symbol item to return.
 	 * @return ``SymbolItem`` found with the given name, null if not found.
 	 */
-	public function getSymbol(name:String):Null<SymbolItem>
+	public function getSymbol(name:String, ?atlasInstance:AtlasInstanceJson):Null<SymbolItem>
 	{
 		if (dictionary.exists(name))
 		{
@@ -156,6 +159,25 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		{
 			if (collection.dictionary.exists(name))
 				return collection.dictionary.get(name);
+		}
+
+		// Legacy check for Animate 2018 Texture Atlas
+		if (atlasInstance != null)
+		{
+			var timeline = new Timeline(null, this, name);
+			var layer = new Layer(timeline);
+			var frame = new Frame(layer);
+			frame.elements.push(new AtlasInstance(atlasInstance, this, frame));
+
+			layer.frames.push(frame);
+			@:privateAccess layer.frameIndices.push(0);
+			timeline.layers.push(layer);
+			timeline.frameCount = 1;
+
+			@:privateAccess
+			timeline._bounds = timeline.getWholeBounds(false, timeline._bounds);
+
+			return setSymbol(name, new SymbolItem(timeline));
 		}
 
 		FlxG.log.warn("SymbolItem with name " + '"$name"' + " doesn't exist.");
