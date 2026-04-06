@@ -166,10 +166,11 @@ class FlxAnimateFrames extends FlxAtlasFrames
 			layer.frames.push(frame);
 			@:privateAccess layer.frameIndices.push(0);
 			timeline.layers.push(layer);
+			timeline.frameCount = 1;
 
 			@:privateAccess
 			timeline._bounds = timeline.getWholeBounds(false, timeline._bounds);
-			timeline.frameCount = 1;
+
 			return setSymbol(name, new SymbolItem(timeline));
 		}
 
