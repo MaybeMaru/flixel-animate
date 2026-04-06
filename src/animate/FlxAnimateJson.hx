@@ -198,7 +198,7 @@ abstract SymbolInstanceJson(Dynamic)
 	public var F(get, never):Null<Array<FilterJson>>;
 
 	@:noCompletion
-	public var bitmap(get, never):Null<AtlasInstanceJson>;
+	public var BM(get, never):Null<AtlasInstanceJson>; // legacy 2018 texture atlas
 
 	extern inline function get_SN()
 		return this.SN ?? this.SYMBOL_name;
@@ -251,9 +251,9 @@ abstract SymbolInstanceJson(Dynamic)
 		return this.F = FilterJson.resolve(filters);
 	}
 
-	extern inline function get_bitmap()
+	extern inline function get_BM()
 	{
-		return this.bitmap;
+		return this.BM ?? this.bitmap;
 	}
 }
 
@@ -737,7 +737,8 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 			return from3Dto2D(mat3D);
 		}
 
-		var pos:PointJson = input.Position;
+		// legacy 2018 texture atlas
+		var pos:PointJson = input.POS ?? input.Position;
 		if (pos != null)
 		{
 			return [1, 0, 0, 1, pos.x, pos.y];
