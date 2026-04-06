@@ -38,7 +38,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (data == null)
 			return;
 
-		this.libraryItem = parent.getSymbol(data.SN);
+		this.libraryItem = parent.getSymbol(data.SN, data.bitmap);
 		this.matrix = data.MX.toMatrix();
 		this.firstFrame = data.FF;
 		this.lastFrame = data.LF;
@@ -51,7 +51,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			default: LoopType.LOOP;
 		}
 
-		var trp:Null<TransformationPointJson> = data.TRP;
+		final trp:Null<PointJson> = data.TRP;
 		this.transformationPoint = FlxPoint.get(trp?.x ?? 0.0, trp?.y ?? 0.0);
 
 		if (libraryItem == null)

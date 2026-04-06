@@ -189,13 +189,16 @@ abstract SymbolInstanceJson(Dynamic)
 	public var FF(get, never):Int;
 	public var LF(get, never):Int;
 	public var ST(get, never):String;
-	public var TRP(get, never):TransformationPointJson;
+	public var TRP(get, never):PointJson;
 	public var LP(get, never):String;
 	public var MX(get, never):MatrixJson;
 
 	public var B(get, never):Null< #if flash Int #else BlendMode #end>;
 	public var C(get, never):Null<ColorJson>;
 	public var F(get, never):Null<Array<FilterJson>>;
+
+	@:noCompletion
+	public var bitmap(get, never):Null<AtlasInstanceJson>;
 
 	extern inline function get_SN()
 		return this.SN ?? this.SYMBOL_name;
@@ -246,6 +249,11 @@ abstract SymbolInstanceJson(Dynamic)
 		if (filters == null || filters is Array)
 			return filters;
 		return this.F = FilterJson.resolve(filters);
+	}
+
+	extern inline function get_bitmap()
+	{
+		return this.bitmap;
 	}
 }
 
@@ -688,7 +696,7 @@ extern abstract ColorJson(Dynamic)
 		return this.BRT ?? this.brightness;
 }
 
-extern typedef TransformationPointJson =
+extern typedef PointJson =
 {
 	x:Float,
 	y:Float
@@ -709,21 +717,33 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 		if (mat2D != null)
 			return mat2D;
 
-		var m:Dynamic = input.M3D ?? input.Matrix3D;
-		var mat3D:Array<Float>;
-
-		if (m is Array)
+		var m3d:Dynamic = input.M3D ?? input.Matrix3D;
+		if (m3d != null)
 		{
-			mat3D = m;
-		}
-		else
-		{
-			mat3D = [
-				m.m00, m.m01, m.m02, m.m03, m.m10, m.m11, m.m12, m.m13, m.m20, m.m21, m.m22, m.m23, m.m30, m.m31, m.m32, m.m33
-			];
+			var mat3D:Array<Float>;
+
+			if (m3d is Array)
+			{
+				mat3D = m3d;
+			}
+			else
+			{
+				mat3D = [
+					m3d.m00, m3d.m01, m3d.m02, m3d.m03, m3d.m10, m3d.m11, m3d.m12, m3d.m13, m3d.m20, m3d.m21, m3d.m22, m3d.m23, m3d.m30, m3d.m31, m3d.m32,
+					m3d.m33
+				];
+			}
+
+			return from3Dto2D(mat3D);
 		}
 
-		return from3Dto2D(mat3D);
+		var pos:PointJson = input.Position;
+		if (pos != null)
+		{
+			return [1, 0, 0, 1, pos.x, pos.y];
+		}
+
+		return [1, 0, 0, 1, 0, 0];
 	}
 
 	public static function from3Dto2D(mat3D:Array<Float>):Array<Float>

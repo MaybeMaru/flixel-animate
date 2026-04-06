@@ -202,8 +202,8 @@ class AtlasInstance extends AnimateElement<AtlasInstanceJson>
 			cBounds.put();
 		});
 		#else
-
-		final view:FlxRect = #if (flixel >= "5.2.0") camera.getViewMarginRect() #else FlxRect.get(camera.viewOffsetX, camera.viewOffsetY, camera.viewOffsetWidth, camera.viewOffsetHeight) #end;
+		final view:FlxRect = #if (flixel >= "5.2.0") camera.getViewMarginRect() #else FlxRect.get(camera.viewOffsetX, camera.viewOffsetY,
+			camera.viewOffsetWidth, camera.viewOffsetHeight) #end;
 		final rect = bounds.copyTo(FlxRect.get());
 		view.left -= 2;
 		view.top -= 2;
