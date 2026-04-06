@@ -165,17 +165,9 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		if (atlasInstance != null)
 		{
 			var timeline = new Timeline(null, this, name);
-			var layer = new Layer(timeline);
-			var frame = new Frame(layer);
-			frame.elements.push(new AtlasInstance(atlasInstance, this, frame));
-
-			layer.frames.push(frame);
-			@:privateAccess layer.frameIndices.push(0);
-			timeline.layers.push(layer);
-			timeline.frameCount = 1;
-
-			@:privateAccess
-			timeline._bounds = timeline.getWholeBounds(false, timeline._bounds);
+			var layer = timeline.addNewLayer("Layer 1", 1);
+			layer.frames[0].elements.push(new AtlasInstance(atlasInstance, this, layer.frames[0]));
+			timeline.refresh();
 
 			return setSymbol(name, new SymbolItem(timeline));
 		}
