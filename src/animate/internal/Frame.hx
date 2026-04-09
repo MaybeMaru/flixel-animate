@@ -8,6 +8,7 @@ import animate.internal.elements.MovieClipInstance;
 import animate.internal.elements.SymbolInstance;
 import flixel.FlxCamera;
 import flixel.FlxG;
+import flixel.math.FlxMath;
 import flixel.math.FlxMatrix;
 import flixel.math.FlxRect;
 import flixel.util.FlxColor;
@@ -372,14 +373,28 @@ class Frame implements IFlxDestroyable
 				for (i in 0...duration)
 				{
 					// only render the neccesary frame indices
-					final parentFrame:Null<Frame> = (layer.parentLayer == null) ? this : layer.parentLayer.getFrameAtIndex(this.index + i);
-					if (parentFrame == null)
+					if (layer.parentLayer != null)
 					{
-						_bakedIndices.push(-1);
+						var frame = layer.parentLayer.getFrameAtIndex(this.index + i);
+						if (frame != null)
+						{
+							// if (frame.isSimpleRender())
+							// {
+							//	_bakedIndices.push(this.index - frame.index); // TODO: double check and fix this
+							// }
+							// else
+							// {
+							_bakedIndices.push(i);
+							// }
+						}
+						else
+						{
+							_bakedIndices.push(-1);
+						}
 					}
 					else
 					{
-						_bakedIndices.push(parentFrame.isSimpleRender() ? parentFrame.index : i);
+						_bakedIndices.push(0);
 					}
 				}
 			}
