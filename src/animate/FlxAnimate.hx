@@ -153,7 +153,8 @@ class FlxAnimate extends FlxSprite
 		{
 			library = cast frames;
 			timeline = library.timeline;
-			applyStageMatrix = this.applyStageMatrix;
+			final curApplyStageMatrix:Bool = this.applyStageMatrix;
+			set_applyStageMatrix(curApplyStageMatrix); // Update timeline bounds
 			resetHelpers();
 		}
 		else

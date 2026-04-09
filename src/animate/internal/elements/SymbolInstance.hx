@@ -34,7 +34,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 		if (data == null)
 			return;
 
-		this.libraryItem = parent.getSymbol(data.SN, data.bitmap);
+		this.libraryItem = parent.getSymbol(data.SN, data.BM);
 		this.matrix = data.MX.toMatrix(this.matrix);
 		this.firstFrame = data.FF;
 		this.lastFrame = data.LF;
