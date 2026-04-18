@@ -71,9 +71,22 @@ class FlxAnimate extends FlxSprite
 	/**
 	 * Whether to apply the stage matrix of the Texture Atlas.
 	 * It also makes the sprite render with the bounds from Animate.
+	 * 
 	 * Take note that these bounds may not be accurate to flixel positions.
 	 */
 	public var applyStageMatrix(default, set):Bool = false;
+
+	/**
+	 * Wether to apply the stage matrix of the Texture Atlas before or after FlxSprite calculations.
+	 * Changes the behaviour of a sprite in relation to the position, scale and rotation of the matrix.
+	 * 
+	 * When set to ``false`` the stage matrix will apply before other FlxSprite matrix calculations,
+	 * as if the symbol was contained inside of the sprite.
+	 * 
+	 * When set to ``true`` the stage matrix will apply after FlxSprite matrix calculations,
+	 * as if the sprite was contained inside of the symbol.
+	 */
+	public var postStageMatrixApply:Bool = false;
 
 	/**
 	 * Whether to render the colored background rectangle found in Adobe Animate.
@@ -273,7 +286,15 @@ class FlxAnimate extends FlxSprite
 
 		if (doStageMatrix)
 		{
-			matrix.translate(timeline._bounds.x, timeline._bounds.y);
+			if (postStageMatrixApply)
+			{
+				matrix.translate(timeline._bounds.x, timeline._bounds.y);
+			}
+			else
+			{
+				matrix.concat(library.matrix);
+				matrix.translate(timeline._bounds.x * library.matrix.a, timeline._bounds.y * library.matrix.d);
+			}
 		}
 
 		matrix.translate(-origin.x, -origin.y);
@@ -291,7 +312,7 @@ class FlxAnimate extends FlxSprite
 			matrix.concat(_skewMatrix);
 		}
 
-		if (doStageMatrix) // TODO: add some way to customize the order of this thing
+		if (doStageMatrix && postStageMatrixApply)
 		{
 			matrix.concat(library.matrix);
 		}
