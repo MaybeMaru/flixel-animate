@@ -748,6 +748,7 @@ extern abstract SymbolJson(Dynamic)
 extern abstract MetadataJson(Dynamic)
 {
 	public var V(get, never):String;
+	public var FLV(get, never):String;
 	public var FRT(get, never):Float;
 
 	public var W(get, never):Int;
@@ -755,7 +756,10 @@ extern abstract MetadataJson(Dynamic)
 	public var BGC(get, never):String;
 
 	inline function get_V()
-		return this.V ?? this.version;
+		return this.V ?? this.version ?? "";
+
+	inline function get_FLV()
+		return this.FLV ?? this.flVersion ?? "";
 
 	inline function get_FRT()
 		return this.FRT ?? this.framerate;
