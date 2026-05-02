@@ -599,7 +599,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	var _stageMatrix:FlxMatrix;
 
-	inline function get_matrix():FlxMatrix
+	function get_matrix():FlxMatrix
 	{
 		return stageInstance?.matrix ?? (_stageMatrix ??= new FlxMatrix());
 	}

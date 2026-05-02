@@ -29,8 +29,12 @@ class StageBG extends FlxSprite
 
 		var mat = _matrix;
 		mat.identity();
-		mat.scale(parent.library.stageRect.width, parent.library.stageRect.height);
-		mat.translate(-0.5 * (mat.a - 1), -0.5 * (mat.d - 1));
+
+		final stageRect = parent.library.stageRect;
+		final stageMatrix = parent.library.matrix;
+
+		mat.scale(stageRect.width, stageRect.height);
+		mat.translate(-stageMatrix.tx, -stageMatrix.ty);
 
 		if (parent.checkRenderTexture())
 		{

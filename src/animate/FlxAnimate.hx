@@ -498,11 +498,9 @@ class FlxAnimate extends FlxSprite
 
 		if (isAnimate && renderStage)
 		{
-			var stageRect = library.stageRect;
-			rect.x = -timeline._bounds.x - (stageRect.width * 0.5);
-			rect.y = -timeline._bounds.y - (stageRect.height * 0.5);
-			rect.width = Math.max(rect.width, stageRect.width);
-			rect.height = Math.max(rect.height, stageRect.height);
+			final stageRect = this.library.stageRect;
+			final stageMatrix = this.library.matrix;
+			rect.union(FlxRect.weak(-timeline._bounds.x - stageMatrix.tx, -timeline._bounds.y - stageMatrix.ty, stageRect.width, stageRect.height));
 		}
 
 		Timeline.applyMatrixToRect(rect, matrix);
