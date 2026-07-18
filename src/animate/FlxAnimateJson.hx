@@ -913,7 +913,11 @@ abstract MatrixJson(Array<Float>) from Array<Float>
 
 	extern public inline function toMatrix(?result:FlxMatrix):FlxMatrix
 	{
+		#if flash
+		result ??= new FlxMatrix();
+		#else
 		result ??= FilterRenderer.matrixPool.get();
+		#end
 		result.setTo(a, b, c, d, tx, ty);
 		return result;
 	}
