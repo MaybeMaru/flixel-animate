@@ -28,8 +28,8 @@ class AdjustColorFilter
 		var lumG:Float = 0.6094;
 		var lumB:Float = 0.0820;
 
-		var cosH:Float = FlxMath.fastCos(h);
-		var sinH:Float = FlxMath.fastSin(h);
+		var cosH:Float = Math.cos(h);
+		var sinH:Float = Math.sin(h);
 
 		var hMat:Array<Float> = [
 			   lumR + cosH * (1 - lumR) + sinH * (-lumR),    lumG + cosH * (-lumG) + sinH * (-lumG), lumB + cosH * (-lumB) + sinH * (1 - lumB), 0, 0,
