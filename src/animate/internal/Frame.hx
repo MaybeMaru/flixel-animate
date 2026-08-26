@@ -318,14 +318,18 @@ class Frame implements IFlxDestroyable
 					var bytes = FlxAnimateAssets.getBytes(soundPath);
 					var buffer = lime.media.AudioBuffer.fromBytes(bytes);
 					_soundData = Sound.fromAudioBuffer(buffer);
-					sound = FlxG.sound.load(_soundData);
 				}
 				else
 				#end
 				{
 					_soundData = Assets.getSound(soundPath);
-					sound = FlxG.sound.load(_soundData);
 				}
+
+				#if (flixel >= "6.2.0")
+				sound = FlxG.sound.create(_soundData).setup();
+				#else
+				sound = FlxG.sound.load(_soundData);
+				#end
 			}
 		}
 		#end

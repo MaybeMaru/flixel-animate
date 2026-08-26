@@ -284,7 +284,12 @@ class FlxAnimateFrames extends FlxAtlasFrames
 
 	static function listWithFilter(path:String, filter:String->Bool, includeSubDirectories:Bool = false)
 	{
-		var list = FlxAnimateAssets.list(path, null, path.substring(0, path.indexOf(':')), includeSubDirectories);
+		var library = "";
+		var sepIndex = path.indexOf(':');
+		if (path.charAt(sepIndex + 1) != '/') // absolute paths fix
+			library = path.substring(0, sepIndex);
+
+		var list = FlxAnimateAssets.list(path, null, library, includeSubDirectories);
 		return list.filter(filter);
 	}
 
